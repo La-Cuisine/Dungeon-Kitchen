@@ -1,0 +1,36 @@
+ALTER TABLE games CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE `games` (
+    `id` int NOT NULL,
+    `name` varchar(100) DEFAULT NULL,
+    `category` varchar(50) DEFAULT NULL,
+    `players` varchar(20) DEFAULT NULL,
+    `rating` decimal(2,1) DEFAULT NULL,
+    `color` varchar(10) DEFAULT NULL,
+    `icon` varchar(10) DEFAULT NULL,
+    `tag` varchar(50) DEFAULT NULL,
+    `description` text,
+    PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `highscores` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `game_id` int DEFAULT NULL,
+    `player_name` varchar(50) DEFAULT NULL,
+    `score` int DEFAULT NULL,
+    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    `difficulty` varchar(10) DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `game_id` (`game_id`),
+    CONSTRAINT `highscores_ibfk_1`
+        FOREIGN KEY (`game_id`) REFERENCES `games` (`id`)
+);
+
+CREATE TABLE `users` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `username` varchar(50) NOT NULL,
+    `password` varchar(255) NOT NULL,
+    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `username` (`username`)
+);
