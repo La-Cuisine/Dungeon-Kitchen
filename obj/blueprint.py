@@ -4,7 +4,7 @@ class cell:
     self.state = State
     self.walls = Walls
 
-class map: 
+class blueprint: 
   def __init__(self, X, Y):
     self._name = "Untitled"
     self._length = X
