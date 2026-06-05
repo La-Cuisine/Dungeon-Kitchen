@@ -47,6 +47,8 @@ from PySide6.QtWidgets import (
     QTextEdit,       # Zone de texte multi-lignes (lecture seule pour les logs)
     QLabel,          # Étiquette de texte statique (titre, URL, libellés)
     QStatusBar,      # Barre d'état native de QMainWindow, affichée en bas de la fenêtre
+    QGridLayout,      # Grille pour afficher la carte
+    QMenuBar,
 )
 from PySide6.QtCore import (
     Qt,              # Espace de noms Qt : constantes d'alignement, drapeaux, etc.
@@ -54,9 +56,11 @@ from PySide6.QtCore import (
     Signal,          # Décorateur permettant à un thread de communiquer avec l'UI thread
 )
 from PySide6.QtGui import (
+    QIcon,           # Icone de l'application
     QFont,           # Représentation d'une police (famille, taille, graisse)
     QColor,          # Représentation d'une couleur (RGB, hex, nommée)
     QPalette,        # Ensemble de couleurs appliqué globalement à la fenêtre
+    QAction,         # Définir les actions pour la barre de menu
 )
 
 
@@ -142,7 +146,7 @@ class MainWindow(QMainWindow):
         Constructeur : initialise les objets métier, configure la fenêtre
         et crée tous les widgets de l'interface.
         """
-        super().__init__()   # Initialise QMainWindow (obligatoire)
+        super().__init__()
 
         # ----------------------------------------------------------------
         # Objets métier instanciés par la fenêtre principale
@@ -160,88 +164,63 @@ class MainWindow(QMainWindow):
         # Configuration de la fenêtre Qt
         # ----------------------------------------------------------------
 
-        # Titre affiché dans la barre de titre du système d'exploitation
         self.setWindowTitle("PHP Server Launcher")
-
-        # Taille minimale de la fenêtre en pixels (largeur x hauteur).
-        # L'utilisateur peut agrandir la fenêtre mais pas la réduire en dessous.
-        self.setMinimumSize(700, 520)
-
-        # Applique la palette de couleurs sombre et la feuille de style QSS
+        # Mettre une icone pour plus tard
+        #self.setWindowIcon(QIcon("icons/file.png"))
+        self.setMinimumSize(1250, 800)
         self._apply_dark_theme()
+
+        # Barre de menu
+        self.createActions()
+        self.createMenuBar()
 
         # ----------------------------------------------------------------
         # Construction de l'interface : layout principal vertical
         # ----------------------------------------------------------------
 
-        # QMainWindow exige un widget central ; on utilise un QWidget vide
-        # comme conteneur racine pour le layout vertical.
         central = QWidget()
         self.setCentralWidget(central)   # Définit le conteneur central
 
-        # Layout vertical : les widgets enfants s'empilent du haut vers le bas.
         root_layout = QVBoxLayout(central)
         root_layout.setSpacing(12)                      # 12 px entre chaque widget
         root_layout.setContentsMargins(16, 16, 16, 16)  # Marges intérieures de 16 px
 
         # ----------------------------------------------------------------
-        # Titre de l'application
-        # ----------------------------------------------------------------
-        title_label = QLabel("🐘  PHP Server Launcher")
-        title_font = QFont("Consolas", 16, QFont.Weight.Bold)   # Monospace, gras, 16pt
-        title_label.setFont(title_font)
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Centré horizontalement
-        root_layout.addWidget(title_label)
-
-        # ----------------------------------------------------------------
         # Label affichant l'URL cliquable du serveur
         # ----------------------------------------------------------------
+        partie_haut_layout = QHBoxLayout()
+        self.server_label = QLabel("Serveur: Closed")
+        self.server_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.server_label.setStyleSheet("color: #e74c3c; font-size: 13px;")
+        partie_haut_layout.addWidget(self.server_label)
+
+
         url_label = QLabel(f"URL : <a href='{SERVER_URL}'>{SERVER_URL}</a>")
         url_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # setOpenExternalLinks(True) rend le lien HTML cliquable dans le label
         url_label.setOpenExternalLinks(True)
         url_label.setStyleSheet("color: #7ecfff; font-size: 13px;")
-        root_layout.addWidget(url_label)
+        partie_haut_layout.addWidget(url_label)
+        root_layout.addLayout(partie_haut_layout)
+        # ----------------------------------------------------------------
+        # Interface central
+        # ----------------------------------------------------------------
+
+        mj_interface = QHBoxLayout()
+
+        self.infoMenu = QTextEdit()
+        self.infoMenu.setFixedWidth(200)
+        mj_interface.addWidget(self.infoMenu)
 
         # ----------------------------------------------------------------
-        # Ligne de boutons d'action (layout horizontal)
+        # Zone pour la carte et le chat
         # ----------------------------------------------------------------
-        btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(10)   # 10 px entre chaque bouton
+        
+        partie_droite_layout = QVBoxLayout()
+        self.map = QTextEdit()
+        self.map.setFixedHeight(500)
 
-        # Bouton "Démarrer le serveur" – vert
-        self._btn_start = QPushButton("▶  Démarrer le serveur")
-        self._btn_start.setFixedHeight(38)   # Hauteur fixe pour uniformiser les boutons
-        self._btn_start.setStyleSheet(self._btn_style("#2ecc71", "#27ae60"))
-        # clicked est un signal Qt ; connect() l'associe à notre méthode (slot)
-        self._btn_start.clicked.connect(self._start_server)
-
-        # Bouton "Arrêter le serveur" – rouge, désactivé au démarrage
-        self._btn_stop = QPushButton("■  Arrêter le serveur")
-        self._btn_stop.setFixedHeight(38)
-        self._btn_stop.setStyleSheet(self._btn_style("#e74c3c", "#c0392b"))
-        self._btn_stop.setEnabled(False)   # Désactivé : pas de serveur à arrêter au lancement
-        self._btn_stop.clicked.connect(self._stop_server)
-
-        # Bouton "Ouvrir dans le navigateur" – bleu, désactivé au démarrage
-        self._btn_browser = QPushButton("🌐  Ouvrir dans le navigateur")
-        self._btn_browser.setFixedHeight(38)
-        self._btn_browser.setStyleSheet(self._btn_style("#3498db", "#2980b9"))
-        self._btn_browser.setEnabled(False)  # Activé uniquement quand le serveur tourne
-        self._btn_browser.clicked.connect(self._open_browser)
-
-        # Ajout des trois boutons au layout horizontal, puis au layout principal
-        btn_layout.addWidget(self._btn_start)
-        btn_layout.addWidget(self._btn_stop)
-        btn_layout.addWidget(self._btn_browser)
-        root_layout.addLayout(btn_layout)
-
-        # ----------------------------------------------------------------
-        # Zone d'affichage des logs en temps réel
-        # ----------------------------------------------------------------
-        log_label = QLabel("Logs du serveur PHP :")
+        log_label = QLabel("Logs du serveur PHP/Chat :")
         log_label.setStyleSheet("color: #aaaaaa; font-size: 12px;")
-        root_layout.addWidget(log_label)
 
         self._log_view = QTextEdit()
         self._log_view.setReadOnly(True)   # L'utilisateur ne peut pas modifier les logs
@@ -253,8 +232,11 @@ class MainWindow(QMainWindow):
             "border-radius: 6px;"              # Coins légèrement arrondis
             "padding: 6px;"                    # Espace intérieur
         )
-        # addWidget sans second argument : le QTextEdit occupe tout l'espace restant
-        root_layout.addWidget(self._log_view)
+        partie_droite_layout.addWidget(self.map)
+        partie_droite_layout.addWidget(log_label)
+        partie_droite_layout.addWidget(self._log_view)
+        mj_interface.addLayout(partie_droite_layout)
+        root_layout.addLayout(mj_interface)
 
         # ----------------------------------------------------------------
         # Barre d'état en bas de la fenêtre principale
@@ -263,10 +245,61 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self._status_bar)   # QMainWindow gère la barre d'état nativement
         self._set_status("Serveur arrêté", "#e74c3c")   # État initial : rouge = arrêté
 
+
+    # ====================================================================
+    # MenuBar – méthodes pour créer la barre de menu
+    # ====================================================================
+
+    def createActions(self):
+        # Actions server
+        self.ouvre_serveur_text = QAction(QIcon("image/start_icon.png"),"Démarrer le serveur", self)
+        self.ouvre_serveur_text.setShortcut("Alt+D")
+        self.ouvre_serveur_text.triggered.connect(self._start_server)
+
+        self.ferme_serveur_text = QAction(QIcon("image/stop_icon.png"),"Arrêter le serveur", self)
+        self.ferme_serveur_text.setShortcut("Alt+F")
+        self.ferme_serveur_text.triggered.connect(self._stop_server)
+
+        self.ouvre_site_text = QAction(QIcon("image/web_icon.png"),"Ouvrir dans le navigateur", self)
+        self.ouvre_site_text.setShortcut("Alt+O")
+        self.ouvre_site_text.triggered.connect(self._open_browser)
+
+        # Actions edit
+        self.undo = QAction(QIcon("image/placeholder.png"),"Undo", self)
+        self.undo.setShortcut("Ctrl+Z")
+
+        self.redo = QAction(QIcon("image/placeholder.png"),"Redo", self)
+        self.redo.setShortcut("Ctrl+Y")
+
+        self.copy = QAction(QIcon("image/placeholder.png"),"Copy", self)
+        self.copy.setShortcut("Ctrl+C")
+
+        self.paste = QAction(QIcon("image/placeholder.png"),"Paste", self)
+        self.paste.setShortcut("Ctrl+V")
+
+        self.cut = QAction(QIcon("image/placeholder.png"),"Cut", self)
+        self.cut.setShortcut("Ctrl+X")
+
+
+    def createMenuBar(self):
+        menuBar = self.menuBar()
+        server = menuBar.addMenu("Serveur")
+        server.addAction(self.ouvre_serveur_text)
+        server.addAction(self.ferme_serveur_text)
+        server.addSeparator()
+        server.addAction(self.ouvre_site_text)
+
+        edit = menuBar.addMenu("Edit")
+        edit.addAction(self.undo)
+        edit.addAction(self.redo)
+        edit.addSeparator()
+        edit.addAction(self.copy)
+        edit.addAction(self.paste)
+        edit.addAction(self.cut)
+
     # ====================================================================
     # Slots – méthodes connectées aux signaux des boutons et du thread
     # ====================================================================
-
     def _start_server(self):
         """
         Slot connecté au signal clicked du bouton "Démarrer le serveur".
@@ -298,14 +331,10 @@ class MainWindow(QMainWindow):
         # Lance le thread secondaire (appelle run() dans un thread OS séparé)
         self._log_thread.start()
 
-        # Met à jour les états des boutons pour refléter la nouvelle situation
-        self._btn_start.setEnabled(False)    # Impossible de démarrer deux fois
-        self._btn_stop.setEnabled(True)      # Autoriser l'arrêt maintenant
-        self._btn_browser.setEnabled(True)   # Autoriser l'ouverture du navigateur
-
         # Met à jour la barre d'état avec un message vert (serveur actif)
         self._set_status(f"Serveur en cours d'exécution sur {SERVER_URL}", "#2ecc71")
         self._append_log(f"[INFO] Serveur PHP démarré → {SERVER_URL}")
+        self._update_server_label("Open")
 
     # ------------------------------------------------------------------
     def _stop_server(self):
@@ -320,37 +349,25 @@ class MainWindow(QMainWindow):
         L'ordre est important : on arrête le thread AVANT le processus pour
         éviter que le thread tente de lire un stdout fermé.
         """
-        # ⚠️  ORDRE CRITIQUE : tuer PHP en premier, thread ensuite.
-        #
-        # readline() dans LogReaderThread.run() est bloquant : il attend qu'une
-        # nouvelle ligne arrive depuis stdout de PHP. Si on appelle wait() sur le
-        # thread AVANT d'avoir fermé PHP, l'UI thread se bloque indéfiniment
-        # (deadlock : l'UI attend le thread, le thread attend PHP).
-        #
-        # En arrêtant PHP d'abord, son stdout est fermé → readline() reçoit b""
-        # (EOF) et la boucle iter() se termine naturellement → le thread peut
-        # alors s'arrêter et wait() retourne immédiatement.
 
-        # 1. Signale au thread de ne plus émettre de nouveaux logs
-        if self._log_thread is not None:
+        if self._log_thread is None:
+            self._append_log("[ERREUR] Serveur ne peut pas être arrêté (Serveur n'est pas ouvert).")
+
+        else:
+            # 1. Signale au thread de ne plus émettre de nouveaux logs
             self._log_thread.stop()   # Positionne le drapeau _running à False
-
-        # 2. Arrête le processus PHP → provoque l'EOF sur stdout du thread
-        self._controller.stop()
-
-        # 3. Attend la fin du thread (désormais débloqué par l'EOF)
-        if self._log_thread is not None:
+    
+            # 2. Arrête le processus PHP → provoque l'EOF sur stdout du thread
+            self._controller.stop()
+    
+            # 3. Attend la fin du thread (désormais débloqué par l'EOF)
             self._log_thread.wait(3000)   # Timeout 3 s en sécurité (ne bloque plus)
             self._log_thread = None       # Libère la référence pour le garbage collector
-
-        # Rétablit les états initiaux des boutons
-        self._btn_start.setEnabled(True)
-        self._btn_stop.setEnabled(False)
-        self._btn_browser.setEnabled(False)
-
-        # Met à jour la barre d'état avec un message rouge (serveur arrêté)
-        self._set_status("Serveur arrêté", "#e74c3c")
-        self._append_log("[INFO] Serveur PHP arrêté.")
+    
+            # Met à jour la barre d'état avec un message rouge (serveur arrêté)
+            self._set_status("Serveur arrêté", "#e74c3c")
+            self._append_log("[INFO] Serveur PHP arrêté.")
+            self._update_server_label("Closed")
 
     # ------------------------------------------------------------------
     def _open_browser(self):
@@ -366,14 +383,24 @@ class MainWindow(QMainWindow):
     # Méthodes utilitaires internes (préfixe _ = usage interne à la classe)
     # ====================================================================
 
+    def _update_server_label(self,state: str):
+        """
+        Met à jour l'affichage pour l'état du serveur.
+
+        :param state: Open ou Closed. Décris si le serveur est 
+        ouvert ou non.
+        """
+        if state == "Closed":
+            self.server_label.setText("Serveur: Closed")
+            self.server_label.setStyleSheet("color: #e74c3c; font-size: 13px;")
+        elif state == "Open":
+            self.server_label.setText("Serveur: Open")
+            self.server_label.setStyleSheet("color: #2ecc71; font-size: 13px;")
+
     def _append_log(self, text: str):
         """
         Ajoute une ligne au bas de la zone de logs et fait défiler
         automatiquement vers la dernière ligne.
-
-        Appelé depuis :
-          - LogReaderThread via le signal new_line (thread secondaire → UI thread)
-          - Directement pour les messages INFO / ERREUR internes
 
         :param text: Ligne de texte à afficher (déjà décodée en str).
         """
@@ -403,8 +430,6 @@ class MainWindow(QMainWindow):
         """
         Génère et retourne une feuille de style QSS (Qt Style Sheet) pour un
         bouton, avec trois états visuels : normal, survol (hover) et désactivé.
-
-        Méthode statique car elle ne dépend d'aucun attribut d'instance.
 
         :param color_normal: Couleur de fond à l'état normal (hex).
         :param color_hover:  Couleur de fond quand la souris survole le bouton (hex).
@@ -501,27 +526,10 @@ class MainWindow(QMainWindow):
 # ---------------------------------------------------------------------------
 # Point d'entrée – exécuté uniquement lors d'un lancement direct du script
 # ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    """
-    Ce bloc est exécuté quand on lance :
-        python gui.py
-    Il ne s'exécute PAS si gui.py est importé par un autre module.
-    """
-
-    # QApplication est obligatoire avant tout widget Qt.
-    # sys.argv transmet les arguments de la ligne de commande à Qt
-    # (utilisés pour certaines options Qt comme -style, -platform…).
+if __name__ == "__main__":   
     app = QApplication(sys.argv)
-
-    # Nom de l'application, utilisé par certains thèmes natifs du système
     app.setApplicationName("PHP Server Launcher")
 
-    # Instancie et affiche la fenêtre principale
     window = MainWindow()
     window.show()
-
-    # Lance la boucle d'événements Qt.
-    # app.exec() bloque jusqu'à ce que la fenêtre soit fermée.
-    # sys.exit() transmet le code de retour de Qt au système d'exploitation
-    # (0 = succès, non-zéro = erreur).
     sys.exit(app.exec())
