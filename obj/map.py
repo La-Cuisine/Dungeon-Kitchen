@@ -55,11 +55,8 @@ class map:
     for i in range(X):
       l = []
       for j in range(Y):
-        if(X>self._length and Y>self._width):
           l.append(0)
-        else:
-          l.append(self._grid[i][j])
-        new.append(l)
+      new.append(l)
     self._grid = new
     self._length = X
     self._width = Y
