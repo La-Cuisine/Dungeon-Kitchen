@@ -32,7 +32,7 @@ class game:
           new.resize(X,Y)
       else: 
         new = m
-      self._layers[s] = m
+      self._layers[name] = m
   
   def remove_layer(self,s):
     if not(s in self._layers):
