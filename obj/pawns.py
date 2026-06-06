@@ -29,9 +29,15 @@ class NPC:
   def resize(self, s):
     self._size = s
   def realign(self, a):
+    if(a>3 or a<0):
+      raise Exception("ArgumentOutOfRange")
     self._align = a
   def rename(self, n):
     self._name = n
+  def alter_stat(self,s,v):
+    if not s in self._stats:
+      raise Exception("DoesNotExist")
+    self._stats[s] = v
   def redescribe(self, d):
     self._desc = d
 

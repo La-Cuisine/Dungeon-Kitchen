@@ -1,13 +1,13 @@
 class Cell:
   def __init__(self, Content=0, Walls=0b0000, Doors=0b0000):
     if(Content<0 or Content>3):
-      raise Exception("InvalidArgument")
+      raise Exception("ArgumentOutOfRange")
     self._content = Content # 0=path; 1=void; 2=filled; 3=transition
     if(Walls>0b1111 or Walls<0b000):
-      raise Exception("InvalidArgument")
+      raise Exception("ArgumentOutOfRange")
     self._walls = Walls # 0b1010
     if(Doors>0b1111 or Doors<0b000):
-      raise Exception("InvalidArgument")
+      raise Exception("ArgumentOutOfRange")
     self._doors = Doors # 0b1010
 
   #getters
@@ -21,15 +21,15 @@ class Cell:
   #setters
   def set_content(c):
     if(c<0 or c>3):
-      raise Exception("InvalidArgument")
+      raise Exception("ArgumentOutOfRange")
     self._content = c
   def set_walls(w):
     if(w>0b1111 or w<0b000):
-      raise Exception("InvalidArgument")
+      raise Exception("ArgumentOutOfRange")
     self._walls = w # 0b1010
   def set_doors(d):
     if(d>0b1111 or d<0b000):
-      raise Exception("InvalidArgument")
+      raise Exception("ArgumentOutOfRange")
     self._doors = d # 0b1010
 
 
@@ -37,9 +37,9 @@ class Blueprint:
   def __init__(self, X, Y, s="Unlabeled"):
     self._name = s
     if(X<1):
-      raise Exception("InvalidArgument")
+      raise Exception("ArgumentOutOfRange")
     if(Y<1):
-      raise Exception("InvalidArgument")
+      raise Exception("ArgumentOutOfRange")
     self._length = X
     self._width = Y
     self._grid = []
@@ -89,6 +89,8 @@ class Blueprint:
     self._width = Y
 
   def insert(self,mp,posX,posY):
+    if(not isinstance(mp,Blueprint)):
+      raise Exception("InvalidArgument")
     endX = mp.length()+posX
     if(self.length()<endX):
       endX = self.length()
