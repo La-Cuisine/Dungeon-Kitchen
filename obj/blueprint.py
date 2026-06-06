@@ -59,12 +59,15 @@ class Blueprint:
     return self._width
   def grid():
     return self._grid
+  def get_cell(x,y):
+    return self._grid[x][y]
 
   #setters
   def rename(s):
     self._name = s
   def set_cell(x,y,c):
-
+    if not isinstance(c,Cell):
+      raise Exception("InvalidArgument")
     self._grid[x][y] = c
 
   #methods
@@ -84,3 +87,14 @@ class Blueprint:
     self._grid = new
     self._length = X
     self._width = Y
+
+  def insert(self,mp,posX,posY):
+    endX = mp.length()+posX
+    if(self.length()<endX):
+      endX = self.length()
+    endY = mp.length()+posY
+    if(self.width()<endY):
+      endY = self.width()
+    for i in range(posX,endX):    
+      for j in range(posY,endY):
+        self.set_cell(i,j,mp.get_cell((i-posX),(j-posY)))
