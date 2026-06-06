@@ -1,23 +1,16 @@
-class cell:
+class Cell:
   def __init__(self, Content, State, Walls):
-    self.content = Content
-    self.state = State
-    self.walls = Walls
+    self.content = Content #?: ex: 0=void 1=path 2=object etc
+    self.state = State #?: ex: 0=empty 1=occupied etc
+    self.walls = Walls #?: 0b1010
 
-class blueprint: 
-  def __init__(self, X, Y):
-    self._name = "Untitled"
-    self._length = X
-    self._width = Y
-    self._grid = []
-    #map initialisation
-    for i in range(X):
-      l = []
-      for j in range(Y):
-        l.append(0)
-      self._grid.append(l)
-  def __init__(self, s, X, Y):
+class Blueprint: 
+  def __init__(self, X, Y, s="Unlabeled"):
     self._name = s
+    if(X<1):
+      raise Exception("InvalidArgument")
+    if(Y<1):
+      raise Exception("InvalidArgument")
     self._length = X
     self._width = Y
     self._grid = []
@@ -27,7 +20,7 @@ class blueprint:
       for j in range(Y):
         l.append(0)
       self._grid.append(l)
-  
+
   #getters
   def name():
     return self._name
