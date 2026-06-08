@@ -1,36 +1,92 @@
+class Prop:
+  def __init__(self, Name, Type=0, Description="", State=0):
+    self._name = Name
+    self._type = Type
+    self._desc = Description
+    self._state = State #ex: 0=Neutral; 1=Activated
+  
+  #getters
+  def name(self):
+    return self._name
+  def type(self):
+    return self._type
+  def description(self):
+    return self._desc
+  def state(self):
+    return self._state
+
+  #setters 
+  def rename(self,n):
+    self._name = n
+  def redefine(self,t):
+    self._type = t
+  def redescribe(self,d):
+    self._desc = d
+  def restate(self,s):
+    self._state = s
+
+  #methods
+  def activate(self):
+    self._state = 1
+  def deactivate(self):
+    self._state = 0
+  def succ(self):
+    self._state +=1
+  def pred(self):
+    self._state -=1
+
+
+
 class Cell:
-  def __init__(self, Content=0, Walls=0b0000, Doors=0b0000):
-    if(Content<0 or Content>3):
+  def __init__(self, Contents=[], Ground=0, Walls=0b0000, Doors=0b0000):
+    self._contents = Contents
+    if(Ground<0 or Ground>4):
       raise Exception("ArgumentOutOfRange")
-    self._content = Content # 0=path; 1=void; 2=filled; 3=transition
+    self._ground = Ground # 0=terrain; 1=floor; 2=void; 3=solid; 4=transition
     if(Walls>0b1111 or Walls<0b000):
       raise Exception("ArgumentOutOfRange")
-    self._walls = Walls # 0b1010
+    self._walls = Walls # 0b1010 = NESW
     if(Doors>0b1111 or Doors<0b000):
       raise Exception("ArgumentOutOfRange")
-    self._doors = Doors # 0b1010
+    self._doors = Doors # 0b1010 = NESW
 
   #getters
-  def content(self):
-    return self._content
+  def contents(self):
+    return self._contents
+  def ground(self):
+    return self._ground
   def walls(self):
     return self._walls
   def doors(self):
     return self._doors
   
   #setters
-  def set_content(c):
-    if(c<0 or c>3):
+  def set_ground(self, c):
+    if(c<0 or c>4):
       raise Exception("ArgumentOutOfRange")
-    self._content = c
-  def set_walls(w):
+    self._ground = c
+  def set_walls(self, w):
     if(w>0b1111 or w<0b000):
       raise Exception("ArgumentOutOfRange")
-    self._walls = w # 0b1010
-  def set_doors(d):
+    self._walls = w 
+  def set_doors(self, d):
     if(d>0b1111 or d<0b000):
       raise Exception("ArgumentOutOfRange")
-    self._doors = d # 0b1010
+    self._doors = d 
+
+  #methods 
+  def add_content(self, con):
+    if(not isinstance(con,Prop)): 
+      raise Exception("InvalidArgument")
+    self._contents.append(con)
+  def remove_content(self, i):
+    res = None
+    if(len(self._contents)<i):
+      return Exception("IndexOutOfRange")
+    res = self._contents[i]
+    del self._contents[i]
+    return res
+
 
 
 class Blueprint: 
@@ -51,21 +107,21 @@ class Blueprint:
       self._grid.append(l)
 
   #getters
-  def name():
+  def name(self):
     return self._name
-  def length():
+  def length(self):
     return self._length
-  def width():
+  def width(self):
     return self._width
-  def grid():
+  def grid(self):
     return self._grid
-  def get_cell(x,y):
+  def get_cell(self,x,y):
     return self._grid[x][y]
 
   #setters
-  def rename(s):
+  def rename(self,s):
     self._name = s
-  def set_cell(x,y,c):
+  def set_cell(self,x,y,c):
     if not isinstance(c,Cell):
       raise Exception("InvalidArgument")
     self._grid[x][y] = c
@@ -77,7 +133,7 @@ class Blueprint:
         self._grid[i][j] = Cell()
   
   def resize(self, X, Y):
-    #resize deletes grid
+    #resize deletes previous grid
     new = []
     for i in range(X):
       l = []

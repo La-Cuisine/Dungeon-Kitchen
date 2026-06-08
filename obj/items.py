@@ -1,8 +1,8 @@
 class Item:
-  def __init__(self,Name):
+  def __init__(self, Name, Type=0, Description=""):
     self._name = Name 
-    self._type = 0 #TODO
-    self._desc = ""
+    self._type = Type #TODO
+    self._desc = Description
 
   #getters
   def name(self):
@@ -18,4 +18,4 @@ class Item:
   def redefine(self,t):
     self._type = t
   def redescribe(self,d):
-    self._type = d
+    self._desc = d
