@@ -3,9 +3,10 @@ import blueprint
 class game:
   def __init__(self):
     #???
-    self._base_length = 100
-    self._base_width = 100
+    self.__base_length = 100
+    self.__base_width = 100
     self._layers = dict() #(layer_name:map)
+    self._notes = dict()
   
   #getters
   def layers(self):

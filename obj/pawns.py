@@ -1,10 +1,9 @@
 import items
 
 class NPC:
-  def __init__(self,Name):
+  def __init__(self, Name="Unknown", Alignement=0):
     #???
-    self._size = 1 #i.e nbCells occupied
-    self._align = 0 # 0:Neutral; 1:Ally; 2:Hostile
+    self._align = Alignement # 0:Neutral; 1:Ally; 2:Hostile
     self._name = Name
     self._stats = dict() #ex: INT:14 /alt INT:(14,(+2))
     #modifiers?
@@ -12,8 +11,6 @@ class NPC:
     self._inv = []
 
   #getters
-  def size(self):
-    return self._size
   def alignement(self):
     return self._align
   def name(self):
@@ -26,8 +23,6 @@ class NPC:
     return self._inv
 
   #setters
-  def resize(self, s):
-    self._size = s
   def realign(self, a):
     if(a>3 or a<0):
       raise Exception("ArgumentOutOfRange")
@@ -55,10 +50,10 @@ class NPC:
     return res
 
 class PC:
-  def __init__(self):
+  def __init__(self, ID=0, Name="Unknown"):
     #???
-    self._playerID = 0 #Unassigned
-    self._name = "Unknown"
+    self._playerID = ID #Unassigned
+    self._name = Name
     self._stats = dict() #ex: INT:14 /alt INT:(14,(+2))
     self._desc = ""
     self._inv = []
@@ -78,12 +73,12 @@ class PC:
   #setters
   def reassign(self, ID):
     self._playerID = ID
+  def rename(self, n):
+    self._name = n
   def alter_stat(self,s,v):
     if not s in self._stats:
       raise Exception("DoesNotExist")
     self._stats[s] = v
-  def rename(self, n):
-    self._name = n
   def redescribe(self, d):
     self._desc = d
 
