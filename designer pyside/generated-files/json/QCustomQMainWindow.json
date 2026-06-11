@@ -1,0 +1,8 @@
+{
+  "QPushButton": [
+    {
+      "name": "pushButton",
+      "icon": "icons\\font_awesome\\brands\\buffer.png"
+    }
+  ]
+}
