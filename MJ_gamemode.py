@@ -64,23 +64,23 @@ class MainWindow(QMainWindow):
         self.univers.setSceneRect(0,0,700, 520)
         # cree un espace de "visualisation"/"rendu" de la scene
         self.view = QGraphicsView(self.univers)
-        self.view.setRenderHint(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing | QPainter.RenderHint.SmoothPixmapTransform) #ant
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.view.setRenderHint(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing | QPainter.RenderHint.SmoothPixmapTransform) #antialiasing + meilleur rendu pour image 
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff) # desactive la barre de scroll-V VISUELEMENT UNIQUEMENT
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff) # desactive la barre de scroll-H VISUELEMENT UNIQUEMENT
         self.view.setBackgroundBrush(QBrush(QColor("#e8e8e8ff")))
-
+        self.view.setAlignment(Qt.AlignmentFlag.AlignLeft) # force l'espace à ce coller gauche (permet par exemple un meilleur rendu du rectangle "profile_rect")
         contain = QWidget()
         self.root_layout = QVBoxLayout(contain)
         #root_layout.setSpacing(12)
         self.root_layout.setContentsMargins(7, 7, 7, 7)        
         self.root_layout.addWidget(self.view)
         self.setCentralWidget(contain)
+        
+        self.profile_rect = layerrect(0,0,60,350,1)    
 
-        self.profile_rect = layerrect(0,0,60,400,1)    
-
-        layer1 = layerwindow(50,50,200,500,3,"Black")
-        layer2 = layerwindow(300,50,200,500,2,"Black")
-        layer3 = layerwindow(300,50,200,500,4,"Black")
+        layer1 = layerwindow(50,80,200,500,3,"Black")
+        layer2 = layerwindow(300,80,200,500,2,"Black")
+        layer3 = layerwindow(300,80,200,500,4,"Black")
         z_dic[layer1] = layer1.zValue()
         z_dic[layer2] = layer2.zValue()
         z_dic[layer3] = layer2.zValue()         
@@ -119,15 +119,20 @@ class MainWindow(QMainWindow):
 
     def resizeEvent(self, event: QResizeEvent):
         
-        self.view.fitInView(self.univers.sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding)
+        #adapte la view de façon proporttionnel à la scene
+        self.view.fitInView(self.univers.sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding) 
+        #Force la scene à s'adapter correctement à la partie visible de la scene  (plus de scrolling H et V)
+        self.view.setSceneRect(self.view.mapToScene(self.view.viewport().rect()).boundingRect())
         self.profile_rect.Align(Qt.AlignmentFlag.AlignVCenter)
         scale = self.view.transform().m11()
 
         for item in self.univers.items():
             if isinstance(item,layerwindow):
                 item.setScale(1.0/scale)
-
-
+                
+            #if isinstance(item,layerrect):
+            #    item.setScale(item.scale()/scale)
+        
         print("here")
         super().resizeEvent(event)
    
@@ -147,7 +152,7 @@ class layerwindow(QGraphicsItem):
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
-        
+    
         self.setOpacity(0.8)
             
         
@@ -192,7 +197,7 @@ class layerwindow(QGraphicsItem):
     #Dessine
     def paint(self, painter = None, option = None, widget = None):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing) 
-        painter.setPen(QPen(Qt.black,3))
+        painter.setPen(QPen(Qt.black,0))
         painter.setBrush(QBrush(self.color))
         painter.drawRoundedRect(self.rect,self.round,self.round)
 
@@ -211,7 +216,7 @@ class childrect(QGraphicsItem):
         self.parent = parent
         self.round = 10
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
-        self.button = self.addButItem(80/100*w,y-1)
+        self.button = self.addButItem(88/100*w,y-1)
         
         
 
@@ -243,10 +248,10 @@ class childrect(QGraphicsItem):
                 QPushButton {
                              background : transparent;
                              border : none ;
-                            font-size : 13;
+                            font-size : 17px;
                              }
                 QPushButton:hover {
-                             font-size : 14px;
+                             font-size : 19px;
                              }""")
         
         #conteneur du boutton
@@ -295,8 +300,9 @@ class layerrect(QGraphicsRectItem):
         if align == Qt.AlignmentFlag.AlignVCenter:
             y = scene.top() + (scene.height()- self.rect.height()) /2 
         
-        x = scene.left() -5
+        x = scene.left()
         self.setPos(x,y)
+        
 
         
 if __name__ == "__main__":
