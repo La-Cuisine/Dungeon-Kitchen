@@ -37,23 +37,14 @@ from server import ServerController, SERVER_URL
 # ---------------------------------------------------------------------------
 # Imports PySide6 – bibliothèque Qt pour Python (interface graphique)
 # ---------------------------------------------------------------------------
-from PySide6.QtWidgets import (
-    QApplication,    # Objet application Qt : obligatoire avant tout widget
-    QMainWindow,     # Fenêtre principale avec barre de titre, menus et barre d'état
-    QWidget,         # Widget de base utilisé comme conteneur central
-    QVBoxLayout,     # Disposition verticale : les enfants s'empilent de haut en bas
-    QHBoxLayout,     # Disposition horizontale : les enfants s'alignent de gauche à droite
-    QPushButton,     # Bouton interactif avec texte et style personnalisable
-    QTextEdit,       # Zone de texte multi-lignes (lecture seule pour les logs)
-    QLabel,          # Étiquette de texte statique (titre, URL, libellés)
-    QStatusBar,      # Barre d'état native de QMainWindow, affichée en bas de la fenêtre
-    QGridLayout,      # Grille pour afficher la carte
-    QMenuBar,
-)
+from PySide6.QtWidgets import *
 from PySide6.QtCore import (
     Qt,              # Espace de noms Qt : constantes d'alignement, drapeaux, etc.
     QThread,         # Classe de base pour créer des threads gérés par Qt
     Signal,          # Décorateur permettant à un thread de communiquer avec l'UI thread
+    QMargins,
+    QRect,
+    QSize,
 )
 from PySide6.QtGui import (
     QIcon,           # Icone de l'application
@@ -61,6 +52,7 @@ from PySide6.QtGui import (
     QColor,          # Représentation d'une couleur (RGB, hex, nommée)
     QPalette,        # Ensemble de couleurs appliqué globalement à la fenêtre
     QAction,         # Définir les actions pour la barre de menu
+    QPixmap,         # Image de la carte
 )
 
 
@@ -171,8 +163,8 @@ class MainWindow(QMainWindow):
         self._apply_dark_theme()
 
         # Barre de menu
-        self.createActions()
-        self.createMenuBar()
+        self._createActions()
+        self._createMenuBar()
 
         # ----------------------------------------------------------------
         # Construction de l'interface : layout principal vertical
@@ -181,62 +173,131 @@ class MainWindow(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)   # Définit le conteneur central
 
-        root_layout = QVBoxLayout(central)
+        root_layout = QHBoxLayout(central)
         root_layout.setSpacing(12)                      # 12 px entre chaque widget
         root_layout.setContentsMargins(16, 16, 16, 16)  # Marges intérieures de 16 px
 
         # ----------------------------------------------------------------
-        # Label affichant l'URL cliquable du serveur
-        # ----------------------------------------------------------------
-        partie_haut_layout = QHBoxLayout()
-        self.server_label = QLabel("Serveur: Closed")
-        self.server_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.server_label.setStyleSheet("color: #e74c3c; font-size: 13px;")
-        partie_haut_layout.addWidget(self.server_label)
-
-
-        url_label = QLabel(f"URL : <a href='{SERVER_URL}'>{SERVER_URL}</a>")
-        url_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        url_label.setOpenExternalLinks(True)
-        url_label.setStyleSheet("color: #7ecfff; font-size: 13px;")
-        partie_haut_layout.addWidget(url_label)
-        root_layout.addLayout(partie_haut_layout)
-        # ----------------------------------------------------------------
-        # Interface central
+        # Sidebar
         # ----------------------------------------------------------------
 
-        mj_interface = QHBoxLayout()
+        self.sidebar_up = QVBoxLayout()
+        self.sidebar_up.setAlignment(Qt.AlignTop)
+        #self.sidebar_up.setAlignment(Qt.AlignLeft)
+        self.sidebar_down = QVBoxLayout()
+        #self.sidebar_down.setAlignment(Qt.AlignBottom)
+        placeholder = QPixmap("image/placeholder.png")
+        sidebar_icon_size = QSize(25,25)
 
-        self.infoMenu = QTextEdit()
-        self.infoMenu.setFixedWidth(200)
-        mj_interface.addWidget(self.infoMenu)
+        # Tous les boutons de la sidebar_up
+        self.character = QPushButton()
+        self.character.setIcon(placeholder)
+        self.character.setIconSize(sidebar_icon_size)
+        self.character.setFixedWidth(40)
+        self.sidebar_up.addWidget(self.character)
 
-        # ----------------------------------------------------------------
-        # Zone pour la carte et le chat
-        # ----------------------------------------------------------------
+        self.map = QPushButton()
+        self.map.setIcon(placeholder)
+        self.map.setIconSize(sidebar_icon_size)
+        self.map.setFixedWidth(40)
+        self.sidebar_up.addWidget(self.map)
+
+        self.etc = QPushButton()
+        self.etc.setIcon(placeholder)
+        self.etc.setIconSize(sidebar_icon_size)
+        self.etc.setFixedWidth(40)
+        self.sidebar_up.addWidget(self.etc)
+
+        # Tous les boutons de la sidebar_down
+        self.settings = QPushButton()
+        self.settings.setIcon(placeholder)
+        self.settings.setIconSize(sidebar_icon_size)
+        self.settings.setFixedWidth(40)
+        self.sidebar_up.addWidget(self.settings)
+
+        self.help = QPushButton()
+        self.help.setIcon(placeholder)
+        self.help.setIconSize(sidebar_icon_size)
+        self.help.setFixedWidth(40)
+        self.sidebar_up.addWidget(self.help)
+
+        self.about = QPushButton()
+        self.about.setIcon(placeholder)
+        self.about.setIconSize(sidebar_icon_size)
+        self.about.setFixedWidth(40)
+        self.sidebar_up.addWidget(self.about)
+
+        root_layout.addLayout(self.sidebar_up)
+        root_layout.addLayout(self.sidebar_down)
         
-        partie_droite_layout = QVBoxLayout()
-        self.map = QTextEdit()
-        self.map.setFixedHeight(500)
-
-        log_label = QLabel("Logs du serveur PHP/Chat :")
-        log_label.setStyleSheet("color: #aaaaaa; font-size: 12px;")
-
-        self._log_view = QTextEdit()
-        self._log_view.setReadOnly(True)   # L'utilisateur ne peut pas modifier les logs
-        self._log_view.setFont(QFont("Consolas", 11))   # Police monospace pour les logs
-        self._log_view.setStyleSheet(
+        self.infoMenu = QTextEdit()
+        self.infoMenu.setReadOnly(True)   # L'utilisateur ne peut pas modifier les logs
+        self.infoMenu.setFont(QFont("Consolas", 11))   # Police monospace pour les logs
+        self.infoMenu.setStyleSheet(
             "background-color: #0d1117;"       # Fond très sombre (style terminal)
             "color: #c9d1d9;"                  # Texte gris clair
             "border: 1px solid #30363d;"       # Bordure subtile
             "border-radius: 6px;"              # Coins légèrement arrondis
             "padding: 6px;"                    # Espace intérieur
         )
-        partie_droite_layout.addWidget(self.map)
-        partie_droite_layout.addWidget(log_label)
-        partie_droite_layout.addWidget(self._log_view)
-        mj_interface.addLayout(partie_droite_layout)
-        root_layout.addLayout(mj_interface)
+        self.infoMenu.setFixedWidth(200)
+        root_layout.addWidget(self.infoMenu)
+
+        # ----------------------------------------------------------------
+        # Label affichant l'URL cliquable du serveur
+        # ----------------------------------------------------------------
+        partie_central_layout = QVBoxLayout()
+        label_layout = QHBoxLayout()
+        self.server_label = QLabel("Serveur: Closed")
+        self.server_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.server_label.setStyleSheet("color: #e74c3c; font-size: 13px;")
+        label_layout.addWidget(self.server_label)
+
+
+        url_label = QLabel(f"URL : <a href='{SERVER_URL}'>{SERVER_URL}</a>")
+        url_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        url_label.setOpenExternalLinks(True)
+        url_label.setStyleSheet("color: #7ecfff; font-size: 13px;")
+        label_layout.addWidget(url_label)
+        partie_central_layout.addLayout(label_layout)
+
+        # ----------------------------------------------------------------
+        # Zone pour la carte
+        # ----------------------------------------------------------------
+        
+        self.map = QGridLayout()
+        self.map.setHorizontalSpacing(0)
+        self.map.setVerticalSpacing(0)
+        self.map.setSizeConstraint(QLayout.SizeConstraint.SetMaximumSize)
+
+        self._create_map_empty()
+        #self._add_map_cell("image/placeholder.png",0,0)
+        #self._add_map_cell("image/placeholder.png",0,1)
+        
+        #_show_map()
+
+        # ----------------------------------------------------------------
+        # Zone pour le chat
+        # ----------------------------------------------------------------
+
+        log_label = QLabel("Logs du serveur PHP/Chat :")
+        log_label.setStyleSheet("color: #aaaaaa; font-size: 12px;")
+
+        self.log_view = QTextEdit()
+        self.log_view.setMinimumHeight(150)
+        self.log_view.setReadOnly(True)   # L'utilisateur ne peut pas modifier les logs
+        self.log_view.setFont(QFont("Consolas", 11))   # Police monospace pour les logs
+        self.log_view.setStyleSheet(
+            "background-color: #0d1117;"       # Fond très sombre (style terminal)
+            "color: #c9d1d9;"                  # Texte gris clair
+            "border: 1px solid #30363d;"       # Bordure subtile
+            "border-radius: 6px;"              # Coins légèrement arrondis
+            "padding: 6px;"                    # Espace intérieur
+        )
+        partie_central_layout.addLayout(self.map)
+        partie_central_layout.addWidget(log_label)
+        partie_central_layout.addWidget(self.log_view)
+        root_layout.addLayout(partie_central_layout)
 
         # ----------------------------------------------------------------
         # Barre d'état en bas de la fenêtre principale
@@ -244,58 +305,6 @@ class MainWindow(QMainWindow):
         self._status_bar = QStatusBar()
         self.setStatusBar(self._status_bar)   # QMainWindow gère la barre d'état nativement
         self._set_status("Serveur arrêté", "#e74c3c")   # État initial : rouge = arrêté
-
-
-    # ====================================================================
-    # MenuBar – méthodes pour créer la barre de menu
-    # ====================================================================
-
-    def createActions(self):
-        # Actions server
-        self.ouvre_serveur_text = QAction(QIcon("image/start_icon.png"),"Démarrer le serveur", self)
-        self.ouvre_serveur_text.setShortcut("Alt+D")
-        self.ouvre_serveur_text.triggered.connect(self._start_server)
-
-        self.ferme_serveur_text = QAction(QIcon("image/stop_icon.png"),"Arrêter le serveur", self)
-        self.ferme_serveur_text.setShortcut("Alt+F")
-        self.ferme_serveur_text.triggered.connect(self._stop_server)
-
-        self.ouvre_site_text = QAction(QIcon("image/web_icon.png"),"Ouvrir dans le navigateur", self)
-        self.ouvre_site_text.setShortcut("Alt+O")
-        self.ouvre_site_text.triggered.connect(self._open_browser)
-
-        # Actions edit
-        self.undo = QAction(QIcon("image/placeholder.png"),"Undo", self)
-        self.undo.setShortcut("Ctrl+Z")
-
-        self.redo = QAction(QIcon("image/placeholder.png"),"Redo", self)
-        self.redo.setShortcut("Ctrl+Y")
-
-        self.copy = QAction(QIcon("image/placeholder.png"),"Copy", self)
-        self.copy.setShortcut("Ctrl+C")
-
-        self.paste = QAction(QIcon("image/placeholder.png"),"Paste", self)
-        self.paste.setShortcut("Ctrl+V")
-
-        self.cut = QAction(QIcon("image/placeholder.png"),"Cut", self)
-        self.cut.setShortcut("Ctrl+X")
-
-
-    def createMenuBar(self):
-        menuBar = self.menuBar()
-        server = menuBar.addMenu("Serveur")
-        server.addAction(self.ouvre_serveur_text)
-        server.addAction(self.ferme_serveur_text)
-        server.addSeparator()
-        server.addAction(self.ouvre_site_text)
-
-        edit = menuBar.addMenu("Edit")
-        edit.addAction(self.undo)
-        edit.addAction(self.redo)
-        edit.addSeparator()
-        edit.addAction(self.copy)
-        edit.addAction(self.paste)
-        edit.addAction(self.cut)
 
     # ====================================================================
     # Slots – méthodes connectées aux signaux des boutons et du thread
@@ -383,12 +392,93 @@ class MainWindow(QMainWindow):
     # Méthodes utilitaires internes (préfixe _ = usage interne à la classe)
     # ====================================================================
 
-    def _update_server_label(self,state: str):
+    def _add_map_cell(self, img: String, x: int, y: int):
+        """
+        Ajoute une image à la case de coordonnées (x,y) à la map.
+
+        """
+        self.label = QLabel()
+        self.label.setPixmap(QPixmap(img))
+        self.label.setScaledContents(True)
+        self.map.addWidget(self.label,x,y)
+
+
+    def _show_map(self):
+        """
+        Affiche le contenue de la map sur la grille. Peut-être inutile
+
+        """
+        return 0
+
+    def _create_map_empty(self):
+        """
+        Crée et affiche une carte vide.
+
+        """
+        i=0
+        for i in range(30):
+            for j in range(30):
+                self._add_map_cell("image/placeholder.png",i,j)
+
+    def _createActions(self):
+        """
+        Assigne des actions à des boutons.
+
+        """
+        # Actions server
+        self.ouvre_serveur_text = QAction(QIcon("image/Play.png"),"Démarrer le serveur", self)
+        self.ouvre_serveur_text.setShortcut("Alt+D")
+        self.ouvre_serveur_text.triggered.connect(self._start_server)
+
+        self.ferme_serveur_text = QAction("Arrêter le serveur", self)
+        self.ferme_serveur_text.setShortcut("Alt+F")
+        self.ferme_serveur_text.triggered.connect(self._stop_server)
+
+        self.ouvre_site_text = QAction(QIcon("image/Web.png"),"Ouvrir dans le navigateur", self)
+        self.ouvre_site_text.setShortcut("Alt+O")
+        self.ouvre_site_text.triggered.connect(self._open_browser)
+
+        # Actions edit
+        self.undo = QAction(QIcon("image/Undo.png"),"Undo", self)
+        self.undo.setShortcut("Ctrl+Z")
+
+        self.redo = QAction(QIcon("image/Redo.png"),"Redo", self)
+        self.redo.setShortcut("Ctrl+Y")
+
+        self.copy = QAction(QIcon("image/Copy.png"),"Copy", self)
+        self.copy.setShortcut("Ctrl+C")
+
+        self.paste = QAction(QIcon("image/Paste.png"),"Paste", self)
+        self.paste.setShortcut("Ctrl+V")
+
+        self.cut = QAction(QIcon("image/Cut.png"),"Cut", self)
+        self.cut.setShortcut("Ctrl+X")
+
+
+    def _createMenuBar(self):
+        """
+        Crée les boutons pour la barre de menu.
+
+        """
+        menuBar = self.menuBar()
+        server = menuBar.addMenu("Serveur")
+        server.addAction(self.ouvre_serveur_text)
+        server.addAction(self.ferme_serveur_text)
+        server.addSeparator()
+        server.addAction(self.ouvre_site_text)
+
+        edit = menuBar.addMenu("Edit")
+        edit.addAction(self.undo)
+        edit.addAction(self.redo)
+        edit.addSeparator()
+        edit.addAction(self.copy)
+        edit.addAction(self.paste)
+        edit.addAction(self.cut)
+
+    def _update_server_label(self, state: str):
         """
         Met à jour l'affichage pour l'état du serveur.
 
-        :param state: Open ou Closed. Décris si le serveur est 
-        ouvert ou non.
         """
         if state == "Closed":
             self.server_label.setText("Serveur: Closed")
@@ -404,11 +494,11 @@ class MainWindow(QMainWindow):
 
         :param text: Ligne de texte à afficher (déjà décodée en str).
         """
-        self._log_view.append(text)   # Insère la ligne à la fin du QTextEdit
+        self.log_view.append(text)   # Insère la ligne à la fin du QTextEdit
 
         # Fait défiler la barre verticale jusqu'à sa position maximale
         # pour toujours afficher la ligne la plus récente.
-        sb = self._log_view.verticalScrollBar()
+        sb = self.log_view.verticalScrollBar()
         sb.setValue(sb.maximum())
 
     # ------------------------------------------------------------------

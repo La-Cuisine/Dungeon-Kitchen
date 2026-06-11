@@ -30,7 +30,7 @@ PYTHON = python
 
 # Script principal de l'interface graphique.
 # C'est le point d'entrée de l'application et la cible de PyInstaller.
-GUI_SCRIPT = gui.py
+GUI_SCRIPT = gui_test.py
 
 # Module serveur autonome (sans GUI).
 # Peut être lancé seul pour tester le serveur sans interface graphique.
