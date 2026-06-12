@@ -265,10 +265,16 @@ class MainWindow(QMainWindow):
         # Zone pour la carte
         # ----------------------------------------------------------------
         
-        self.map = QGridLayout()
-        self.map.setHorizontalSpacing(0)
-        self.map.setVerticalSpacing(0)
-        self.map.setSizeConstraint(QLayout.SizeConstraint.SetMaximumSize)
+        # code de deca ou deka
+        # self.map = QGridLayout()
+        # self.map.setHorizontalSpacing(0)
+        # self.map.setVerticalSpacing(0)
+        # self.map.setSizeConstraint(QLayout.SizeConstraint.SetMaximumSize)
+        
+        #ICI (init) du con (si j'ai oublier je me parle à moi même (de sam à sam))
+        self.scene = QGraphicsScene()
+        self.view = QGraphicsView(self.scene)
+        self.setCentralWidget(self.view)
 
         self._create_map_empty()
         #self._add_map_cell("image/placeholder.png",0,0)
@@ -294,7 +300,8 @@ class MainWindow(QMainWindow):
             "border-radius: 6px;"              # Coins légèrement arrondis
             "padding: 6px;"                    # Espace intérieur
         )
-        partie_central_layout.addLayout(self.map)
+        # partie_central_layout.addLayout(self.map)
+        # partie_central_layout.addWidget(self.view)       #ici add widget
         partie_central_layout.addWidget(log_label)
         partie_central_layout.addWidget(self.log_view)
         root_layout.addLayout(partie_central_layout)
@@ -392,15 +399,29 @@ class MainWindow(QMainWindow):
     # Méthodes utilitaires internes (préfixe _ = usage interne à la classe)
     # ====================================================================
 
-    def _add_map_cell(self, img: String, x: int, y: int):
-        """
-        Ajoute une image à la case de coordonnées (x,y) à la map.
+    # code de deca ou deka
+    # def _add_map_cell(self, img: String, x: int, y: int):
+    #     """
+    #     Ajoute une image à la case de coordonnées (x,y) à la map.
 
-        """
-        self.label = QLabel()
-        self.label.setPixmap(QPixmap(img))
-        self.label.setScaledContents(True)
-        self.map.addWidget(self.label,x,y)
+    #     """
+    #     self.label = QLabel()
+    #     self.label.setPixmap(QPixmap(img))
+    #     self.label.setScaledContents(True)
+    #     self.map.addWidget(self.label,x,y)
+
+    #ICI (add_map) du con (si j'ai oublier je me parle à moi même (de sam à sam))
+    def _add_map_cell(self, img, x, y):
+        CELL_SIZE = 32
+        pixmap = QPixmap(img).scaled(
+            CELL_SIZE,
+            CELL_SIZE
+        )
+
+        item = QGraphicsPixmapItem(pixmap)
+        item.setPos(x * CELL_SIZE, y * CELL_SIZE)
+
+        self.scene.addItem(item)
 
 
     def _show_map(self):
@@ -410,15 +431,29 @@ class MainWindow(QMainWindow):
         """
         return 0
 
-    def _create_map_empty(self):
-        """
-        Crée et affiche une carte vide.
+    # code de deca ou deka
+    # def _create_map_empty(self):
+    #     """
+    #     Crée et affiche une carte vide.
 
-        """
-        i=0
-        for i in range(30):
-            for j in range(30):
-                self._add_map_cell("image/placeholder.png",i,j)
+    #     """
+    #     i=0
+    #     for i in range(30):
+    #         for j in range(30):
+    #             self._add_map_cell("image/placeholder.png",i,j)
+                
+    #ICI (create_map) du con (si j'ai oublier je me parle à moi même (de sam à sam))
+    def _create_map_empty(self):
+        for x in range(30):
+            for y in range(30):
+                self._add_map_cell("image/placeholder.png", x, y)
+    def wheelEvent(self, event):
+        factor = 1.15
+    
+        if event.angleDelta().y() > 0:
+            self.view.scale(factor, factor)
+        else:
+            self.view.scale(1 / factor, 1 / factor)
 
     def _createActions(self):
         """
