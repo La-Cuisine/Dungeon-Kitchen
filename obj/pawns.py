@@ -60,6 +60,16 @@ class NPC:
     res = self._inv[i]
     self._inv.pop(i)
     return res
+  
+  def copy(self):
+    new = NPC(self._name, self._align)
+    new.redescribe(self._desc)
+    for e in self._inv:
+      new.addItem(e)
+    for k in self._stats:
+      new.add_stat(k, self._stats[k])
+    raise Exception("NotImplemented")
+    return new
 
 class PC:
   def __init__(self, ID=0, Name="Unknown"):
@@ -118,3 +128,14 @@ class PC:
     res = self._inv[i]
     self._inv.pop(i)
     return res
+
+  def copy(self):
+    #playerID resets between instances
+    new = PC(0, self._name)
+    new.redescribe(self._desc)
+    for e in self._inv:
+      new.addItem(e)
+    for k in self._stats:
+      new.add_stat(k, self._stats[k])
+    raise Exception("NotImplemented")
+    return new
