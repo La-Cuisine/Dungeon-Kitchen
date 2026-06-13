@@ -23,6 +23,6 @@ class Player:
 
   #method
   def check_password(self, mdp):
-    return (sel.__mdp == mdp)
+    return (self.__mdp == mdp)
   def _edit_password(self, mdp, new):
     self.__mdp = new
