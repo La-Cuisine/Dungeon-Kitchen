@@ -34,7 +34,9 @@ class Prop:
     self._state +=1
   def pred(self):
     self._state -=1
-
+  
+  def copy(self):
+    return Prop(self._name, self._type, self._desc, self._state)
 
 
 class Cell:
@@ -53,6 +55,10 @@ class Cell:
   #getters
   def contents(self):
     return self._contents
+  def get_content(self,i):
+    if(i<0 or i>len(self._contents)):
+      return Exception("IndexOutOfRange")
+    return self._contents[i]
   def ground(self):
     return self._ground
   def walls(self):
@@ -88,7 +94,6 @@ class Cell:
     return res
 
 
-
 class Blueprint: 
   def __init__(self, X, Y, s="Unlabeled"):
     self._name = s
@@ -116,6 +121,8 @@ class Blueprint:
   def grid(self):
     return self._grid
   def get_cell(self,x,y):
+    if(x<0 or y<0 or x>self._length or y>self._width):
+      raise Exception("IndexOutOfRange")
     return self._grid[x][y]
 
   #setters
@@ -124,6 +131,8 @@ class Blueprint:
   def set_cell(self,x,y,c):
     if not isinstance(c,Cell):
       raise Exception("InvalidArgument")
+    if(x<0 or y<0 or x>self._length or y>self._width):
+      raise Exception("IndexOutOfRange")
     self._grid[x][y] = c
 
   #methods
@@ -153,6 +162,31 @@ class Blueprint:
     endY = mp.length()+posY
     if(self.width()<endY):
       endY = self.width()
+    if(posX>endX or posY>endY):
+      raise Exception("InvalidOriginIndex")
     for i in range(posX,endX):    
       for j in range(posY,endY):
         self.set_cell(i,j,mp.get_cell((i-posX),(j-posY)))
+  
+  def moveTo_content(self, x1, y1, x2, y2, i):
+    if(x1<0 or y1<0 or x1>self._length or y1>self._width):
+      raise Exception("IndexOutOfRange")
+    if(x2<0 or y2<0 or x2>self._length or y2>self._width):
+      raise Exception("IndexOutOfRange")
+    if(i<0 or i>len(self._grid[x1][y1].contents())):
+      raise Exception("IndexOutOfRange")
+    self._grid[x2][y2].add_content(self._grid[x1][y1].get_content(i))
+    self._grid[x1][y1].remove_content(i)
+  def AllMoveTo_content(self,x1,y1,x2,y2):
+    if(x1<0 or y1<0 or x1>self._length or y1>self._width):
+      raise Exception("IndexOutOfRange")
+    if(x2<0 or y2<0 or x2>self._length or y2>self._width):
+      raise Exception("IndexOutOfRange")
+    for i in range(len(self._grid[x1][y1].contents())):
+      self._grid[x2][y2].add_content(self._grid[x1][y1].get_content(0))
+      self._grid[x1][y1].remove_content(0)
+ 
+  def copy(self):
+    new = Blueprint(self._length, self._width, (self._name +" - Copy"))
+    new.insert(self)
+    return new

@@ -9,7 +9,7 @@ class game:
     self.__base_width = 50
     self._layers = dict()# (layer_name:map)
     self._pawns = dict()# ((x,y):occupant)
-    self._notes = dict()
+    self._notes = dict()#TODO
   
   #getters
   def layers(self):
@@ -39,7 +39,6 @@ class game:
       else: 
         new = m
       self._layers[name] = m
-  
   def remove_layer(self,s):
     if not(s in self._layers):
       raise Exception("LayerDoesNotExist")
@@ -57,14 +56,12 @@ class game:
     if((not isinstance(p,NPC)) and (not isinstance(p,PC))):
       raise Exception("InvalidArgument")
     self._pawns[(x,y)] = p
-
   def remove_pawn(self,x,y):
     if(not((x,y) in self._pawns)):
       raise Exception("PawnNotFound")
     res = self._pawns[(x,y)] 
     del self._pawns[(x,y)]
     return res
-
   def move_pawn(self, x1, y1, x2, y2):
     if(not((x1,y1) in self._pawns)):
       raise Exception("PawnNotFound")

@@ -13,9 +13,13 @@ class Item:
     return self._desc
 
   #setters
-  def rename(self,N):
-    self._name = N
+  def rename(self,n):
+    self._name = n
   def redefine(self,t):
     self._type = t
   def redescribe(self,d):
     self._desc = d
+
+  #methods
+  def copy(self):
+    return Item(self._name, self._type, self._desc)
