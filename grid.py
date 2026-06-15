@@ -123,29 +123,28 @@ class Grid(QGraphicsRectItem):
             b.append(self.atoms[(l-1)*l])
             b.append(self.atoms[(l-1)*l+(l-1)])
             global _wall
-            #print(_wall.path())
-            for i in range(len(b)):
-                #print(i)
-                #b[i].setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsScenePositionChanges)
-                print(i)
-                b[i].setBrush(QBrush(QColor("Black")))
-                j = QGraphicsRectItem(b[i].scenePos().x(),b[i].scenePos().y(),b[i].boundingRect().width(),b[i].boundingRect().height())
-                if j.collidesWithPath(_wall.path()) == True:
-                    if i == 0:
-                        return QPointF(min(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
-                    elif i == 1:
-                        return QPointF(max(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
-                    elif i == 2:
-                        print("lll")
-                        return QPointF(min(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
-                    elif i == 3:
-                        return QPointF(max(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
-            #print("ADO")
-               
             
-
-
-
+            for i in range(len(b)):
+                if i == 0:
+                    j = QGraphicsRectItem(b[i].scenePos().x(),b[i].scenePos().y(),b[i].boundingRect().width(),b[i].boundingRect().height())
+                    if j.collidesWithPath(_wall.path()) == True:
+                        print("1111")
+                        _colpos = QPointF(min(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
+                        return   _colpos
+                elif i == 1:
+                    j = QGraphicsRectItem(b[i].scenePos().x()+25*25-25,b[i].scenePos().y(),b[i].boundingRect().width(),b[i].boundingRect().height())
+                    if j.collidesWithPath(_wall.path()) == True:
+                        return QPointF(max(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
+                elif i == 2:
+                    j = QGraphicsRectItem(b[i].scenePos().x(),b[i].scenePos().y()+25*25-25,b[i].boundingRect().width(),b[i].boundingRect().height())
+                    if j.collidesWithPath(_wall.path()) == True:
+                        return QPointF(min(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
+                elif i == 3:
+                    j = QGraphicsRectItem(b[i].scenePos().x()+25*25-25,b[i].scenePos().y()+25*25-25,b[i].boundingRect().width(),b[i].boundingRect().height())
+                    if j.collidesWithPath(_wall.path()) == True:
+                        return QPointF(max(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
+                
+            
         return super().itemChange(change, value)
 
     
@@ -166,6 +165,7 @@ class InvisibleWallLimit(QGraphicsPathItem):
 
     def __init__(self,scene : QGraphicsScene):
         walls = QPainterPath()
+        
         walls.addRect(scene.sceneRect().center().x(),0,1,scene.sceneRect().height())
         walls.addRect(0,scene.sceneRect().center().y(),scene.sceneRect().width(),1)
         super().__init__(walls)
