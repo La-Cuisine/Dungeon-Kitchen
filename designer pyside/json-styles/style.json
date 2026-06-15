@@ -4,13 +4,13 @@
     "CheckForMissingicons": true,
     "LiveCompileQss": true,
     "QMainWindow": {
-        "title": "ui_passion"
+        "title": "Dungeon Kitchen"
     },
     "QSettings": {
         "AppSettings": {
-            "OrginizationName": "ui_passion Company",
-            "ApplicationName": "ui_passion",
-            "OrginizationDormain": "ui_passion.org"
+            "OrginizationName": "Dungeon Kitchen Company",
+            "ApplicationName": "Dungeon Kitchen",
+            "OrginizationDormain": "Dungeon Kitchen.org"
         },
         "ThemeSettings": {
             "QtDesignerIconsColor": "#FFFFFF",

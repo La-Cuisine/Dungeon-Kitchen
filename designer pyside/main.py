@@ -18,6 +18,8 @@ from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 ########################################################################
 
+from src.function import GuiFunctions
+
 ########################################################################
 ## MAIN WINDOW CLASS
 ########################################################################
@@ -73,6 +75,7 @@ class MainWindow(QMainWindow):
         # self.themeEngine.theme = "Light" 
         ########################################################################
 
+        self.app_functions = GuiFunctions(self)
 
 ########################################################################
 ## EXECUTE APP

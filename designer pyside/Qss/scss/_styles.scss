@@ -59,7 +59,7 @@ QWidget {
             background-color: $COLOR_ACCENT_2;
         }
 
-        &:hover:!selected {
+        &:hover:not(:selected) {
             background-color: $COLOR_ACCENT_3;
         }
     }

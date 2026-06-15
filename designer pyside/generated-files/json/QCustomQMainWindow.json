@@ -1,8 +1,8 @@
 {
-  "QPushButton": [
+  "QComboBox": [
     {
-      "name": "pushButton",
-      "icon": "icons\\font_awesome\\brands\\buffer.png"
+      "name": "theme_list",
+      "items": []
     }
   ]
 }
