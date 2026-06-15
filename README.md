@@ -35,7 +35,8 @@ Dans le cas où quelqu'un veut manipuler le fichier QtDesigner (designer pyside)
 -Lorsque que tu es satisfait du résultat, copie tout le contenue du fichier .py dans le fichier ui.py qui est dans le dossier principal <br>
 -Lancé la commande "make run"
 
-Pour Samy (ToDo):
--Pour manipuler un widget: self.ui.widget_name
--Rendre le chat fonctionnelle (il n'est pas relier)
--Gerer les autres fonction ui (pas besoin de faire les fonctions avec le serveur pour l'instant sauf si t'as le temps). Ex: _apply_dark_theme et btn_style
+
+Pour Samy (ToDo):<br>
+-Pour manipuler un widget: self.ui.widget_name<br>
+-Rendre le chat fonctionnelle (il n'est pas relier)<br>
+-Gerer les autres fonction ui (pas besoin de faire les fonctions avec le serveur pour l'instant sauf si t'as le temps). Ex: _apply_dark_theme et btn_style<br>
