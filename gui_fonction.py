@@ -15,6 +15,23 @@ class GuiFunctions():
         self.ui.settings_btn.clicked.connect(self.switch_settings_menu)
         self.ui.information_btn.clicked.connect(self.switch_information_menu)
         self.ui.help_btn.clicked.connect(self.switch_help_menu)
+        
+        self.ui.open_info_menu_btn.clicked.connect(self._open_center_menu)
+        self.ui.close_infomenu_btn.clicked.connect(self._close_center_menu)
+        
+        self.ui.open_server_btn.clicked.connect(self.main._start_server)
+        self.ui.close_server_btn.clicked.connect(self.main._stop_server)
+        self.ui.open_website_btn.clicked.connect(self.main._open_browser)
+        
+        self.ui.open_server_btn.setStyleSheet(
+            self._btn_style("#2ecc71", "#27ae60")
+        )
+        self.ui.close_server_btn.setStyleSheet(
+            self._btn_style("#e74c3c", "#c0392b")
+        )
+        self.ui.open_website_btn.setStyleSheet(
+            self._btn_style("#3498db", "#2980b9")
+        )
 
     def initialiseAppTheme(self):
         """
@@ -26,6 +43,11 @@ class GuiFunctions():
         # Ajoute des thèmes à la liste des thèmes
         self.ui.theme_list.addItem("Dark")
         self.ui.theme_list.addItem("Light")
+        
+        # Positionne le combobox sur le thème actuel sans déclencher le signal
+        index = self.ui.theme_list.findText(current_theme)
+        if index >= 0:
+            self.ui.theme_list.setCurrentIndex(index)
 
         # Connect le signal pour changer de thème
         self.ui.theme_list.currentTextChanged.connect(self.changeAppTheme)
@@ -33,16 +55,27 @@ class GuiFunctions():
     def changeAppTheme(self):
         """
         Change le thème de l'application
-        """
+        """ 
         settings = QSettings()
         current_theme = settings.value("THEME")
         selected_theme = self.ui.theme_list.currentText()
 
+        #deka
+        # if current_theme != selected_theme:
+        #     print("AAAAA")
+        #     # Applique le nouveau thème
+        #     settings.setValue("THEME", selected_theme)
+        #     QAppSettings.updateAppSettings(self.main, reloadJson=True)
+        
+        #sam
         if current_theme != selected_theme:
-            print("AAAAA")
-            # Applique le nouveau thème
             settings.setValue("THEME", selected_theme)
             QAppSettings.updateAppSettings(self.main, reloadJson=True)
+
+            if selected_theme == "Dark":
+                self._apply_dark_theme()
+            else:
+                self._apply_light_theme()
 
     def _update_server_label(self, state: str):
         """
@@ -79,6 +112,18 @@ class GuiFunctions():
     def switch_help_menu(self):
         self.ui.stacked_widget.setCurrentIndex(5)
 
+    # ----------------------------------------------------------------
+    # Panneau central (center_menu)
+    # ----------------------------------------------------------------
+
+    def _open_center_menu(self):
+        """Affiche le panneau central."""
+        self.ui.center_menu.setVisible(True)
+
+    def _close_center_menu(self):
+        """Cache le panneau central."""
+        self.ui.center_menu.setVisible(False)
+        
     # ----------------------------------------------------------------
     # Fonctions pour manipuler le style de la page et des boutons
     # ----------------------------------------------------------------
@@ -121,14 +166,23 @@ class GuiFunctions():
         # Couleur des liens hypertexte (QLabel avec setOpenExternalLinks)
         palette.setColor(QPalette.ColorRole.Link,          QColor("#58a6ff"))
 
-        self.setPalette(palette)   # Applique la palette à la fenêtre et à ses enfants
+        self.main.setPalette(palette)   # Applique la palette à la fenêtre et à ses enfants
 
         # Feuille de style QSS complémentaire pour les composants spécifiques
-        self.setStyleSheet(
+        self.main.setStyleSheet(
             "QMainWindow { background-color: #161b22; }"
             "QStatusBar  { background-color: #0d1117; border-top: 1px solid #30363d; }"
             "QLabel      { color: #e6edf3; }"
+            "QTextEdit   { background-color: #0d1117; color: #e6edf3; border: 1px solid #30363d; }"
+            "QComboBox   { background-color: #21262d; color: #e6edf3; border: 1px solid #30363d; }"
         )
+        
+    def _apply_light_theme(self):
+        """
+        Applique le thème clair à la fenêtre principale.
+        """
+        self.main.setPalette(self.main.style().standardPalette())
+        self.main.setStyleSheet("")
 
     @staticmethod
     def _btn_style(color_normal: str, color_hover: str) -> str:
