@@ -17,11 +17,13 @@ class game:
   def get_layer(self,s):
     if not(s in self._layers):
       raise Exception("LayerDoesNotExist")
+    return self._layers[s]
   def pawns(self):
     return self._pawns
   def get_pawn(self,x,y):
     if(not((x,y) in self._pawns)):
       raise Exception("PawnNotFound")
+    return self._layers[(x,y)]
 
   #setters
   #TODO
