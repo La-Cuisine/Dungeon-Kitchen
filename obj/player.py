@@ -2,6 +2,7 @@ import pawns
 
 class Player:
     def __init__(self, Name, ID=0):
+        #TODO
         self._playerID = ID
         self.__mdp = "1234"
         self._char = None
@@ -17,8 +18,8 @@ class Player:
     def reassign(self, ID):
         self._playerID = ID
     def newRole(self, sheet):
-        if(not (isinstance(sheet,PC))):
-          raise Exception("InvalidArgument")
+        if(not (isinstance(sheet,pawns.PC))):
+            raise Exception("InvalidArgument")
         self._char = sheet
 
     #method

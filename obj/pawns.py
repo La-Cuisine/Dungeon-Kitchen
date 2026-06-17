@@ -19,7 +19,7 @@ class NPC:
        return self._stats
     def get_stat(self,s):
         if not s in self._stats:
-          raise Exception("DoesNotExist")
+            raise Exception("DoesNotExist")
         return self._stats[s] 
     def description(self):
         return self._desc
@@ -29,7 +29,7 @@ class NPC:
     #setters
     def realign(self, a):
         if(a>3 or a<0):
-          raise Exception("ArgumentOutOfRange")
+            raise Exception("ArgumentOutOfRange")
         self._align = a
     def rename(self, n):
         self._name = n
@@ -39,24 +39,24 @@ class NPC:
     #methods
     def add_stat(self,s,v=None):
         if s in self._stats:
-          raise Exception("NameAlreadyInUse")
+            raise Exception("NameAlreadyInUse")
         self._stats[s] = v
     def remove_stat(self,s):
         if not s in self._stats:
-          raise Exception("DoesNotExist")
+            raise Exception("DoesNotExist")
         del self._stats[s]
     def alter_stat(self,s,v):
         if not s in self._stats:
-          raise Exception("DoesNotExist")
+            raise Exception("DoesNotExist")
         self._stats[s] = v
    
     def addItem(self,it):
-        if not isinstance(it,Item):
-          raise Exception("InvalidArgument")
+        if not isinstance(it,items.Item):
+            raise Exception("InvalidArgument")
         self._inv.append(it)
     def removeItem(self,i):
         if(i> len(self._inv) or i<0):
-          raise Exception("IndexOutOfRange")
+            raise Exception("IndexOutOfRange")
         res = self._inv[i]
         self._inv.pop(i)
         return res
@@ -65,9 +65,9 @@ class NPC:
         new = NPC(self._name, self._align)
         new.redescribe(self._desc)
         for e in self._inv:
-          new.addItem(e)
+            new.addItem(e)
         for k in self._stats:
-          new.add_stat(k, self._stats[k])
+            new.add_stat(k, self._stats[k])
         raise Exception("NotImplemented")
         return new
 
@@ -89,7 +89,7 @@ class PC:
         return self._stats
     def get_stat(self,s):
         if not s in self._stats:
-          raise Exception("DoesNotExist")
+            raise Exception("DoesNotExist")
         return self._stats[s]
     def description(self):
         return self._desc
@@ -107,24 +107,24 @@ class PC:
     #methods
     def add_stat(self,s,v=None):
         if s in self._stats:
-          raise Exception("NameAlreadyInUse")
+            raise Exception("NameAlreadyInUse")
         self._stats[s] = v
     def remove_stat(self,s):
         if not s in self._stats:
-          raise Exception("DoesNotExist")
+            raise Exception("DoesNotExist")
         del self._stats[s]
     def alter_stat(self,s,v):
         if not s in self._stats:
-          raise Exception("DoesNotExist")
+            raise Exception("DoesNotExist")
         self._stats[s] = v
 
     def addItem(self,it):
-        if not isinstance(it,Item):
-          raise Exception("InvalidArgument")
+        if not isinstance(it,items.Item):
+            raise Exception("InvalidArgument")
         self._inv.append(it)
     def removeItem(self,i):
         if(i> len(self._inv) or i<0):
-          raise Exception("IndexOutOfRange")
+            raise Exception("IndexOutOfRange")
         res = self._inv[i]
         self._inv.pop(i)
         return res
@@ -134,8 +134,8 @@ class PC:
         new = PC(0, self._name)
         new.redescribe(self._desc)
         for e in self._inv:
-          new.addItem(e)
+            new.addItem(e)
         for k in self._stats:
-          new.add_stat(k, self._stats[k])
+            new.add_stat(k, self._stats[k])
         raise Exception("NotImplemented")
         return new

@@ -9,7 +9,7 @@ class Item:
         return self._name
     def type(self):
         return self._type
-    def decription(self):
+    def description(self):
         return self._desc
 
     #setters
