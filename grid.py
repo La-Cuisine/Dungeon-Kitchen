@@ -1,5 +1,5 @@
 import sys
-
+import math
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -46,8 +46,25 @@ from PySide6.QtGui import (
 
 _wall = None
 
-_col_cell = {"TL" : (None,None) , "TR" : (None,None) , "BL" : (None,None) , "BR" : (None,None) }
+_col_cell = {"TL" : (None,None) , "TR" : (None,None) , "BL" : (None,None) , "BR" : (None,None) } #colision_cell
 
+class View_Grid(QGraphicsView):
+    _grid = None
+
+    def mouseMoveEvent(self, event):
+        
+        item = self.itemAt(event.pos())
+        if isinstance(item,Grid):
+            item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,True)
+            if self._grid is None :
+                self._grid = item
+        if isinstance(item,Cell):
+            item.parentItem().setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,True)
+            if self._grid is None :
+                self._grid = item.parentItem()
+        if item is None and self._grid is not None :
+           self._grid.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
+        return super().mouseMoveEvent(event)
 
 class Window(QMainWindow):
     def __init__(self, n , s_cell):
@@ -61,7 +78,7 @@ class Window(QMainWindow):
         self.TheVoid = QGraphicsScene()
         self.TheVoid.setSceneRect(0,0,700, 520)
         # cree un espace de "visualisation"/"rendu" de la scene
-        self.view = QGraphicsView(self.TheVoid)
+        self.view = View_Grid(self.TheVoid)
 
         self.view.setRenderHint(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing | QPainter.RenderHint.SmoothPixmapTransform)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -70,7 +87,7 @@ class Window(QMainWindow):
         self.view.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.view.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
         
-        
+        self.view.setMouseTracking(True)
 
         contain = QWidget()
         
@@ -86,26 +103,29 @@ class Window(QMainWindow):
 
         self.world  = Grid(n,s_cell)
         (self.world.atoms[0]).setName("TL")
-        (self.world.atoms[0]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsScenePositionChanges)
+        (self.world.atoms[0]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
         
         (self.world.atoms[n-1]).setName("TR")
-        (self.world.atoms[n-1]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsScenePositionChanges)
+        (self.world.atoms[n-1]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
 
         (self.world.atoms[(n-1)*n]).setName("BL")
-        (self.world.atoms[(n-1)*n]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsScenePositionChanges)
+        (self.world.atoms[(n-1)*n]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
 
         (self.world.atoms[(n-1)*n+(n-1)]).setName("BR")
-        (self.world.atoms[(n-1)*n+(n-1)]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsScenePositionChanges)
+        (self.world.atoms[(n-1)*n+(n-1)]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
 
         self.TheVoid.addItem(self.world)
         global _col_cell
         print(_col_cell)
+ 
     def wheelEvent(self, event):
         angle = event.angleDelta().y()
         zoomFactor = 1 + (angle/1000)
         self.view.scale(zoomFactor,zoomFactor)
         return super().wheelEvent(event)
+
     
+   
         
 
 class Grid(QGraphicsRectItem):
@@ -115,7 +135,7 @@ class Grid(QGraphicsRectItem):
         self.n = n
         self.s_cell = s_cell
         self.setZValue(0)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
@@ -126,12 +146,17 @@ class Grid(QGraphicsRectItem):
                 cell.setBrush(QBrush(QColor("Red")))
                 cell.setParentItem(self)
         self.atoms= [item for item in self.childItems() if isinstance(item,Cell)]
-
+        
+        self._gpos = QPointF(100,100)
         
     
 
     def itemChange(self, change, value):
+        
+
         if change == QGraphicsItem.GraphicsItemChange.ItemPositionChange:
+            global _col_cell
+            global _wall
             new_pos = value
             old_pos = self.pos()
             l = self.n
@@ -140,73 +165,90 @@ class Grid(QGraphicsRectItem):
             b.append(self.atoms[l-1])
             b.append(self.atoms[(l-1)*l])
             b.append(self.atoms[(l-1)*l+(l-1)])
-            global _wall
+
+            for i in range(len(b)):
+                if b[i].getName() !="":
+                    _col_cell[b[i].getName()] = (_col_cell[b[i].getName()][1],_col_cell[b[i].getName()][1])
+                    _col_cell[b[i].getName()] = (_col_cell[b[i].getName()][0],b[i].scenePos())
+                    
             for i in range(len(b)):
                 if i == 0:
                     j = QGraphicsRectItem(b[i].scenePos().x(),b[i].scenePos().y(),b[i].boundingRect().width(),b[i].boundingRect().height())
                     if j.collidesWithPath(_wall.path()) == True:
                         return QPointF(min(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
-                    else:
-                        inter =  self._sweep(b[i],j,i)
-                        if inter is None : 
-                            return super().itemChange(change, value)
-                        col = _wall.mapFromScene(_wall.shape())
-                        if inter.intersects(col):
-                            return QPointF(min(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
+                    
+                    inter =  self._sweep(b[i],i)
+                    if inter is None : 
+                        return super().itemChange(change, value)
+                    col = _wall.mapFromScene(_wall.shape())
+                    if inter.intersects(col):
+                        return QPointF(min(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
+                    if b[i].scenePos().x()> self.scene().sceneRect().center().x() or b[i].scenePos().y()> self.scene().sceneRect().center().y():
+                         return self._gpos
+                    
                 elif i == 1:
                     j = QGraphicsRectItem(b[i].scenePos().x()+self.n*self.n-self.n,b[i].scenePos().y(),b[i].boundingRect().width(),b[i].boundingRect().height())
                     if j.collidesWithPath(_wall.path()) == True:
                         return QPointF(max(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
-                    else:
-                        inter =  self._sweep(b[i],j,i)
-                        if inter is None : 
-                            return super().itemChange(change, value)
-                        col = _wall.mapFromScene(_wall.shape())
-                        if inter.intersects(col):
-                            return QPointF(max(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
+                    
+                    inter =  self._sweep(b[i],i)
+                    if inter is None : 
+                        return super().itemChange(change, value)
+                    col = _wall.mapFromScene(_wall.shape())
+                    if inter.intersects(col):
+                        return QPointF(max(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
+                    if b[i].scenePos().x()+self.n*self.n-self.n < self.scene().sceneRect().center().x() or b[i].scenePos().y()> self.scene().sceneRect().center().y():
+                        return self._gpos
+                    
                 elif i == 2:
                     j = QGraphicsRectItem(b[i].scenePos().x(),b[i].scenePos().y()+self.n*self.n-self.n,b[i].boundingRect().width(),b[i].boundingRect().height())
                     if j.collidesWithPath(_wall.path()) == True:
                         return QPointF(min(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
-                    else:
-                        inter =  self._sweep(b[i],j,i)
-                        if inter is None : 
-                            return super().itemChange(change, value)
-                        col = _wall.mapFromScene(_wall.shape())
-                        if inter.intersects(col):
-                            return QPointF(min(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
+                    
+                    inter =  self._sweep(b[i],i)
+                    if inter is None : 
+                        return super().itemChange(change, value)
+                    col = _wall.mapFromScene(_wall.shape())
+                    if inter.intersects(col):
+                        return QPointF(min(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
+                    if b[i].scenePos().x()> self.scene().sceneRect().center().x() or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y():
+                        return self._gpos
+                    
                 elif i == 3:
+                    
                     j = QGraphicsRectItem(b[i].scenePos().x()+self.n*self.n-self.n,b[i].scenePos().y()+self.n*self.n-self.n,b[i].boundingRect().width(),b[i].boundingRect().height())
                     if j.collidesWithPath(_wall.path()) == True:
                         return QPointF(max(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
-                    else:
-                        inter =  self._sweep(b[i],j,i)
-                        if inter is None : 
-                            return super().itemChange(change, value)
-                        col = _wall.mapFromScene(_wall.shape())
-                        if inter.intersects(col):
-                            return QPointF(max(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
-                
+                    
+                    inter =  self._sweep(b[i],i)
+                    if inter is None : 
+                        return super().itemChange(change, value)
+                    col = _wall.mapFromScene(_wall.shape())
+                    if inter.intersects(col):
+                        return QPointF(max(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
+                    if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x() or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y():
+                        return self._gpos
+                    
             
         return super().itemChange(change, value)
 
-    def _sweep(self,b : Cell, r : QGraphicsRectItem, correction : int ):
+    def _sweep(self,b : Cell, correction : int ):
         global _col_cell
 
-        
-        w = b.boundingRect().width()
-        h = b.boundingRect().height()
+        print(_col_cell[b.getName()])
+        w = b.boundingRect().width()+4
+        h = b.boundingRect().height()+4
         if _col_cell.get(b.getName())[0] is None:
             return None
         if correction == 0:
             old_cell = QPointF(_col_cell.get(b.getName())[0].x(),_col_cell.get(b.getName())[0].y()) 
             new_cell = QPointF(_col_cell.get(b.getName())[1].x(),_col_cell.get(b.getName())[1].y()) 
-        elif correction == 1:
-            old_cell = QPointF(_col_cell.get(b.getName())[0].x()+self.n*self.n-self.n,_col_cell.get(b.getName())[0].y()) 
-            new_cell = QPointF(_col_cell.get(b.getName())[1].x()+self.n*self.n-self.n,_col_cell.get(b.getName())[1].y()) 
         elif correction == 2:
             old_cell = QPointF(_col_cell.get(b.getName())[0].x(),_col_cell.get(b.getName())[0].y()+self.n*self.n-self.n) 
             new_cell = QPointF(_col_cell.get(b.getName())[1].x(),_col_cell.get(b.getName())[1].y()+self.n*self.n-self.n)
+        elif correction == 1:
+            old_cell = QPointF(_col_cell.get(b.getName())[0].x()+self.n*self.n-self.n,_col_cell.get(b.getName())[0].y()) 
+            new_cell = QPointF(_col_cell.get(b.getName())[1].x()+self.n*self.n-self.n,_col_cell.get(b.getName())[1].y()) 
         elif correction == 3:
             old_cell = QPointF(_col_cell.get(b.getName())[0].x()+self.n*self.n-self.n,_col_cell.get(b.getName())[0].y()+self.n*self.n-self.n) 
             new_cell = QPointF(_col_cell.get(b.getName())[1].x()+self.n*self.n-self.n,_col_cell.get(b.getName())[1].y()+self.n*self.n-self.n)
@@ -216,9 +258,9 @@ class Grid(QGraphicsRectItem):
 
         # De l'intervalle [old;new] on obitent old et new 
         old = QPainterPath()
-        old.addRect(QRectF(old_cell.x(),old_cell.y(),w,h))
+        old.addRect(QRectF(old_cell.x()-4,old_cell.y()-4,w,h))
         new = QPainterPath()
-        new.addRect(QRectF(new_cell.x(),new_cell.y(),w,h))
+        new.addRect(QRectF(new_cell.x()-4,new_cell.y()-4,w,h))
         
         # De l'intervalle [old;new] on determine ]old;new[
         intersection = QPainterPath()
@@ -254,6 +296,91 @@ class Grid(QGraphicsRectItem):
         
         return old.united(new).united(intersection)
 
+    #TENTATIVE D'APPLICATION D'UN AUTRE PARADIGLE INFRUCTUEUX
+    def _step_axis(self, old_coord : float,new_coord : float, cons : float, axis : str, b : Cell, correction : int, step: int ):
+        global _col_cell
+        if _col_cell.get(b.getName())[0] is None or _col_cell.get(b.getName())[1] is None :
+            return None
+        print(" *-* ",_col_cell.get(b.getName())," *-* ")
+        if axis == "x":
+            if correction == 0:
+                old_cell_coord = _col_cell.get(b.getName())[0].x() 
+                new_cell_coord = _col_cell.get(b.getName())[1].x() 
+            elif correction == 1:
+                old_cell_coord = _col_cell.get(b.getName())[0].x()+self.n*self.n-self.n 
+                new_cell_coord = _col_cell.get(b.getName())[1].x()+self.n*self.n-self.n 
+            elif correction == 2:
+                old_cell_coord = _col_cell.get(b.getName())[0].x() 
+                new_cell_coord = _col_cell.get(b.getName())[1].x()
+            elif correction == 3:
+                old_cell_coord = _col_cell.get(b.getName())[0].x()+self.n*self.n-self.n 
+                new_cell_coord = _col_cell.get(b.getName())[1].x()+self.n*self.n-self.n
+        else :
+            if correction == 0:
+                old_cell_coord = _col_cell.get(b.getName())[0].y() 
+                new_cell_coord = _col_cell.get(b.getName())[1].y() 
+            elif correction == 1:
+                old_cell_coord = _col_cell.get(b.getName())[0].y() 
+                new_cell_coord = _col_cell.get(b.getName())[1].y() 
+            elif correction == 2:
+                old_cell_coord = _col_cell.get(b.getName())[0].y()+self.n*self.n-self.n 
+                new_cell_coord = _col_cell.get(b.getName())[1].y()+self.n*self.n-self.n
+            elif correction == 3:
+                old_cell_coord = _col_cell.get(b.getName())[0].y()+self.n*self.n-self.n 
+                new_cell_coord = _col_cell.get(b.getName())[1].y()+self.n*self.n-self.n
+
+        print("------ ",old_cell_coord," <<>> ",new_cell_coord," ------")
+        delta1 = new_cell_coord - old_cell_coord
+        dist1 = abs(delta1)
+
+        delta2 = new_coord - old_coord
+        dist2 = abs(delta2)
+
+        if dist1 == 0 or dist2 == 0 :
+            print("HERE")
+            return old_coord
+        
+        direction1 = math.copysign(1,delta1) # 1 prend le signe de delta
+        steps1 = math.ceil(dist1/step)
+        step_size1 = dist1 / steps1
+
+        direction2 = math.copysign(1,delta2) # 1 prend le signe de delta
+        steps2 = math.ceil(dist2/step)
+        step_size2 = dist2 / steps2
+
+        tmp = old_cell_coord
+        pre_coord = old_coord
+        print("^^^^ ",old_coord)
+        print("$$1 : ",steps1," $$2 :",steps2)
+        for i in range(min(steps1,steps2)):
+            if i < steps1 :
+                c_co = tmp + direction1 * step_size1
+            if i < steps2 :    
+                g_co = pre_coord + direction2 * step_size2
+            if axis == "x":
+                test = QPointF(c_co,cons)
+            else:
+                test = QPointF(cons,c_co)
+            print(g_co," *** ",c_co)
+            if self._coll_check(test,b):
+                return pre_coord
+            tmp = c_co
+            pre_coord = g_co
+        return pre_coord
+
+    #FONCTION UTILISE PAR LA TENTATIVE INFRUCTUEUSE              
+    def _coll_check(self, point : QPointF,b:Cell):
+        global _wall
+
+        item = QPainterPath()
+        item.addRect(point.x(),point.y(),b.boundingRect().width(),b.boundingRect().height()) 
+
+        col = _wall.mapFromScene(_wall.shape())
+        if item.intersects(col):
+            return True
+        return False   
+    
+
 class Cell(QGraphicsRectItem):
 
     def __init__(self, x,y,w,h):
@@ -261,11 +388,7 @@ class Cell(QGraphicsRectItem):
         self._name =""
 
     def itemChange(self, change, value):
-        if change == QGraphicsItem.GraphicsItemChange.ItemScenePositionHasChanged:
-            global _col_cell
-            if self._name != "":
-                _col_cell[self._name] = (self.scenePos(),value) #(old_pos,new_pos)
-            #print(_col_cell)
+        
         return super().itemChange(change, value)
     
     def setName(self,i: str):
@@ -279,8 +402,10 @@ class InvisibleWallLimit(QGraphicsPathItem):
     def __init__(self,scene : QGraphicsScene):
         walls = QPainterPath()
         
-        walls.addRect(scene.sceneRect().center().x()-10,0,10,scene.sceneRect().height())
-        walls.addRect(0,scene.sceneRect().center().y()-10,scene.sceneRect().width(),10)
+        walls.addRect(scene.sceneRect().center().x(),0,1,2*scene.sceneRect().height())
+        walls.addRect(scene.sceneRect().center().x()+3,0,3,2*scene.sceneRect().height())
+        walls.addRect(0,scene.sceneRect().center().y(),2*scene.sceneRect().width(),1)
+        walls.addRect(0,scene.sceneRect().center().y()+3,2*scene.sceneRect().width(),3)
         super().__init__(walls)
         self.setZValue(0)
         self.setPen(QPen(QColor("#3700ff"), 3))
