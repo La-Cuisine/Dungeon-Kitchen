@@ -266,10 +266,39 @@ class Grid(QGraphicsRectItem):
                         self.ungrabMouse()
                         return self._gpos
                     
-            #self.update()
+            self.update()
+        if change == QGraphicsItem.GraphicsItemChange.ItemScenePositionHasChanged:
+            self.check()
         return super().itemChange(change, value)
 
-    
+    def check(self):
+        b = []
+        l = self.n
+        b.append(self.atoms[0])
+        b.append(self.atoms[l-1])
+        b.append(self.atoms[(l-1)*l])
+        b.append(self.atoms[(l-1)*l+(l-1)])
+
+        for i in range(len(b)):
+                if i == 0:
+                    if b[i].scenePos().x() > self.scene().sceneRect().center().x()+10 or b[i].scenePos().y() > self.scene().sceneRect().center().y()+10:
+                         self.setPos(self._gpos)
+                         return True
+                elif i == 1:
+                    if b[i].scenePos().x()+self.n*self.n-self.n < self.scene().sceneRect().center().x()-10 or b[i].scenePos().y()> self.scene().sceneRect().center().y()+10:
+                        self.setPos(self._gpos)
+                        return True
+                elif i == 2:
+                    if b[i].scenePos().x()> self.scene().sceneRect().center().x()+10 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()-10:
+                        self.setPos(self._gpos)
+                        return True
+                elif i == 3:
+                    if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x()+10 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()-10:
+                        self.setPos(self._gpos)
+                        return True
+        return False
+        
+
 
     def _sweep(self,b : Cell, correction : int ):
         global _col_cell
