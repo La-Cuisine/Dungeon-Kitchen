@@ -3,11 +3,11 @@
 **Description:**
 
 - **README.md:** Description du projet
-- **gui_function** fichier rassemblant toutes les fonctions pour manipuler l'interface graphique
-- **LogReaderThread.py** Lecture et sortie du chat/log
-- **server.py** Manipulation du serveur PHP 
-- **draw_on_image** Fichier test pour dessiner sur l'image
-- **image** dossier contenant l'ensemble des images utilisées pour l'UI
+- **gui_function:** fichier rassemblant toutes les fonctions pour manipuler l'interface graphique
+- **LogReaderThread.py:** Lecture et sortie du chat/log
+- **server.py:** Manipulation du serveur PHP 
+- **draw_on_image:** Fichier test pour dessiner sur l'image
+- **image:** dossier contenant l'ensemble des images utilisées pour l'UI
 
 
 **TODO**
