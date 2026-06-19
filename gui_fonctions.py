@@ -45,12 +45,12 @@ class GuiFunctions():
         Initialise le thème de l'application
         """
         settings = QSettings()
-        settings.setValue("THEME","Dark")
-        current_theme = settings.value("THEME")
+        settings.setValue("theme",0)
+        current_theme = settings.value("theme")
         # Ajoute des thèmes à la liste des thèmes
         self.ui.theme_list.addItem("Dark")
         self.ui.theme_list.addItem("Light")
-        
+        print(current_theme)
         if(current_theme == None):
             self._apply_dark_theme()
 
