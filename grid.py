@@ -267,7 +267,7 @@ class Grid(QGraphicsRectItem):
                         return self._gpos
                     
             self.update()
-        if change == QGraphicsItem.GraphicsItemChange.ItemScenePositionHasChanged:
+        if change == QGraphicsItem.GraphicsItemChange.ItemPositionHasChanged:
             self.check()
         return super().itemChange(change, value)
 
