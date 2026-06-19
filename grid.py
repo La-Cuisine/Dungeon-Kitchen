@@ -180,7 +180,7 @@ class Grid(QGraphicsRectItem):
                 cell.setParentItem(self)
         self.atoms= [item for item in self.childItems() if isinstance(item,Cell)]
         
-        self._gpos = QPointF(100,100)
+        self._gpos = QPointF(0,0)
         
     
 
@@ -208,6 +208,7 @@ class Grid(QGraphicsRectItem):
                 if i == 0:
                     j = QGraphicsRectItem(b[i].scenePos().x(),b[i].scenePos().y(),b[i].boundingRect().width(),b[i].boundingRect().height())
                     if j.collidesWithPath(_wall.path()) == True:
+                        print("55")
                         return QPointF(min(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
                     
                     inter =  self._sweep(b[i],i)
@@ -215,10 +216,11 @@ class Grid(QGraphicsRectItem):
                         return super().itemChange(change, value)
                     col = _wall.mapFromScene(_wall.shape())
                     if inter.intersects(col):
+                        print("99")
                         return QPointF(min(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
-                    if b[i].scenePos().x() > self.scene().sceneRect().center().x()+10 or b[i].scenePos().y() > self.scene().sceneRect().center().y()+10:
+                    if b[i].scenePos().x() >= self.scene().sceneRect().center().x()+8 or b[i].scenePos().y() >= self.scene().sceneRect().center().y()+8:
                         self.ungrabMouse()
-                        return self._gpos
+                        return QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-self.s_cell)
                     
                 elif i == 1:
                     j = QGraphicsRectItem(b[i].scenePos().x()+self.n*self.n-self.n,b[i].scenePos().y(),b[i].boundingRect().width(),b[i].boundingRect().height())
@@ -231,9 +233,10 @@ class Grid(QGraphicsRectItem):
                     col = _wall.mapFromScene(_wall.shape())
                     if inter.intersects(col):
                         return QPointF(max(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
-                    if b[i].scenePos().x()+self.n*self.n-self.n < self.scene().sceneRect().center().x()-10 or b[i].scenePos().y()> self.scene().sceneRect().center().y()+10:
+                    print("B1 : ",b[i].scenePos().x()+self.n*self.n-self.n," XCEN :",self.scene().sceneRect().center().x()-8)
+                    if b[i].scenePos().x()+self.n*self.n-self.n <= self.scene().sceneRect().center().x()-8 or b[i].scenePos().y()>= self.scene().sceneRect().center().y()+8:
                         self.ungrabMouse()
-                        return self._gpos
+                        return QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-(self.n*self.n-self.n)+self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-self.s_cell)
                     
                 elif i == 2:
                     j = QGraphicsRectItem(b[i].scenePos().x(),b[i].scenePos().y()+self.n*self.n-self.n,b[i].boundingRect().width(),b[i].boundingRect().height())
@@ -246,9 +249,9 @@ class Grid(QGraphicsRectItem):
                     col = _wall.mapFromScene(_wall.shape())
                     if inter.intersects(col):
                         return QPointF(min(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
-                    if b[i].scenePos().x()> self.scene().sceneRect().center().x()+10 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()-10:
+                    if b[i].scenePos().x()>= self.scene().sceneRect().center().x()+8 or b[i].scenePos().y()+self.n*self.n-self.n<= self.scene().sceneRect().center().y()-8:
                         self.ungrabMouse()
-                        return self._gpos
+                        return QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-(self.n*self.n-self.n)+self.s_cell)
                     
                 elif i == 3:
                     
@@ -262,39 +265,40 @@ class Grid(QGraphicsRectItem):
                     col = _wall.mapFromScene(_wall.shape())
                     if inter.intersects(col):
                         return QPointF(max(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
-                    if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x()-10 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()+10:
+                    if b[i].scenePos().x()+self.n*self.n-self.n<= self.scene().sceneRect().center().x()-8 or b[i].scenePos().y()+self.n*self.n-self.n<= self.scene().sceneRect().center().y()+8:
                         self.ungrabMouse()
-                        return self._gpos
+                        return QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-(self.n*self.n-self.n)+self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-(self.n*self.n-self.n)+self.s_cell)
                     
             self.update()
         if change == QGraphicsItem.GraphicsItemChange.ItemPositionHasChanged:
-            self.check()
+            l = self.n
+            b = []
+            b.append(self.atoms[0])
+            b.append(self.atoms[l-1])
+            b.append(self.atoms[(l-1)*l])
+            b.append(self.atoms[(l-1)*l+(l-1)])
+            self.check(b)
         return super().itemChange(change, value)
 
-    def check(self):
-        b = []
-        l = self.n
-        b.append(self.atoms[0])
-        b.append(self.atoms[l-1])
-        b.append(self.atoms[(l-1)*l])
-        b.append(self.atoms[(l-1)*l+(l-1)])
+    def check(self, b : list[QGraphicsRectItem]):
+        
 
         for i in range(len(b)):
                 if i == 0:
-                    if b[i].scenePos().x() > self.scene().sceneRect().center().x()+10 or b[i].scenePos().y() > self.scene().sceneRect().center().y()+10:
-                         self.setPos(self._gpos)
+                    if b[i].scenePos().x() > self.scene().sceneRect().center().x()+8 or b[i].scenePos().y() > self.scene().sceneRect().center().y()+8:
+                         self.setPos(QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-self.s_cell))
                          return True
                 elif i == 1:
-                    if b[i].scenePos().x()+self.n*self.n-self.n < self.scene().sceneRect().center().x()-10 or b[i].scenePos().y()> self.scene().sceneRect().center().y()+10:
-                        self.setPos(self._gpos)
+                    if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x()-8 or b[i].scenePos().y()> self.scene().sceneRect().center().y()+8:
+                        self.setPos(QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-(self.n*self.n-self.n)+self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-self.s_cell))
                         return True
                 elif i == 2:
-                    if b[i].scenePos().x()> self.scene().sceneRect().center().x()+10 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()-10:
-                        self.setPos(self._gpos)
+                    if b[i].scenePos().x()> self.scene().sceneRect().center().x()+8 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()-8:
+                        self.setPos(QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-(self.n*self.n-self.n)+self.s_cell))
                         return True
                 elif i == 3:
-                    if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x()+10 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()-10:
-                        self.setPos(self._gpos)
+                    if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x()+8 or b[i].scenePos().y()+self.n*self.n< self.scene().sceneRect().center().y()-8:
+                        self.setPos(QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-(self.n*self.n-self.n)+self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-(self.n*self.n-self.n)+self.s_cell))
                         return True
         return False
         
@@ -303,7 +307,7 @@ class Grid(QGraphicsRectItem):
     def _sweep(self,b : Cell, correction : int ):
         global _col_cell
 
-        print(_col_cell[b.getName()])
+        #print(_col_cell[b.getName()])
         w = b.boundingRect().width()+4
         h = b.boundingRect().height()+4
         if _col_cell.get(b.getName())[0] is None:
