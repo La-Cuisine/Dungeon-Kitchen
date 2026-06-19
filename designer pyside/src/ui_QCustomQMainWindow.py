@@ -45,12 +45,16 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_2.setContentsMargins(5, 5, 5, 5)
         self.open_info_menu_btn = QPushButton(self.widget_2)
         self.open_info_menu_btn.setObjectName(u"open_info_menu_btn")
-        self.open_info_menu_btn.setAutoFillBackground(True)
+        self.open_info_menu_btn.setMaximumSize(QSize(30, 16777215))
+        self.open_info_menu_btn.setAutoFillBackground(False)
+        icon = QIcon()
+        icon.addFile(u":/image/Redo.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.open_info_menu_btn.setIcon(icon)
 
         self.verticalLayout_2.addWidget(self.open_info_menu_btn)
 
 
-        self.verticalLayout.addWidget(self.widget_2, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
+        self.verticalLayout.addWidget(self.widget_2, 0, Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTop)
 
         self.widget_3 = QWidget(self.sidebar)
         self.widget_3.setObjectName(u"widget_3")
@@ -60,19 +64,22 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_4.setContentsMargins(5, 5, 5, 5)
         self.character_btn = QPushButton(self.widget_3)
         self.character_btn.setObjectName(u"character_btn")
-        self.character_btn.setAutoFillBackground(True)
+        self.character_btn.setMinimumSize(QSize(0, 30))
+        self.character_btn.setAutoFillBackground(False)
 
         self.verticalLayout_4.addWidget(self.character_btn)
 
         self.map_btn = QPushButton(self.widget_3)
         self.map_btn.setObjectName(u"map_btn")
-        self.map_btn.setAutoFillBackground(True)
+        self.map_btn.setMinimumSize(QSize(0, 30))
+        self.map_btn.setAutoFillBackground(False)
 
         self.verticalLayout_4.addWidget(self.map_btn)
 
         self.server_btn = QPushButton(self.widget_3)
         self.server_btn.setObjectName(u"server_btn")
-        self.server_btn.setAutoFillBackground(True)
+        self.server_btn.setMinimumSize(QSize(0, 30))
+        self.server_btn.setAutoFillBackground(False)
 
         self.verticalLayout_4.addWidget(self.server_btn)
 
@@ -91,19 +98,22 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_3.setContentsMargins(5, 5, 5, 5)
         self.settings_btn = QPushButton(self.widget)
         self.settings_btn.setObjectName(u"settings_btn")
-        self.settings_btn.setAutoFillBackground(True)
+        self.settings_btn.setMinimumSize(QSize(0, 30))
+        self.settings_btn.setAutoFillBackground(False)
 
         self.verticalLayout_3.addWidget(self.settings_btn)
 
         self.information_btn = QPushButton(self.widget)
         self.information_btn.setObjectName(u"information_btn")
-        self.information_btn.setAutoFillBackground(True)
+        self.information_btn.setMinimumSize(QSize(0, 30))
+        self.information_btn.setAutoFillBackground(False)
 
         self.verticalLayout_3.addWidget(self.information_btn)
 
         self.help_btn = QPushButton(self.widget)
         self.help_btn.setObjectName(u"help_btn")
-        self.help_btn.setAutoFillBackground(True)
+        self.help_btn.setMinimumSize(QSize(0, 30))
+        self.help_btn.setAutoFillBackground(False)
 
         self.verticalLayout_3.addWidget(self.help_btn)
 
@@ -115,6 +125,7 @@ class Ui_CustomMainWindow(object):
 
         self.center_menu = QWidget(self.central_widget)
         self.center_menu.setObjectName(u"center_menu")
+        self.center_menu.setEnabled(True)
         self.center_menu.setMinimumSize(QSize(200, 200))
         self.center_menu.setMaximumSize(QSize(200, 16777215))
         self.center_menu.setAutoFillBackground(False)
@@ -131,11 +142,12 @@ class Ui_CustomMainWindow(object):
 
         self.horizontalLayout_2.addWidget(self.center_menu_top_label)
 
-        self.close_infomenu_btn = QPushButton(self.center_menu_top)
-        self.close_infomenu_btn.setObjectName(u"close_infomenu_btn")
-        self.close_infomenu_btn.setAutoFillBackground(True)
+        self.close_info_menu_btn = QPushButton(self.center_menu_top)
+        self.close_info_menu_btn.setObjectName(u"close_info_menu_btn")
+        self.close_info_menu_btn.setMinimumSize(QSize(0, 30))
+        self.close_info_menu_btn.setAutoFillBackground(False)
 
-        self.horizontalLayout_2.addWidget(self.close_infomenu_btn)
+        self.horizontalLayout_2.addWidget(self.close_info_menu_btn)
 
 
         self.verticalLayout_5.addWidget(self.center_menu_top)
@@ -249,12 +261,16 @@ class Ui_CustomMainWindow(object):
 
         self.open_server_btn = QPushButton(self.server_menu)
         self.open_server_btn.setObjectName(u"open_server_btn")
+        self.open_server_btn.setMinimumSize(QSize(0, 38))
+        self.open_server_btn.setMaximumSize(QSize(16777215, 38))
         self.open_server_btn.setCheckable(False)
 
         self.verticalLayout_11.addWidget(self.open_server_btn)
 
         self.close_server_btn = QPushButton(self.server_menu)
         self.close_server_btn.setObjectName(u"close_server_btn")
+        self.close_server_btn.setMinimumSize(QSize(0, 38))
+        self.close_server_btn.setMaximumSize(QSize(16777215, 38))
         self.close_server_btn.setCheckable(False)
         self.close_server_btn.setChecked(False)
 
@@ -262,6 +278,8 @@ class Ui_CustomMainWindow(object):
 
         self.open_website_btn = QPushButton(self.server_menu)
         self.open_website_btn.setObjectName(u"open_website_btn")
+        self.open_website_btn.setMinimumSize(QSize(0, 38))
+        self.open_website_btn.setMaximumSize(QSize(16777215, 38))
 
         self.verticalLayout_11.addWidget(self.open_website_btn)
 
@@ -336,7 +354,7 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(0)
+        self.stacked_widget.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
@@ -344,7 +362,7 @@ class Ui_CustomMainWindow(object):
 
     def retranslateUi(self, CustomMainWindow):
         CustomMainWindow.setWindowTitle(QCoreApplication.translate("CustomMainWindow", u"Custom MainWindow", None))
-        self.open_info_menu_btn.setText(QCoreApplication.translate("CustomMainWindow", u"PushButton", None))
+        self.open_info_menu_btn.setText("")
         self.character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Character", None))
         self.map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Map", None))
         self.server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Server", None))
@@ -352,13 +370,13 @@ class Ui_CustomMainWindow(object):
         self.information_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Information", None))
         self.help_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Help", None))
         self.center_menu_top_label.setText(QCoreApplication.translate("CustomMainWindow", u"Info", None))
-        self.close_infomenu_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Close", None))
+        self.close_info_menu_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Close", None))
         self.settings_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Settings", None))
         self.theme_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Theme", None))
         self.character_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Character", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools ?", None))
         self.server_state_label.setText(QCoreApplication.translate("CustomMainWindow", u"Server: closed", None))
-        self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"<html><head/><body><p>URL : <a href=\"{SERVER_URL}\"><span style=\" text-decoration: underline; color:#99ebff;\">{SERVER_URL}</span></a></p></body></html>", None))
+        self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"URL : <a href='{SERVER_URL}'>{SERVER_URL}</a>", None))
         self.open_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open server", None))
         self.close_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Close server", None))
         self.open_website_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open website", None))

@@ -29,7 +29,7 @@
        </size>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
-       <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop">
+       <item alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTop">
         <widget class="QWidget" name="widget_2" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <property name="leftMargin">
@@ -46,11 +46,21 @@
           </property>
           <item>
            <widget class="QPushButton" name="open_info_menu_btn">
+            <property name="maximumSize">
+             <size>
+              <width>30</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="text">
-             <string>PushButton</string>
+             <string />
+            </property>
+            <property name="icon">
+             <iconset resource="test.qrc">
+              <normaloff>:/image/Redo.png</normaloff>:/image/Redo.png</iconset>
             </property>
            </widget>
           </item>
@@ -77,8 +87,14 @@
           </property>
           <item>
            <widget class="QPushButton" name="character_btn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="text">
              <string>Character</string>
@@ -87,8 +103,14 @@
           </item>
           <item>
            <widget class="QPushButton" name="map_btn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="text">
              <string>Map</string>
@@ -97,8 +119,14 @@
           </item>
           <item>
            <widget class="QPushButton" name="server_btn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="text">
              <string>Server</string>
@@ -141,8 +169,14 @@
           </property>
           <item>
            <widget class="QPushButton" name="settings_btn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="text">
              <string>Settings</string>
@@ -151,8 +185,14 @@
           </item>
           <item>
            <widget class="QPushButton" name="information_btn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="text">
              <string>Information</string>
@@ -161,8 +201,14 @@
           </item>
           <item>
            <widget class="QPushButton" name="help_btn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="text">
              <string>Help</string>
@@ -177,6 +223,9 @@
     </item>
     <item>
      <widget class="QWidget" name="center_menu" native="true">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -213,9 +262,15 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="close_infomenu_btn">
+           <widget class="QPushButton" name="close_info_menu_btn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="autoFillBackground">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="text">
              <string>Close</string>
@@ -237,7 +292,7 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="settings_menu">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -381,7 +436,7 @@
               </size>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL : &lt;a href="{SERVER_URL}"&gt;&lt;span style=" text-decoration: underline; color:#99ebff;"&gt;{SERVER_URL}&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>URL : &lt;a href='{SERVER_URL}'&gt;{SERVER_URL}&lt;/a&gt;</string>
              </property>
              <property name="scaledContents">
               <bool>false</bool>
@@ -412,6 +467,18 @@
            </item>
            <item>
             <widget class="QPushButton" name="open_server_btn">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>38</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>38</height>
+              </size>
+             </property>
              <property name="text">
               <string>Open server</string>
              </property>
@@ -422,6 +489,18 @@
            </item>
            <item>
             <widget class="QPushButton" name="close_server_btn">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>38</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>38</height>
+              </size>
+             </property>
              <property name="text">
               <string>Close server</string>
              </property>
@@ -435,6 +514,18 @@
            </item>
            <item>
             <widget class="QPushButton" name="open_website_btn">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>38</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>38</height>
+              </size>
+             </property>
              <property name="text">
               <string>Open website</string>
              </property>
