@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QScrollBar,
     QGraphicsPathItem,
+    QGraphicsSceneWheelEvent,
 )
 from PySide6.QtCore import (
     Qt,
@@ -41,6 +42,7 @@ from PySide6.QtGui import (
     QResizeEvent,
     QIcon,
     QPixmap,
+    QWheelEvent,
     
 ) 
 
@@ -50,6 +52,8 @@ _col_cell = {"TL" : (None,None) , "TR" : (None,None) , "BL" : (None,None) , "BR"
 
 class View_Grid(QGraphicsView):
     _grid = None
+
+    _Move_grid = None 
 
     def mouseMoveEvent(self, event):
         
@@ -72,7 +76,7 @@ class Window(QMainWindow):
 
         self.s_cell = s_cell
         self.size = n
-
+        self.zoom = 1.15
         self.setMinimumSize(700, 520)
         #cree une scene graphique de taille 700x520 
         self.TheVoid = QGraphicsScene()
@@ -84,8 +88,9 @@ class Window(QMainWindow):
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.view.setBackgroundBrush(QBrush(QColor("#e8e8e8ff")))
-        self.view.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self.view.setAlignment(Qt.AlignmentFlag.AlignTop )
         self.view.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        
         
         self.view.setMouseTracking(True)
 
@@ -98,9 +103,9 @@ class Window(QMainWindow):
         self.setCentralWidget(contain)
         global _wall
         _wall = InvisibleWallLimit(self.TheVoid)
-        
         self.TheVoid.addItem(_wall)
-
+        _wall.Align()
+        
         self.world  = Grid(n,s_cell)
         (self.world.atoms[0]).setName("TL")
         (self.world.atoms[0]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
@@ -119,13 +124,41 @@ class Window(QMainWindow):
         print(_col_cell)
  
     def wheelEvent(self, event):
+        
+        b_pos = self.view.mapToScene(event.position().toPoint())
+        print(b_pos)
         angle = event.angleDelta().y()
-        zoomFactor = 1 + (angle/1000)
-        self.view.scale(zoomFactor,zoomFactor)
+        if angle > 0:
+            
+            Scale = self.zoom
+        else:
+            
+            Scale = 1/self.zoom
+        
+        a_pos = self.view.mapToScene(event.position().toPoint())
+        self.view.scale(Scale,Scale)
+
+        self.view.translate(a_pos.x() - b_pos.x(),a_pos.y() - b_pos.y()) 
+
+       
         return super().wheelEvent(event)
 
+    def resizeEvent(self, event: QResizeEvent):
+        global _wall
+        self.view.fitInView(self.TheVoid.sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding)
+        _wall.Align()
+        scale = self.view.transform().m11()
+
+        #for item in self.TheVoid.items():
+            #if isinstance(item,Grid):
+            #    item.setScale(1.0/scale)
+
+            #if isinstance(item,layerrect):
+            #    item.setScale(item.scale()/scale)
+        
+        print("here")
+        super().resizeEvent(event)
     
-   
         
 
 class Grid(QGraphicsRectItem):
@@ -135,10 +168,10 @@ class Grid(QGraphicsRectItem):
         self.n = n
         self.s_cell = s_cell
         self.setZValue(0)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
+        self.setCursor(Qt.CursorShape.ArrowCursor)
         for i in range(n):
             for j in range(n):
                 cell = Cell(s_cell*j,s_cell*i,s_cell,s_cell)
@@ -153,7 +186,7 @@ class Grid(QGraphicsRectItem):
 
     def itemChange(self, change, value):
         
-
+        
         if change == QGraphicsItem.GraphicsItemChange.ItemPositionChange:
             global _col_cell
             global _wall
@@ -183,8 +216,9 @@ class Grid(QGraphicsRectItem):
                     col = _wall.mapFromScene(_wall.shape())
                     if inter.intersects(col):
                         return QPointF(min(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
-                    if b[i].scenePos().x()> self.scene().sceneRect().center().x() or b[i].scenePos().y()> self.scene().sceneRect().center().y():
-                         return self._gpos
+                    if b[i].scenePos().x() > self.scene().sceneRect().center().x()+10 or b[i].scenePos().y() > self.scene().sceneRect().center().y()+10:
+                        self.ungrabMouse()
+                        return self._gpos
                     
                 elif i == 1:
                     j = QGraphicsRectItem(b[i].scenePos().x()+self.n*self.n-self.n,b[i].scenePos().y(),b[i].boundingRect().width(),b[i].boundingRect().height())
@@ -197,7 +231,8 @@ class Grid(QGraphicsRectItem):
                     col = _wall.mapFromScene(_wall.shape())
                     if inter.intersects(col):
                         return QPointF(max(old_pos.x(),new_pos.x()),min(old_pos.y(),new_pos.y()))
-                    if b[i].scenePos().x()+self.n*self.n-self.n < self.scene().sceneRect().center().x() or b[i].scenePos().y()> self.scene().sceneRect().center().y():
+                    if b[i].scenePos().x()+self.n*self.n-self.n < self.scene().sceneRect().center().x()-10 or b[i].scenePos().y()> self.scene().sceneRect().center().y()+10:
+                        self.ungrabMouse()
                         return self._gpos
                     
                 elif i == 2:
@@ -211,7 +246,8 @@ class Grid(QGraphicsRectItem):
                     col = _wall.mapFromScene(_wall.shape())
                     if inter.intersects(col):
                         return QPointF(min(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
-                    if b[i].scenePos().x()> self.scene().sceneRect().center().x() or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y():
+                    if b[i].scenePos().x()> self.scene().sceneRect().center().x()+10 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()-10:
+                        self.ungrabMouse()
                         return self._gpos
                     
                 elif i == 3:
@@ -226,11 +262,14 @@ class Grid(QGraphicsRectItem):
                     col = _wall.mapFromScene(_wall.shape())
                     if inter.intersects(col):
                         return QPointF(max(old_pos.x(),new_pos.x()),max(old_pos.y(),new_pos.y()))
-                    if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x() or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y():
+                    if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x()-10 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()+10:
+                        self.ungrabMouse()
                         return self._gpos
                     
-            
+            #self.update()
         return super().itemChange(change, value)
+
+    
 
     def _sweep(self,b : Cell, correction : int ):
         global _col_cell
@@ -402,16 +441,25 @@ class InvisibleWallLimit(QGraphicsPathItem):
     def __init__(self,scene : QGraphicsScene):
         walls = QPainterPath()
         
-        walls.addRect(scene.sceneRect().center().x(),0,1,2*scene.sceneRect().height())
-        walls.addRect(scene.sceneRect().center().x()+3,0,3,2*scene.sceneRect().height())
-        walls.addRect(0,scene.sceneRect().center().y(),2*scene.sceneRect().width(),1)
-        walls.addRect(0,scene.sceneRect().center().y()+3,2*scene.sceneRect().width(),3)
+        walls.addRect(scene.sceneRect().center().x(),-(scene.sceneRect().height()/2),1,2*scene.sceneRect().height())
+        walls.addRect(scene.sceneRect().center().x()+2,-(scene.sceneRect().height()/2),2,2*scene.sceneRect().height())
+        walls.addRect(-(scene.sceneRect().width()/2),scene.sceneRect().center().y(),2*scene.sceneRect().width(),1)
+        walls.addRect(-(scene.sceneRect().width()/2),scene.sceneRect().center().y()+2,2*scene.sceneRect().width(),2)
         super().__init__(walls)
         self.setZValue(0)
         self.setPen(QPen(QColor("#3700ff"), 3))
         self.setBrush(QBrush(QColor("#1100ffff")))
 
+    def Align(self):
+        scene = self.scene().sceneRect()
+        
+        y = scene.top()  + (scene.height()- self.boundingRect().height()/2) /2 
+        x = scene.left() + (scene.width() - self.boundingRect().width()/2) /2
+        self.setPos(x,y)
+
     #ecrire une fonction update pour le rezize
+    #def sizeupdate(self):
+    #    self.shape().
 
 if __name__ == "__main__":
     
