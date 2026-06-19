@@ -286,18 +286,22 @@ class Grid(QGraphicsRectItem):
         for i in range(len(b)):
                 if i == 0:
                     if b[i].scenePos().x() > self.scene().sceneRect().center().x()+8 or b[i].scenePos().y() > self.scene().sceneRect().center().y()+8:
+                         self.ungrabMouse()
                          self.setPos(QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-self.s_cell))
                          return True
                 elif i == 1:
                     if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x()-8 or b[i].scenePos().y()> self.scene().sceneRect().center().y()+8:
+                        self.ungrabMouse()
                         self.setPos(QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-(self.n*self.n-self.n)+self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-self.s_cell))
                         return True
                 elif i == 2:
                     if b[i].scenePos().x()> self.scene().sceneRect().center().x()+8 or b[i].scenePos().y()+self.n*self.n-self.n< self.scene().sceneRect().center().y()-8:
+                        self.ungrabMouse()
                         self.setPos(QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-(self.n*self.n-self.n)+self.s_cell))
                         return True
                 elif i == 3:
                     if b[i].scenePos().x()+self.n*self.n-self.n< self.scene().sceneRect().center().x()+8 or b[i].scenePos().y()+self.n*self.n< self.scene().sceneRect().center().y()-8:
+                        self.ungrabMouse()
                         self.setPos(QPointF(self._gpos.x()+self.scene().sceneRect().center().x()-(self.n*self.n-self.n)+self.s_cell,self._gpos.y()+self.scene().sceneRect().center().y()-(self.n*self.n-self.n)+self.s_cell))
                         return True
         return False
