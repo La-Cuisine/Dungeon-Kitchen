@@ -257,7 +257,7 @@
           <item>
            <widget class="QLabel" name="center_menu_top_label">
             <property name="text">
-             <string>Info</string>
+             <string>Information menu</string>
             </property>
            </widget>
           </item>
@@ -269,11 +269,23 @@
               <height>30</height>
              </size>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>30</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+              <stylestrategy>PreferAntialias</stylestrategy>
+             </font>
+            </property>
             <property name="autoFillBackground">
              <bool>false</bool>
             </property>
             <property name="text">
-             <string>Close</string>
+             <string>✕</string>
             </property>
            </widget>
           </item>
@@ -592,10 +604,16 @@
         <widget class="QGraphicsView" name="graphicsView"/>
        </item>
        <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Logs du serveur PHP :</string>
-         </property>
+        <widget class="QWidget" name="widget_5" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="log_view_label">
+            <property name="text">
+             <string>Logs du serveur PHP :</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>

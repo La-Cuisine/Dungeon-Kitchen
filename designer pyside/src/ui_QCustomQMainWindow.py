@@ -145,6 +145,11 @@ class Ui_CustomMainWindow(object):
         self.close_info_menu_btn = QPushButton(self.center_menu_top)
         self.close_info_menu_btn.setObjectName(u"close_info_menu_btn")
         self.close_info_menu_btn.setMinimumSize(QSize(0, 30))
+        self.close_info_menu_btn.setMaximumSize(QSize(30, 16777215))
+        font1 = QFont()
+        font1.setPointSize(10)
+        font1.setStyleStrategy(QFont.PreferAntialias)
+        self.close_info_menu_btn.setFont(font1)
         self.close_info_menu_btn.setAutoFillBackground(False)
 
         self.horizontalLayout_2.addWidget(self.close_info_menu_btn)
@@ -330,10 +335,17 @@ class Ui_CustomMainWindow(object):
 
         self.verticalLayout_10.addWidget(self.graphicsView)
 
-        self.label = QLabel(self.main_body)
-        self.label.setObjectName(u"label")
+        self.widget_5 = QWidget(self.main_body)
+        self.widget_5.setObjectName(u"widget_5")
+        self.horizontalLayout_4 = QHBoxLayout(self.widget_5)
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.log_view_label = QLabel(self.widget_5)
+        self.log_view_label.setObjectName(u"log_view_label")
 
-        self.verticalLayout_10.addWidget(self.label)
+        self.horizontalLayout_4.addWidget(self.log_view_label)
+
+
+        self.verticalLayout_10.addWidget(self.widget_5)
 
         self.log_view = QTextEdit(self.main_body)
         self.log_view.setObjectName(u"log_view")
@@ -369,8 +381,8 @@ class Ui_CustomMainWindow(object):
         self.settings_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Settings", None))
         self.information_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Information", None))
         self.help_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Help", None))
-        self.center_menu_top_label.setText(QCoreApplication.translate("CustomMainWindow", u"Info", None))
-        self.close_info_menu_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Close", None))
+        self.center_menu_top_label.setText(QCoreApplication.translate("CustomMainWindow", u"Information menu", None))
+        self.close_info_menu_btn.setText(QCoreApplication.translate("CustomMainWindow", u"\u2715", None))
         self.settings_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Settings", None))
         self.theme_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Theme", None))
         self.character_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Character", None))
@@ -382,6 +394,6 @@ class Ui_CustomMainWindow(object):
         self.open_website_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open website", None))
         self.information_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Information", None))
         self.help_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Help", None))
-        self.label.setText(QCoreApplication.translate("CustomMainWindow", u"Logs du serveur PHP :", None))
+        self.log_view_label.setText(QCoreApplication.translate("CustomMainWindow", u"Logs du serveur PHP :", None))
     # retranslateUi
 
