@@ -62,7 +62,7 @@ class View_Grid(QGraphicsView):
             item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,True)
             if self._grid is None :
                 self._grid = item
-        if isinstance(item,Cell):
+        if isinstance(item,Interface_Cell):
             item.parentItem().setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,True)
             if self._grid is None :
                 self._grid = item.parentItem()
@@ -174,11 +174,11 @@ class Grid(QGraphicsRectItem):
         self.setCursor(Qt.CursorShape.ArrowCursor)
         for i in range(n):
             for j in range(n):
-                cell = Cell(s_cell*j,s_cell*i,s_cell,s_cell)
+                cell = Interface_Cell(s_cell*j,s_cell*i,s_cell,s_cell)
                 cell.setPen(QPen(Qt.black,0.5))
                 cell.setBrush(QBrush(QColor("Red")))
                 cell.setParentItem(self)
-        self.atoms= [item for item in self.childItems() if isinstance(item,Cell)]
+        self.atoms= [item for item in self.childItems() if isinstance(item,Interface_Cell)]
         
         self._gpos = QPointF(0,0)
         
@@ -304,7 +304,7 @@ class Grid(QGraphicsRectItem):
         
 
 
-    def _sweep(self,b : Cell, correction : int ):
+    def _sweep(self,b : Interface_Cell, correction : int ):
         global _col_cell
 
         #print(_col_cell[b.getName()])
@@ -369,7 +369,7 @@ class Grid(QGraphicsRectItem):
         return old.united(new).united(intersection)
 
     #TENTATIVE D'APPLICATION D'UN AUTRE PARADIGLE INFRUCTUEUX
-    def _step_axis(self, old_coord : float,new_coord : float, cons : float, axis : str, b : Cell, correction : int, step: int ):
+    def _step_axis(self, old_coord : float,new_coord : float, cons : float, axis : str, b : Interface_Cell, correction : int, step: int ):
         global _col_cell
         if _col_cell.get(b.getName())[0] is None or _col_cell.get(b.getName())[1] is None :
             return None
@@ -441,7 +441,7 @@ class Grid(QGraphicsRectItem):
         return pre_coord
 
     #FONCTION UTILISE PAR LA TENTATIVE INFRUCTUEUSE              
-    def _coll_check(self, point : QPointF,b:Cell):
+    def _coll_check(self, point : QPointF,b:Interface_Cell):
         global _wall
 
         item = QPainterPath()
@@ -453,7 +453,7 @@ class Grid(QGraphicsRectItem):
         return False   
     
 
-class Cell(QGraphicsRectItem):
+class Interface_Cell(QGraphicsRectItem):
 
     def __init__(self, x,y,w,h):
         super().__init__(x,y,w,h)
