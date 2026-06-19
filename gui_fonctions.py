@@ -45,12 +45,15 @@ class GuiFunctions():
         Initialise le thème de l'application
         """
         settings = QSettings()
+        settings.setValue("THEME","Dark")
         current_theme = settings.value("THEME")
-        
         # Ajoute des thèmes à la liste des thèmes
         self.ui.theme_list.addItem("Dark")
         self.ui.theme_list.addItem("Light")
         
+        if(current_theme == None):
+            self._apply_dark_theme()
+
         # Positionne le combobox sur le thème actuel sans déclencher le signal
         index = self.ui.theme_list.findText(current_theme)
         if index >= 0:
