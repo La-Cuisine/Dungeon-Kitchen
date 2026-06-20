@@ -54,8 +54,6 @@ _col_cell = {"TL" : (None,None) , "TR" : (None,None) , "BL" : (None,None) , "BR"
 class View_Grid(QGraphicsView):
     _grid = None
 
-    _Move_grid = None 
-
     def mouseMoveEvent(self, event):
         
         item = self.itemAt(event.pos())
@@ -77,7 +75,10 @@ class Window(QMainWindow):
 
         self.s_cell = s_cell
         self.size = n
-        self.zoom = 1.15
+        self.zoomfac = 1.15
+        self.zoom = 1
+        self.zoomMax = 5
+        self.zoomMin = 0.5
         self.setMinimumSize(700, 520)
         #cree une scene graphique de taille 700x520 
         self.TheVoid = QGraphicsScene()
@@ -123,30 +124,42 @@ class Window(QMainWindow):
         self.TheVoid.addItem(self.world)
         global _col_cell
         print(_col_cell)
-        self.scale = 1
+        
  
     def wheelEvent(self, event):
         
-        b_pos = self.view.mapToScene(event.position().toPoint())
-        print(b_pos)
-        angle = event.angleDelta().y()
-        if angle > 0:
-            
-            Scale = self.zoom
+        
 
+        angle = event.angleDelta().y()
+
+        if angle > 0: 
+            factor = self.zoomfac
+            if factor * self.zoom <= self.zoomMin :
+                self.zoom  = factor*self.zoom 
+                self.view.scale(self.zoom,self.zoom)
         else:
-            
-            Scale = 1/self.zoom
+            factor = 1/self.zoomfac
+            if factor * self.zoom >= self.zoomMax :
+                self.zoom  = factor*self.zoom 
+                self.view.scale(self.zoom,self.zoom)
+
+        if factor * self.zoom >= self.zoomMax or factor * self.zoom <= self.zoomMin :
+            return super().wheelEvent(event)
         
-        a_pos = self.view.mapToScene(event.position().toPoint())
-        self.view.scale(Scale,Scale)
+        self.zoom  = factor*self.zoom 
+
+        self.view.scale(self.zoom,self.zoom)
         
-        self.view.translate(a_pos.x() - b_pos.x(),a_pos.y() - b_pos.y()) 
         
+        self.view.fitInView(self.TheVoid.sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
+
         for item in self.TheVoid.items():
-            if isinstance(item,Interface_Cell):
-                print("CEEL")
-                
+            if isinstance(item,Grid):
+                item.setScale(self.zoom)
+            #if isinstance(item,InvisibleWallLimit):
+            #    item.setScale(1/self.zoom)
+
+           
        
         return super().wheelEvent(event)
 
@@ -451,7 +464,6 @@ class Interface_Cell(QGraphicsRectItem):
 
 class Img(QGraphicsPixmapItem):
 
-    
 
     def paint(self, painter, option, widget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing) 
@@ -472,6 +484,7 @@ class InvisibleWallLimit(QGraphicsPathItem):
         self.setZValue(0)
         self.setPen(QPen(QColor("#8f8f8fff"), 2))
         #self.setBrush(QBrush(QColor("#ffffffff")))
+        
 
     def Align(self):
         scene = self.scene().sceneRect()
@@ -483,6 +496,14 @@ class InvisibleWallLimit(QGraphicsPathItem):
     #ecrire une fonction update pour le rezize
     #def sizeupdate(self):
     #    self.shape().
+
+    def sizeUpdate(self):
+        walls = QPainterPath()
+        walls.addRect(self.scene().sceneRect().center().x(),-(self.scene().sceneRect().height()/2),1,2*self.scene().sceneRect().height())
+        #walls.addRect(self.scene().sceneRect().center().x()+2,-(self.scene().sceneRect().height()/2),2,2*self.scene().sceneRect().height())
+        walls.addRect(-(self.scene().sceneRect().width()/2),self.scene().sceneRect().center().y(),2*self.scene().sceneRect().width(),1)
+        #walls.addRect(-(self.scene().sceneRect().width()/2),self.scene().sceneRect().center().y()+2,2*self.scene().sceneRect().width(),2)
+        self.setPath(walls)
 
 if __name__ == "__main__":
     
