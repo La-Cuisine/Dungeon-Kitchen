@@ -57,7 +57,7 @@ SERVER_PORT = 8080
 
 # URL complète construite à partir de l'hôte et du port.
 # Utilisée pour l'affichage dans l'interface et pour ouvrir le navigateur.
-SERVER_URL = f"http://{SERVER_HOST}:{SERVER_PORT}"
+SERVER_URL = f"http://localhost:{SERVER_PORT}"
 
 
 # ---------------------------------------------------------------------------

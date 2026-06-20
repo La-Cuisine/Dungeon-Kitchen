@@ -13,8 +13,7 @@ class GuiFunctions():
         self.ui = MainWindow.ui
         self._controller = ServerController()
 
-        #self.init_app_theme()
-        self._apply_dark_theme()
+        self.init_app_theme()
         self.init_app_widget_color()
         self.init_app_btn_connect()
         self._open_center_menu()
@@ -51,7 +50,6 @@ class GuiFunctions():
         # Ajoute des thèmes à la liste des thèmes
         self.ui.theme_list.addItem("Dark")
         self.ui.theme_list.addItem("Light")
-        print(current_theme)
         if(current_theme == None):
             self._apply_dark_theme()
 
@@ -62,7 +60,8 @@ class GuiFunctions():
 
         # Connect le signal pour changer de thème
         self.ui.theme_list.currentTextChanged.connect(self.changeAppTheme)
-
+        
+        
     def init_app_btn_connect(self):
         """
         Initialise les signaux pour les boutons de l'application
