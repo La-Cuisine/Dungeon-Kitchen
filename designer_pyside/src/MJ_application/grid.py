@@ -59,7 +59,7 @@ class Interface_Cell(QGraphicsRectItem):
         
         self._coord = (None,None)
         self._name =""
-        self._img = None
+        self._img = Img()
         self._text = None
         self.w = w 
         self.h = h    
