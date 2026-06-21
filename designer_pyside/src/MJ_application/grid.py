@@ -290,7 +290,7 @@ class Grid(QGraphicsRectItem):
                 cell.setCoord(j,i)
                 cell.setParentItem(self)
                 if j<=i:
-                    cell.setImage("sponge.jpg")
+                    cell.setImage("image/sponge.jpg")
         self.atoms= [item for item in self.childItems() if isinstance(item,Interface_Cell)]
     
         self._gpos = QPointF(0,0)
