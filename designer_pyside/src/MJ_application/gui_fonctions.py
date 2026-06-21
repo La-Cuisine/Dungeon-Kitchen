@@ -1,11 +1,14 @@
 from PySide6.QtCore import QSettings
-from PySide6.QtGui import QColor, QPalette
+from PySide6.QtGui import QColor, QPalette, QPainter, QBrush
+from PySide6.QtWidgets import QGraphicsScene
+from PySide6.QtCore import Qt
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 import webbrowser
 # Import interne
 from src.MJ_application.server import SERVER_URL, ServerController
 from src.MJ_application.LogReaderThread import LogReaderThread
+from src.MJ_application.grid import View_Grid, Grid, InvisibleWallLimit
 
 class GuiFunctions():
     def __init__(self,MainWindow):
@@ -17,6 +20,7 @@ class GuiFunctions():
         self.init_app_widget_color()
         self.init_app_btn_connect()
         self._open_center_menu()
+        self.init_grid()
 
     # ----------------------------------------------------------------
     # Initialisation de l'application 
@@ -86,6 +90,68 @@ class GuiFunctions():
         self.ui.close_server_btn.clicked.connect(self._stop_server)
         self.ui.open_website_btn.clicked.connect(self._open_browser)
     
+    def init_grid(self, n: int = 25, s_cell: int = 25):
+        """
+        Remplace le QGraphicsView généré par Qt Designer par un View_Grid,
+        puis y injecte la scène, le mur invisible et la grille.
+
+        :param n:      Nombre de cellules par côté de la grille.
+        :param s_cell: Taille en pixels d'une cellule.
+        """
+        # Récupère le layout parent du graphicsView
+        layout = self.ui.verticalLayout_10
+
+        # Retire l'ancien QGraphicsView du layout (sans le détruire tout de suite)
+        layout.removeWidget(self.ui.graphicsView)
+        self.ui.graphicsView.hide()
+        self.ui.graphicsView.deleteLater()
+
+        # Crée la scène graphique
+        self._scene = QGraphicsScene()
+        self._scene.setSceneRect(0, 0, 700, 520)
+
+        # Crée le View_Grid et le branche sur la scène
+        self._view_grid = View_Grid(self._scene)
+        self._view_grid.setObjectName("graphicsView")          # Conserve le même nom
+        self._view_grid.setRenderHint(
+            QPainter.RenderHint.Antialiasing
+            | QPainter.RenderHint.TextAntialiasing
+            | QPainter.RenderHint.SmoothPixmapTransform
+        )
+        self._view_grid.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._view_grid.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._view_grid.setBackgroundBrush(QBrush(QColor("#171717ff")))
+        self._view_grid.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self._view_grid.setDragMode(View_Grid.DragMode.ScrollHandDrag)
+        self._view_grid.setMouseTracking(True)
+
+        # Mur invisible (doit exister avant la grille)
+        import src.MJ_application.grid as _grid_module
+        self._wall = InvisibleWallLimit(self._scene)
+        _grid_module._wall = self._wall          # Met à jour la globale du module
+        self._scene.addItem(self._wall)
+        self._wall.Align()
+
+        # Grille
+        self._world = Grid(n, s_cell)
+        from PySide6.QtWidgets import QGraphicsItem
+        (self._world.atoms[0]).setName("TL")
+        (self._world.atoms[0]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+        (self._world.atoms[n - 1]).setName("TR")
+        (self._world.atoms[n - 1]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+        (self._world.atoms[(n - 1) * n]).setName("BL")
+        (self._world.atoms[(n - 1) * n]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+        (self._world.atoms[(n - 1) * n + (n - 1)]).setName("BR")
+        (self._world.atoms[(n - 1) * n + (n - 1)]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+        self._scene.addItem(self._world)
+
+        # Insère le View_Grid à la place du graphicsView (index 0)
+        layout.insertWidget(0, self._view_grid)
+
+        # Met à jour la référence ui.graphicsView pour que le reste du code
+        # continue à fonctionner via self.ui.graphicsView si besoin
+        self.ui.graphicsView = self._view_grid
+
     # ----------------------------------------------------------------
     # Changement des attributs de widget
     # ----------------------------------------------------------------
@@ -467,6 +533,3 @@ class GuiFunctions():
             f"  color: #888888;"
             f"}}"
         )
-
-
-
