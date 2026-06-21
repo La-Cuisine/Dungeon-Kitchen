@@ -51,6 +51,66 @@ _wall = None
 
 _col_cell = {"TL" : (None,None) , "TR" : (None,None) , "BL" : (None,None) , "BR" : (None,None) } #colision_cell
 
+class Interface_Cell(QGraphicsRectItem):
+
+    def __init__(self, x,y,w,h):
+        super().__init__(x,y,w,h)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
+        
+        self._coord = (None,None)
+        self._name =""
+        self._img = None
+        self._text = None
+        self.w = w 
+        self.h = h    
+
+
+    def boundingRect(self):
+        return super().boundingRect().adjusted(-1,-1,1,1)
+
+    def paint(self, painter, option, /, widget = ...):
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing) 
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)  
+        if self._img is None : 
+            self.setPen(QPen(Qt.black,0.5))
+            self.setBrush(QBrush(QColor("#686767ff")))
+        
+        
+
+                
+
+        return super().paint(painter, option, widget)
+         
+    def setCoord(self,x : int,y : int):
+        self._coord = (x,y)
+        
+
+    def setName(self,i: str):
+        self._name = i
+    
+    def getName(self):
+        return self._name
+    
+    def setImage(self,Path : str) :
+        if self._img is None:
+            self._img = Img()
+            self._img.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+            self._img.setCacheMode(QGraphicsPathItem.CacheMode.DeviceCoordinateCache)
+            self._img.setPixmap((QPixmap(Path).scaled(self.w,self.h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)))
+            self._img.setPos(self.w*self._coord[0],self.h*self._coord[1])
+            self._img.setParentItem(self)
+        else :
+            self.scene().removeItem(self._img)
+            del self._img 
+            self._img = Img()
+            self._img.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+            self._img.setCacheMode(QGraphicsPathItem.CacheMode.DeviceCoordinateCache)
+            self._img.setPixmap((QPixmap(Path).scaled(self.w,self.h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)))
+            self._img.setPos(self.w*self._coord[0],self.h*self._coord[1])
+            self._img.setParentItem(self)
+        self.update()
+
 class View_Grid(QGraphicsView):
     _grid = None
 
@@ -432,69 +492,6 @@ class Grid(QGraphicsRectItem):
             intersection.closeSubpath()
         
         return old.united(new).united(intersection)
-   
-    
-
-class Interface_Cell(QGraphicsRectItem):
-
-    def __init__(self, x,y,w,h):
-        super().__init__(x,y,w,h)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
-        
-        self._coord = (None,None)
-        self._name =""
-        self._img = None
-        self._text = None
-        self.w = w 
-        self.h = h    
-
-
-    def boundingRect(self):
-        return super().boundingRect().adjusted(-1,-1,1,1)
-
-    def paint(self, painter, option, /, widget = ...):
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing) 
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)  
-        if self._img is None : 
-            self.setPen(QPen(Qt.black,0.5))
-            self.setBrush(QBrush(QColor("#686767ff")))
-        
-        
-
-                
-
-        return super().paint(painter, option, widget)
-         
-    def setCoord(self,x : int,y : int):
-        self._coord = (x,y)
-        
-
-    def setName(self,i: str):
-        self._name = i
-    
-    def getName(self):
-        return self._name
-    
-    def setImage(self,Path : str) :
-        if self._img is None:
-            self._img = Img()
-            self._img.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
-            self._img.setCacheMode(QGraphicsPathItem.CacheMode.DeviceCoordinateCache)
-            self._img.setPixmap((QPixmap(Path).scaled(self.w,self.h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)))
-            self._img.setPos(self.w*self._coord[0],self.h*self._coord[1])
-            self._img.setParentItem(self)
-        else :
-            self.scene().removeItem(self._img)
-            del self._img 
-            self._img = Img()
-            self._img.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
-            self._img.setCacheMode(QGraphicsPathItem.CacheMode.DeviceCoordinateCache)
-            self._img.setPixmap((QPixmap(Path).scaled(self.w,self.h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)))
-            self._img.setPos(self.w*self._coord[0],self.h*self._coord[1])
-            self._img.setParentItem(self)
-        self.update()
-
 
 class Img(QGraphicsPixmapItem):
 
