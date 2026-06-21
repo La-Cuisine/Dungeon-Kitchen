@@ -1,5 +1,5 @@
 {
-    "ShowLogs": true,
+    "ShowLogs": false,
     "QtBinding": "PySide6",
     "CheckForMissingicons": true,
     "LiveCompileQss": true,
@@ -14,16 +14,85 @@
         },
         "ThemeSettings": {
             "QtDesignerIconsColor": "#FFFFFF",
-            "CustomThemes": [
+            "CustomTheme": [
                 {
-                    "Background-color": "#000000",
-                    "Text-color": "#FFFFFF",
-                    "Accent-color": "#0000FF",
-                    "Icons-color": "#FFFFFF",
-                    "Theme-name": "Default-theme",
+                    "Background-color": "#FFFFFF",
+                    "Text-color": "#010000",
+                    "Icons-color": "#000000",
+                    "Accent-color": "#26bae3",
+                    "Theme-name": "LightBlue",
+                    "Default-Theme": false
+                },
+                {
+                    "Background-color": "#21272a",
+                    "Text-color": "#fefefe",
+                    "Icons-color": "#fefefe",
+                    "Accent-color": "#fba43b",
+                    "Theme-name": "DarkYellow",
                     "Default-Theme": true
                 }
             ]
         }
-    }
+    },
+    "QPushButtonGroup": [
+        {
+            "Buttons": [
+                "character_btn",
+                "map_btn",
+                "server_btn",
+                "settings_btn",
+                "information_btn",
+                "help_btn"
+            ],
+            "ActiveButton": "homeBtn",
+            "Style": [
+                {
+                    "Active": "QPushButton{background-color: THEME.COLOR_BACKGROUND_2; font-weight: bold; border-top: 2px solid $COLOR_BACKGROUND_3; border-left: 5px solid $COLOR_BACKGROUND_3;border-bottom: 6px solid $COLOR_BACKGROUND_3;}",
+                    "NotActive": "QPushButton{background-color: transparent; font-weight: normal; border-top: 2px solid transparent; border-left: 5px solid transparent;border-bottom: 6px solid transparent;}"
+                }
+            ]
+        },
+        {
+            "Buttons": [
+                "open_info_menu_btn",
+                "close_info_menu_btn"
+            ],
+            "Style": [
+                {
+                    "Active": "QPushButton::hover{background-color: THEME.COLOR_ACCENT_1}",
+                    "NotActive": "QPushButton{background-color: transparent; font-weight: normal; border-radius: 5px} QPushButton::hover{background-color: THEME.COLOR_ACCENT_1}"
+                }
+            ]
+        }
+    ],
+    "QCustomQStackedWidget": [
+        {
+            "name": "stacked_widget",
+            "navigation": [
+                {
+                    "navigationButtons": [
+                        {
+                            "character_btn": "character_menu",
+                            "map_btn": "map_menu",
+                            "server_btn": "server_menu",
+                            "settings_btn": "settings_menu",
+                            "information_btn": "information_menu",
+                            "help_btn": "help_menu"
+                        }
+                    ]
+                }
+            ],
+            "transitionAnimation": [
+                {
+                    "fade": [
+                        {
+                            "active": true,
+                            "duration": 500,
+                            "easingCurve": "InSine"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
 }

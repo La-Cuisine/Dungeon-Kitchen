@@ -33,16 +33,6 @@ class MainWindow(QMainWindow):
         self.ui = Ui_CustomMainWindow()
         self.ui.setupUi(self)
 
-        self.app_functions = GuiFunctions(self)
-
-        ########################################################################
-        # APPLY JSON STYLESHEET
-        ########################################################################
-        # self = QMainWindow class
-        # self.ui = Ui_CustomMainWindow / user interface class
-        #Use this if you only have one json file named "style.json" inside the root directory, "json" directory or "jsonstyles" folder.
-        # loadJsonStyle(self, self.ui) 
-
         # Use this to specify your json file(s) path/name
         loadJsonStyle(self, self.ui, jsonFiles = {
             "json-styles/style.json"
@@ -55,31 +45,10 @@ class MainWindow(QMainWindow):
         #######################################################################
         self.show() 
 
-        ########################################################################
-        # UPDATE APP SETTINGS LOADED FROM JSON STYLESHEET 
-        # ITS IMPORTANT TO RUN THIS AFTER SHOWING THE WINDOW
-        # THIS PROCESS WILL RUN ON A SEPARATE THREAD WHEN GENERATING NEW ICONS
-        # TO PREVENT THE WINDOW FROM BEING UNRESPONSIVE
-        ########################################################################
         # self = QMainWindow class
-        # QAppSettings.updateAppSettings(self)
+        QAppSettings.updateAppSettings(self)
 
-        ########################################################################
-        # To apply a new theme from your JSon file
-        # Import custom wdgets theme engine
-        # from Custom_Widgets.QCustomTheme import QCustomTheme
-
-        # init theme engine
-        # self.themeEngine = QCustomTheme()
-
-        # check current theme name
-        # print(self.themeEngine.theme)
-        
-        # set the theme name from json file
-        # self.themeEngine.theme = "Default-theme" #or Light, Dark or any custom theme name from the json file
-        # self.themeEngine.theme = "Dark" 
-        # self.themeEngine.theme = "Light" 
-        ########################################################################
+        self.app_functions = GuiFunctions(self)
 
 ########################################################################
 ## EXECUTE APP
