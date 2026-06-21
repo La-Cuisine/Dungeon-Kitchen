@@ -59,7 +59,9 @@ class Interface_Cell(QGraphicsRectItem):
         
         self._coord = (None,None)
         self._name =""
-        self._img = None
+
+        self._img = Img()
+        
         self._text = None
         self.w = w 
         self.h = h    
@@ -72,7 +74,7 @@ class Interface_Cell(QGraphicsRectItem):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing) 
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)  
-        if self._img is None : 
+        if self._img.pixmap().isNull() : 
             self.setPen(QPen(Qt.black,0.5))
             self.setBrush(QBrush(QColor("#686767ff")))
         
@@ -93,23 +95,22 @@ class Interface_Cell(QGraphicsRectItem):
         return self._name
     
     def setImage(self,Path : str) :
-        if self._img is None:
-            self._img = Img()
+        if self._img.pixmap().isNull() :
+            
             self._img.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
             
             self._img.setPixmap((QPixmap(Path).scaled(self.w,self.h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)))
             self._img.setPos(self.w*self._coord[0],self.h*self._coord[1])
             self._img.setParentItem(self)
         else :
-            self.scene().removeItem(self._img)
-            del self._img 
-            self._img = Img()
+            self.scene().removeItem(self._img) 
             self._img.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
             
             self._img.setPixmap((QPixmap(Path).scaled(self.w,self.h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)))
             self._img.setPos(self.w*self._coord[0],self.h*self._coord[1])
             self._img.setParentItem(self)
         self.update()
+
 
 class View_Grid(QGraphicsView):
     _grid = None
@@ -540,6 +541,6 @@ class InvisibleWallLimit(QGraphicsPathItem):
 if __name__ == "__main__":
     
     app = QApplication(sys.argv)
-    window = Window(25,64)
+    window = Window(400,64)
     window.show()
     sys.exit(app.exec())
