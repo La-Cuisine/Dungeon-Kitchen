@@ -46,10 +46,16 @@
           </property>
           <item>
            <widget class="QPushButton" name="open_info_menu_btn">
+            <property name="minimumSize">
+             <size>
+              <width>30</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="maximumSize">
              <size>
               <width>30</width>
-              <height>16777215</height>
+              <height>30</height>
              </size>
             </property>
             <property name="autoFillBackground">
@@ -60,14 +66,14 @@
             </property>
             <property name="icon">
              <iconset resource="test.qrc">
-              <normaloff>:/image/Redo.png</normaloff>:/image/Redo.png</iconset>
+              <normaloff>:/image/Undo.png</normaloff>:/image/Undo.png</iconset>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
        </item>
-       <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop">
+       <item alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTop">
         <widget class="QWidget" name="widget_3" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <property name="spacing">
@@ -149,7 +155,7 @@
          </property>
         </spacer>
        </item>
-       <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignBottom">
+       <item alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignBottom">
         <widget class="QWidget" name="widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
@@ -304,7 +310,7 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
-          <number>3</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="settings_menu">
           <layout class="QVBoxLayout" name="verticalLayout_6">
