@@ -34,11 +34,12 @@ SPEC_DIR  := .
 APP_NAME  := MJ_Application
 
 # ── Chemins sources des données à embarquer ─────────────────────────────────
-D_IMAGE := $(SRC_DIR)/image
-D_JSON  := $(SRC_DIR)/json-styles
-D_QSS   := $(SRC_DIR)/Qss
-D_SITE  := $(SRC_DIR)/src/site
-D_PHP   := $(SRC_DIR)/src/MJ_application/php-portable
+# Chemins relatifs à SRC_DIR (on fait "cd $(SRC_DIR)" avant pyinstaller)
+D_IMAGE := image
+D_JSON  := json-styles
+D_QSS   := Qss
+D_SITE  := src/site
+D_PHP   := src/MJ_application/php-portable
 
 # ── Options PyInstaller communes ────────────────────────────────────────────
 #    --add-data utilise SEP (';' Windows, ':' Linux)
@@ -107,13 +108,13 @@ build-linux:
 # ---------------------------------------------------------------------------
 clean:
 ifeq ($(DETECTED_OS), Windows)
-	-$(RM_DIR) $(BUILD_DIR) 2>nul
-	-$(RM_DIR) $(DIST_DIR)  2>nul
-	-$(RM_FILE) $(APP_NAME).spec 2>nul
-	-for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d" 2>nul
-	-del /s /q *.pyc 2>nul
+	-cd $(SRC_DIR) && $(RM_DIR) $(BUILD_DIR) 2>nul
+	-cd $(SRC_DIR) && $(RM_DIR) $(DIST_DIR)  2>nul
+	-cd $(SRC_DIR) && $(RM_FILE) $(APP_NAME).spec 2>nul
+	-cd $(SRC_DIR) && for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d" 2>nul
+	-cd $(SRC_DIR) && del /s /q *.pyc 2>nul
 else
-	$(RM_DIR) $(BUILD_DIR) $(DIST_DIR) $(APP_NAME).spec
-	$(CLEAN_PYC)
+	cd $(SRC_DIR) && $(RM_DIR) $(BUILD_DIR) $(DIST_DIR) $(APP_NAME).spec
+	cd $(SRC_DIR) && $(CLEAN_PYC)
 endif
 	@echo "  OK  Nettoyage termine."
