@@ -45,7 +45,8 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_2.setContentsMargins(5, 5, 5, 5)
         self.open_info_menu_btn = QPushButton(self.widget_2)
         self.open_info_menu_btn.setObjectName(u"open_info_menu_btn")
-        self.open_info_menu_btn.setMaximumSize(QSize(30, 16777215))
+        self.open_info_menu_btn.setMinimumSize(QSize(30, 30))
+        self.open_info_menu_btn.setMaximumSize(QSize(30, 30))
         self.open_info_menu_btn.setAutoFillBackground(False)
         icon = QIcon()
         icon.addFile(u":/image/Undo.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
@@ -366,7 +367,7 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(3)
+        self.stacked_widget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
