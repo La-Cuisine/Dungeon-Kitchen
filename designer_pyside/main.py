@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         # TO PREVENT THE WINDOW FROM BEING UNRESPONSIVE
         ########################################################################
         # self = QMainWindow class
-        QAppSettings.updateAppSettings(self)
+        #QAppSettings.updateAppSettings(self)
 
         ########################################################################
         # To apply a new theme from your JSon file
