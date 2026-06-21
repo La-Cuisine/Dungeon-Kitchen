@@ -1,0 +1,29 @@
+{
+    "ShowLogs": true,
+    "QtBinding": "PySide6",
+    "CheckForMissingicons": true,
+    "LiveCompileQss": true,
+    "QMainWindow": {
+        "title": "Dungeon Kitchen"
+    },
+    "QSettings": {
+        "AppSettings": {
+            "OrginizationName": "Dungeon Kitchen Company",
+            "ApplicationName": "Dungeon Kitchen",
+            "OrginizationDormain": "Dungeon Kitchen.org"
+        },
+        "ThemeSettings": {
+            "QtDesignerIconsColor": "#FFFFFF",
+            "CustomThemes": [
+                {
+                    "Background-color": "#000000",
+                    "Text-color": "#FFFFFF",
+                    "Accent-color": "#0000FF",
+                    "Icons-color": "#FFFFFF",
+                    "Theme-name": "Default-theme",
+                    "Default-Theme": true
+                }
+            ]
+        }
+    }
+}

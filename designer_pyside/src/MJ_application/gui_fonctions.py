@@ -4,8 +4,8 @@ from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 import webbrowser
 # Import interne
-from src.MJ_application.server import SERVER_URL, ServerController
-from src.MJ_application.LogReaderThread import LogReaderThread
+from designer_pyside.src.MJ_application.server import SERVER_URL, ServerController
+from designer_pyside.src.MJ_application.LogReaderThread import LogReaderThread
 
 class GuiFunctions():
     def __init__(self,MainWindow):
