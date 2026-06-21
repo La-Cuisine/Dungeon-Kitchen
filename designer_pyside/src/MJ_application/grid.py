@@ -21,6 +21,8 @@ from PySide6.QtWidgets import (
     QGraphicsPathItem,
     QGraphicsSceneWheelEvent,
     QGraphicsPixmapItem,
+    QMenu,
+    
 )
 from PySide6.QtCore import (
     Qt,
@@ -44,7 +46,10 @@ from PySide6.QtGui import (
     QIcon,
     QPixmap,
     QWheelEvent,
-    QKeyEvent,  
+    QKeyEvent,
+    QAction,
+    QCursor,
+    
 ) 
 
 _wall = None
@@ -111,6 +116,48 @@ class Interface_Cell(QGraphicsRectItem):
             self._img.setParentItem(self)
         self.update()
 
+class Interface_MouseCoord(QGraphicsRectItem):
+    _Mx = None
+    _My = None
+
+    
+    def __init__(self, x, y, w, h):
+        super().__init__(x, y, w, h)
+        self.h = h
+        self.x = x
+        self.y = y
+
+    #def __init__(self, xy : QPointF , w, h):
+    #    super().__init__(xy.x(), xy.y(), w, h)
+
+    
+
+    def paint(self, painter, option, /, widget = ...):
+        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        if self._Mx is not None and self._My is not None : 
+            text_mouse = (" "+ str(round(self._Mx,2)) + " : " +  str(round(self._My,2)))
+            print(text_mouse)
+            font = painter.font()
+            font.setPixelSize(self.h)
+        
+            painter.setFont(font)
+            painter.setPen(QPen(QColor("#ffffffff")))
+            painter.drawText(self.rect(),Qt.AlignmentFlag.AlignCenter,text_mouse)
+        return super().paint(painter, option, widget)
+       
+    def setMxy(self,x: float,y:float):
+        self._Mx = x 
+        self._My = y
+        self.update()
+
+    #Marche pas pour l'instant jsp pourquoi... 
+    def align(self):
+        scene = self.scene().sceneRect()
+        x = scene.center().x()+(scene.center().x()/2.1)
+        print("XYMOUSE : ",self.x," | ",self.y)
+        self.setPos(x,0)
+        self.update()
+
 
 class View_Grid(QGraphicsView):
     _grid = None
@@ -122,8 +169,12 @@ class View_Grid(QGraphicsView):
     zoomMax = 2.5
     zoomMin = 0.5
 
+    _Items_needs = []
+
     def mouseMoveEvent(self, event):
         
+        
+        print(self._Items_needs)
         item = self.itemAt(event.pos())
         if isinstance(item,Grid):
             item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,True)
@@ -135,8 +186,17 @@ class View_Grid(QGraphicsView):
                 self._grid = item.parentItem()
         if item is None and self._grid is not None :
            self._grid.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
+
+        for it in self._Items_needs:
+            if isinstance(it,Interface_MouseCoord):
+                
+                it.setMxy(event.position().x(),event.position().y())
+                
+
         return super().mouseMoveEvent(event)
     
+    def addItemNeeds(self,item : QGraphicsItem):
+        self._Items_needs.append(item)
 
     def keyPressEvent(self, event):
 
@@ -200,18 +260,78 @@ class View_Grid(QGraphicsView):
         global _wall
         self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding)
         _wall.Align()
+        
         scale = self.transform().m11()
 
-        #for item in self.TheVoid.items():
-            #if isinstance(item,Grid):
-            #    item.setScale(1.0/scale)
-
-            #if isinstance(item,layerrect):
-            #    item.setScale(item.scale()/scale)
         
+
+        #for item in self.scene().items():
+        #    if isinstance(item,InvisibleWallLimit):
+        #        item.setScale(1.0/scale)
+            #if isinstance(item,Interface_MouseCoord):
+                #item.align() #--> preserve la position du text NE MARCHE PAS           
+                #item.setScale(1.0/scale)
+
+           
         print("here")
         super().resizeEvent(event)
     
+    def contextMenuEvent(self, event):
+        item = self.itemAt(event.pos())
+        if isinstance(item,Interface_Cell):
+            self.menu = QMenu(self)
+            renameAction = QAction("Copy", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+
+            renameAction = QAction("Paste", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+
+            renameAction = QAction("Cut", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+                        
+            renameAction = QAction("Text", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+            
+            renameAction = QAction("Image", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+            
+
+            ## add other required actions
+            self.menu.popup(QCursor.pos())
+        if isinstance(item.parentItem(),Interface_Cell):
+            self.menu = QMenu(self)
+            renameAction = QAction("Copy", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+
+            
+            renameAction = QAction("Paste", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+
+            renameAction = QAction("Cut", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+            
+            renameAction = QAction("Text", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+            
+            renameAction = QAction("Image", self)
+            #renameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(renameAction)
+            
+            
+            ## add other required actions
+            self.menu.popup(QCursor.pos())
+
+        return super().contextMenuEvent(event)
+        
 
 class Window(QMainWindow):
 
@@ -247,6 +367,10 @@ class Window(QMainWindow):
         self.root_layout.setContentsMargins(0, 0, 0, 0)        
         self.root_layout.addWidget(self.view)
         self.setCentralWidget(contain)
+
+        self.InterMouseCoor = Interface_MouseCoord(self.TheVoid.sceneRect().topRight()-100,-self.TheVoid.sceneRect().width()/5,20)
+        self.TheVoid.addItem(self.InterMouseCoor)
+        self.view.addItemNeeds(self.InterMouseCoor)
         global _wall
         _wall = InvisibleWallLimit(self.TheVoid)
         self.TheVoid.addItem(_wall)

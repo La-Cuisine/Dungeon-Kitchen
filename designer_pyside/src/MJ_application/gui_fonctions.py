@@ -90,7 +90,7 @@ class GuiFunctions():
         self.ui.close_server_btn.clicked.connect(self._stop_server)
         self.ui.open_website_btn.clicked.connect(self._open_browser)
     
-    def init_grid(self, n: int = 25, s_cell: int = 25):
+    def init_grid(self, n: int = 50, s_cell: int = 64):
         """
         Remplace le QGraphicsView généré par Qt Designer par un View_Grid,
         puis y injecte la scène, le mur invisible et la grille.
@@ -121,12 +121,21 @@ class GuiFunctions():
         self._view_grid.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self._view_grid.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self._view_grid.setBackgroundBrush(QBrush(QColor("#171717ff")))
-        self._view_grid.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self._view_grid.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._view_grid.setDragMode(View_Grid.DragMode.ScrollHandDrag)
         self._view_grid.setMouseTracking(True)
 
-        # Mur invisible (doit exister avant la grille)
+        
+
+
         import src.MJ_application.grid as _grid_module
+
+        #Interface qui affiche coordonnées de la souris
+        self.InterMouseCoor = _grid_module.Interface_MouseCoord(self._scene.sceneRect().center().x()+(self._scene.sceneRect().center().x()/2.1),0,self._scene.sceneRect().width()/8,15)
+        self._scene.addItem(self.InterMouseCoor)
+        self._view_grid.addItemNeeds(self.InterMouseCoor)
+
+        # Mur invisible (doit exister avant la grille)
         self._wall = InvisibleWallLimit(self._scene)
         _grid_module._wall = self._wall          # Met à jour la globale du module
         self._scene.addItem(self._wall)
