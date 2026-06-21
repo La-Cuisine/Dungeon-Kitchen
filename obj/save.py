@@ -76,7 +76,7 @@ def toXML(o,indent=0):
     elif isinstance(o,blueprint.Cell):
         res = ntab(indent) + "<Cell\n"
         #note: retrieve bin from string with bin(int(x,2)) 
-        res += ntab(indent+1) + "ground=\"" + str(bin(o.ground())) + "\"\n"
+        res += ntab(indent+1) + "ground=\"" + str(o.ground()) + "\"\n"
         res += ntab(indent+1) + "walls=\"" + str(bin(o.walls())) + "\"\n"
         res += ntab(indent+1) + "doors=\"" + str(bin(o.doors())) + "\"\n"
         res += ntab(indent) + ">\n"
@@ -110,47 +110,171 @@ def toXML(o,indent=0):
 
     return res
 
+def fromXMLTree(root):
+    observe = root.tag
+    new = None
+    if(observe == "Item"):
+        i = 0
+        t = 0
+        d = ""
+        for att in root.attrib:
+            if i==0:
+                s = root.attrib[att]
+            if i==1:
+                t = int(root.attrib[att])
+            if i==2:
+                d = root.attrib[att]
+            i+=1
+        new = items.Item(s,t,d)
+    
+    elif(observe == "NPC"):
+        i = 0
+        a = 0
+        n = "Unknown"
+        for att in root.attrib:
+            if i==0:
+                a = int(root.attrib[att])
+            if i==1:
+                n = root.attrib[att]
+            if i==2:
+                d = root.attrib[att]
+            i+=1
+        new = pawns.NPC(n,a)
+        new.redescribe(d)
+        for child in root:
+            if(child.tag == "inventory"):
+                for it in child:
+                    new.addItem(fromXMLTree(it))
+            if(child.tag == "stats"):
+                for c in child:
+                    s=""
+                    v=None
+                    j=0
+                    for e in c.attrib:
+                        if(j==0):
+                            s = c.attrib[e]
+                        else:
+                            v = c.attrib[e]
+                        j += 1
+                    new.add_stat(s,v)
+
+    elif(observe == "PC"):
+        i = 0
+        ID = 0
+        n = "Unknown"
+        for att in root.attrib:
+            if i==0:
+                ID = int(root.attrib[att])
+            if i==1:
+                n = root.attrib[att]
+            if i==2:
+                d = root.attrib[att]
+            i+=1
+        new = pawns.PC(ID,n)
+        new.redescribe(d)
+        for child in root:
+            if(child.tag == "inventory"):
+                for it in child:
+                    new.addItem(fromXMLTree(it))
+            if(child.tag == "stats"):
+                for c in child:
+                    s=""
+                    v=None
+                    j=0
+                    for e in c.attrib:
+                        if(j==0):
+                            s = c.attrib[e]
+                        else:
+                            v = int(c.attrib[e]) #Maybe not int depends on rules
+                        j += 1
+                    new.add_stat(s,v)
+
+    elif(observe == "Player"): #???
+        raise Exception("NotHandled?")
+
+    elif(observe == "Prop"):
+        i = 0
+        t = 0
+        d = ""
+        s = 0
+        for att in root.attrib:
+            if i==0:
+                n = root.attrib[att]
+            if i==1:
+                t = int(root.attrib[att])
+            if i==2:
+                d = root.attrib[att]
+            if i==3:
+                s = int(root.attrib[att])
+            i+=1
+        new = blueprint.Prop(n,t,d,s)
+    
+    elif(observe == "Cell"):
+        i = 0
+        g = 0
+        w = 0b0
+        d = 0b0
+        for att in root.attrib:
+            if i==0:
+                g = int(root.attrib[att])
+            if i==1:
+                w = (int(root.attrib[att],2))
+            if i==2:
+                d = (int(root.attrib[att],2))
+            i+=1
+        new = blueprint.Cell([],g,w,d)
+        for child in root:
+            for cont in child:
+                new.add_content(fromXMLTree(cont))
+ 
+    elif(observe == "Blueprint"):
+        i = 0
+        n="Unlabeled"
+        for att in root.attrib:
+            if i==0:
+                n = root.attrib[att]
+            if i==1:
+                l = int(root.attrib[att])
+            if i==2:
+                w = int(root.attrib[att])
+            i+=1
+        new = blueprint.Blueprint(l,w,n)
+        for grid in root:
+            y = 0
+            for row in grid:
+                x = 0 
+                for cell in row:
+                    new.set_cell(x,y,fromXMLTree(cell))
+                    x+=1
+                y+=1
+
+    elif(observe == "Game"): #???
+        raise Exception("NotHandled?")
+    else:
+        raise Exception("InvalidObject")
+    return new
 
 def fromXML(path):
-    raise Exception("NotImplemented")
     tree = ET.parse(path)
     root = tree.getroot()
-    print (root.tag, root.attrib)
-    #here for test
-    print(". . .") 
-    for child in root:
-        if child is None:
-            continue
-        print(child.tag,child.attrib)#child.attrib)
-        if( child.tag == "inventory" or child.tag == "stats" or child.tag == "grid" ):
-            for great in child:
-                if(great.tag == "row"):
-                    for cell in great:
-                        print(cell.tag,cell.attrib)
-                        for cont in cell:
-                            if cont is None:
-                                continue
-                            for it in cont:
-                                if it is None:
-                                    continue
-                                print(it.tag,it.attrib)
-                print(great.tag,great.attrib)
-
-
-    
+    return fromXMLTree(root)
+   
 ###################TEST##########################
 
-bp = blueprint.Blueprint(10,10)
-bp.set_cell(9,9, (blueprint.Cell( {blueprint.Prop("Levier",1,"ça tire")} )) )
+#bp = blueprint.Blueprint(10,10)
+#bp.set_cell(9,9, (blueprint.Cell( {blueprint.Prop("Levier",1,"ça tire")} )) )
 #bp.get_cell(9,9).remove_content(0)
 
-new1 = items.Item("Balle",1,"Rigolo")
-new = pawns.NPC()
-new.addItem(new1)
-new.add_stat("INT",14)
-new.redescribe("BLABLA BLA")
+#new1 = items.Item("Balle",1,"Rigolo")
+#new = pawns.NPC()
+#new.addItem(new1)
+#new.add_stat("INT",14)
+#new.redescribe("BLABLA BLA")
+
 #print(toXML(new))
+
 #print(toXML(bp))
-#print(fromXML("test1.xml"))
+
+#print(toXML(fromXML("test1.xml")))
 #print(fromXML("test2.xml"))
 
