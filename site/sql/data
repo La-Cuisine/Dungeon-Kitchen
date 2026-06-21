@@ -1,8 +1,0 @@
-INSERT INTO games (id, name, category, players, rating, color, icon, tag, description)
-VALUES
-(1, 'Tetris', 'Puzzle', '2.4M', 4.9, '#00f5ff', '🧱', 'CLASSIQUE', 'Empile les blocs, efface les lignes, bat ton score !'),
-(2, 'Snake', 'Arcade', '1.8M', 4.7, '#39ff14', '🐍', 'POPULAIRE', 'Mange, grandis, évite ta propre queue !'),
-(3, 'Space Invader', 'Arcade', '3.1M', 4.8, '#ffe600', '👾', 'N°1', 'Defends toi devant la menace !'),
-(4, 'Minesweeper', 'Puzzle', '980K', 4.5, '#ff6b35', '💣', 'STRATÉGIE', 'Un seul clic peut tout faire exploser...'),
-(5, 'Breakout', 'Action', '1.2M', 4.6, '#ff00aa', '🏓', 'ACTION', 'Casse tous les blocs avec ta balle !'),
-(6, '2048', 'Puzzle', '1.5M', 4.8, '#bf00ff', '🔢', 'VIRAL', 'Fusionne les tuiles, atteins 2048 !');
