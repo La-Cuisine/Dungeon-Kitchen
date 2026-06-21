@@ -44,7 +44,7 @@ from PySide6.QtGui import (
     QIcon,
     QPixmap,
     QWheelEvent,
-    
+    QKeyEvent,  
 ) 
 
 _wall = None
@@ -53,6 +53,13 @@ _col_cell = {"TL" : (None,None) , "TR" : (None,None) , "BL" : (None,None) , "BR"
 
 class View_Grid(QGraphicsView):
     _grid = None
+
+    _shift_press = False
+
+    zoomfac = 1.15
+    zoom = 1
+    zoomMax = 5
+    zoomMin = 0.5
 
     def mouseMoveEvent(self, event):
         
@@ -68,8 +75,87 @@ class View_Grid(QGraphicsView):
         if item is None and self._grid is not None :
            self._grid.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
         return super().mouseMoveEvent(event)
+    
+
+    def keyPressEvent(self, event):
+
+        if event.key() == Qt.Key.Key_Shift:
+            self._shift_press = True    
+            
+        return super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event):
+        
+        if event.key() == Qt.Key.Key_Shift:
+            self._shift_press = False    
+            
+        return super().keyReleaseEvent(event)
+    
+
+    def wheelEvent(self, event):
+        
+        if self._shift_press == True : 
+            
+            global _wall
+
+            angle = event.angleDelta().y()
+
+            if angle > 0: 
+                factor = self.zoomfac
+                if factor * self.zoom <= self.zoomMin :
+                    self.zoom  = factor*self.zoom 
+                    self.scale(self.zoom,self.zoom)
+            else:
+                factor = 1/self.zoomfac
+                if factor * self.zoom >= self.zoomMax :
+                    self.zoom  = factor*self.zoom 
+                    self.scale(self.zoom,self.zoom)
+
+
+            if factor * self.zoom >= self.zoomMax or factor * self.zoom <= self.zoomMin :
+                return super().wheelEvent(event)
+
+            self.zoom  = factor*self.zoom 
+
+            self.scale(self.zoom,self.zoom)
+
+            #self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.IgnoreAspectRatio)
+
+
+
+            for item in self.scene().items():
+                if isinstance(item,Grid):
+                    item.setScale(self.zoom)
+                    item.update()
+                if isinstance(item,InvisibleWallLimit):
+                    #item.setScale(self.zoom)
+                    item.update()
+            return super().wheelEvent(event)
+    
+        return super().wheelEvent(event)
+    
+
+    def resizeEvent(self, event: QResizeEvent):
+        global _wall
+        self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding)
+        _wall.Align()
+        scale = self.transform().m11()
+
+        #for item in self.TheVoid.items():
+            #if isinstance(item,Grid):
+            #    item.setScale(1.0/scale)
+
+            #if isinstance(item,layerrect):
+            #    item.setScale(item.scale()/scale)
+        
+        print("here")
+        super().resizeEvent(event)
+    
 
 class Window(QMainWindow):
+
+   
+
     def __init__(self, n , s_cell):
         super().__init__()
 
@@ -126,58 +212,6 @@ class Window(QMainWindow):
         print(_col_cell)
         
  
-    def wheelEvent(self, event):
-        
-        
-
-        angle = event.angleDelta().y()
-
-        if angle > 0: 
-            factor = self.zoomfac
-            if factor * self.zoom <= self.zoomMin :
-                self.zoom  = factor*self.zoom 
-                self.view.scale(self.zoom,self.zoom)
-        else:
-            factor = 1/self.zoomfac
-            if factor * self.zoom >= self.zoomMax :
-                self.zoom  = factor*self.zoom 
-                self.view.scale(self.zoom,self.zoom)
-
-        if factor * self.zoom >= self.zoomMax or factor * self.zoom <= self.zoomMin :
-            return super().wheelEvent(event)
-        
-        self.zoom  = factor*self.zoom 
-
-        self.view.scale(self.zoom,self.zoom)
-        
-        
-        self.view.fitInView(self.TheVoid.sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
-
-        for item in self.TheVoid.items():
-            if isinstance(item,Grid):
-                item.setScale(self.zoom)
-            #if isinstance(item,InvisibleWallLimit):
-            #    item.setScale(1/self.zoom)
-
-           
-       
-        return super().wheelEvent(event)
-
-    def resizeEvent(self, event: QResizeEvent):
-        global _wall
-        self.view.fitInView(self.TheVoid.sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding)
-        _wall.Align()
-        scale = self.view.transform().m11()
-
-        #for item in self.TheVoid.items():
-            #if isinstance(item,Grid):
-            #    item.setScale(1.0/scale)
-
-            #if isinstance(item,layerrect):
-            #    item.setScale(item.scale()/scale)
-        
-        print("here")
-        super().resizeEvent(event)
     
         
 
@@ -498,6 +532,7 @@ class InvisibleWallLimit(QGraphicsPathItem):
     #    self.shape().
 
     def sizeUpdate(self):
+        print("LOLOLOLOLOLOLOLOLOL ",self.scene().sceneRect().width())
         walls = QPainterPath()
         walls.addRect(self.scene().sceneRect().center().x(),-(self.scene().sceneRect().height()/2),1,2*self.scene().sceneRect().height())
         #walls.addRect(self.scene().sceneRect().center().x()+2,-(self.scene().sceneRect().height()/2),2,2*self.scene().sceneRect().height())
