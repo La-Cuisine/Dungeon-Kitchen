@@ -2,7 +2,7 @@
   "QPushButton": [
     {
       "name": "open_info_menu_btn",
-      "icon": "../../image/Redo.png"
+      "icon": "ui/image/Undo.png"
     }
   ],
   "QComboBox": [

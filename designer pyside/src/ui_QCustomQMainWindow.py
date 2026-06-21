@@ -48,7 +48,7 @@ class Ui_CustomMainWindow(object):
         self.open_info_menu_btn.setMaximumSize(QSize(30, 16777215))
         self.open_info_menu_btn.setAutoFillBackground(False)
         icon = QIcon()
-        icon.addFile(u":/image/Redo.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(u":/image/Undo.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.open_info_menu_btn.setIcon(icon)
 
         self.verticalLayout_2.addWidget(self.open_info_menu_btn)
@@ -84,7 +84,7 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_4.addWidget(self.server_btn)
 
 
-        self.verticalLayout.addWidget(self.widget_3, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
+        self.verticalLayout.addWidget(self.widget_3, 0, Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTop)
 
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -118,7 +118,7 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_3.addWidget(self.help_btn)
 
 
-        self.verticalLayout.addWidget(self.widget, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignBottom)
+        self.verticalLayout.addWidget(self.widget, 0, Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignBottom)
 
 
         self.horizontalLayout.addWidget(self.sidebar, 0, Qt.AlignmentFlag.AlignLeft)

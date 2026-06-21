@@ -1,7 +1,9 @@
+from PySide6.QtWidgets import QGraphicsDropShadowEffect
 from PySide6.QtCore import QSettings
 from PySide6.QtGui import QColor, QPalette
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
+from Custom_Widgets.QCustomTheme import QCustomTheme
 import webbrowser
 # Import interne
 from src.MJ_application.server import SERVER_URL, ServerController
@@ -44,24 +46,23 @@ class GuiFunctions():
         """
         Initialise le thème de l'application
         """
-        settings = QSettings()
-        settings.setValue("theme",0)
-        current_theme = settings.value("theme")
+        self.themeEngine = QCustomTheme()
+        settings = QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
+        current_theme = settings.value("THEME")
         # Ajoute des thèmes à la liste des thèmes
         self.ui.theme_list.addItem("Dark")
         self.ui.theme_list.addItem("Light")
-        if(current_theme == None):
-            self._apply_dark_theme()
+        self.ui.theme_list.setCurrentText(current_theme)
 
-        # Positionne le combobox sur le thème actuel sans déclencher le signal
-        index = self.ui.theme_list.findText(current_theme)
-        if index >= 0:
-            self.ui.theme_list.setCurrentIndex(index)
+        if current_theme == "Dark":
+            self._apply_dark_theme()
+        else:
+            self._apply_light_theme()
 
         # Connect le signal pour changer de thème
         self.ui.theme_list.currentTextChanged.connect(self.changeAppTheme)
-        
-        
+
+
     def init_app_btn_connect(self):
         """
         Initialise les signaux pour les boutons de l'application
@@ -93,10 +94,10 @@ class GuiFunctions():
     def change_open_menu_btn(self, state):
         if(state == True):
             self.ui.open_info_menu_btn.clicked.connect(self._close_center_menu)
-            self.ui.open_info_menu_btn.setIcon(QIcon("image/Undo.png"))
+            self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Undo.png"))
         elif(state == False):
             self.ui.open_info_menu_btn.clicked.connect(self._open_center_menu)
-            self.ui.open_info_menu_btn.setIcon(QIcon("image/Redo.png"))
+            self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Redo.png"))
 
     # ----------------------------------------------------------------
     # Slots – méthodes connectées aux signaux des boutons et du thread
@@ -273,19 +274,9 @@ class GuiFunctions():
         settings = QSettings()
         current_theme = settings.value("THEME")
         selected_theme = self.ui.theme_list.currentText()
-
-        #deka
-        # if current_theme != selected_theme:
-        #     print("AAAAA")
-        #     # Applique le nouveau thème
-        #     settings.setValue("THEME", selected_theme)
-        #     QAppSettings.updateAppSettings(self.main, reloadJson=True)
-        
-        #sam
         if current_theme != selected_theme:
             settings.setValue("THEME", selected_theme)
             QAppSettings.updateAppSettings(self.main, reloadJson=True)
-
             if selected_theme == "Dark":
                 self._apply_dark_theme()
             else:
@@ -319,7 +310,7 @@ class GuiFunctions():
         #self._status_bar.setStyleSheet(f"color: {color}; font-weight: bold;")
         # showMessage() remplace le contenu actuel de la barre d'état
         #self._status_bar.showMessage(message)
-        print("STATUS")
+        pass
 
     def _apply_dark_theme(self):
         """
