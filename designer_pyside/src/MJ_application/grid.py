@@ -50,6 +50,8 @@ from PySide6.QtGui import (
     QKeyEvent,
     QAction,
     QCursor,
+    QMouseEvent,
+    QKeySequence,
     
 ) 
 
@@ -64,7 +66,7 @@ class Interface_Cell(QGraphicsRectItem):
     def __init__(self, x,y,w,h):
         super().__init__(x,y,w,h)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+        
 
         self._coord = (None,None)
         self._name =""
@@ -148,7 +150,8 @@ class Interface_Cell(QGraphicsRectItem):
         print(_cell_cp_data["img"])
         if self._img is not None :
             self.scene().removeItem(self._img)
-            del self._img
+            tmp = self._img
+            del tmp
         self._img = _cell_cp_data["img"].copy_for_cell()
         self._CPimage()
         
@@ -156,10 +159,15 @@ class Interface_Cell(QGraphicsRectItem):
     def Cut(self):
         self.Copy()
         self.scene().removeItem(self._img)
-        del self._img 
+        tmp = self._img
+        del tmp
         self._img = None
         
         self.update()
+
+    
+
+    
 
 
 class Interface_MouseCoord(QGraphicsRectItem):
@@ -210,12 +218,18 @@ class View_Grid(QGraphicsView):
 
     _shift_press = False
 
+
+    _cell_select = None
+    _cell_select_use = False
+
     zoomfac = 1.15
     zoom = 1
     zoomMax = 2.5
     zoomMin = 0.5
 
     _Items_needs = []
+
+
 
     def mouseMoveEvent(self, event):
         
@@ -230,6 +244,8 @@ class View_Grid(QGraphicsView):
             item.parentItem().setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,True)
             if self._grid is None :
                 self._grid = item.parentItem()
+
+            
         if item is None and self._grid is not None :
            self._grid.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
 
@@ -248,14 +264,77 @@ class View_Grid(QGraphicsView):
 
         if event.key() == Qt.Key.Key_Shift:
             self._shift_press = True    
-            
+
+        if event.modifiers() ==  Qt.KeyboardModifier.ControlModifier  :
+            if event.key() == Qt.Key.Key_C:
+                print("COPY")
+                if self._cell_select is not None:
+                    self._cell_select.Copy()
+                    self._cell_select_use = True
+
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier  :
+            if event.key() == Qt.Key.Key_V :
+                print("PASTE")
+                if self._cell_select is not None:
+                    self._cell_select.Paste()
+                    self._cell_select_use = True
+                    
+
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier  :
+            if event.key() == Qt.Key.Key_X :
+                if self._cell_select is not None:
+                    self._cell_select.Cut()
+                    self._cell_select_use = True
+                    
+
+        
+        
         return super().keyPressEvent(event)
+    
+
+
+    def mouseDoubleClickEvent(self, event):
+        
+        
+        item = self.itemAt(event.pos())
+        if isinstance(item,Interface_Cell):
+            if item != self._cell_select:
+                self._cell_select_use = False
+                item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+                item.setSelected(True)
+                self._cell_select = item
+            elif item.isSelected() == False :
+                item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+                item.setSelected(True)
+        
+        elif isinstance(item.parentItem(),Interface_Cell):
+            if item.parentItem() != self._cell_select:
+                self._cell_select_use = False
+                item.parentItem().setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+                item.parentItem().setSelected(True)
+                self._cell_select = item.parentItem()
+            elif item.parentItem().isSelected() == False :
+                item.parentItem().setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+                item.parentItem().setSelected(True)
+
+        print(self._cell_select)
+        return super().mouseDoubleClickEvent(event)
+    
+    def mousePressEvent(self, event):
+        if self._cell_select is not None:
+            item = self.itemAt(event.pos())    
+            if item != self._cell_select:
+                self._cell_select.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable,False)
+                if self._cell_select_use == False:
+                    self._cell_select = None
+        return super().mousePressEvent(event)
 
     def keyReleaseEvent(self, event):
         
         if event.key() == Qt.Key.Key_Shift:
             self._shift_press = False    
-            
+
+    
         return super().keyReleaseEvent(event)
     
 
