@@ -1,5 +1,6 @@
 import sys
-import math
+
+
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -56,12 +57,15 @@ _wall = None
 
 _col_cell = {"TL" : (None,None) , "TR" : (None,None) , "BL" : (None,None) , "BR" : (None,None) } #colision_cell
 
+_cell_cp_data = {"fill" : False ,"img" : None , "text" : None}
+
 class Interface_Cell(QGraphicsRectItem):
 
     def __init__(self, x,y,w,h):
         super().__init__(x,y,w,h)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
-        
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+
         self._coord = (None,None)
         self._name =""
 
@@ -71,7 +75,7 @@ class Interface_Cell(QGraphicsRectItem):
         self.w = w 
         self.h = h    
 
-
+        
     def boundingRect(self):
         return super().boundingRect().adjusted(-1,-1,1,1)
 
@@ -79,13 +83,15 @@ class Interface_Cell(QGraphicsRectItem):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing) 
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)  
-        if self._img.pixmap().isNull() : 
-            self.setPen(QPen(Qt.black,0.5))
-            self.setBrush(QBrush(QColor("#686767ff")))
-        
-        
+        if isinstance(self._img,Img):
+            if self._img.pixmap().isNull() : 
+                self.setPen(QPen(Qt.black,0.5))
+                self.setBrush(QBrush(QColor("#686767ff")))
+        elif self._img is None : 
+                self.setPen(QPen(Qt.black,0.5))
+                self.setBrush(QBrush(QColor("#686767ff")))
+            
 
-                
 
         return super().paint(painter, option, widget)
          
@@ -115,6 +121,46 @@ class Interface_Cell(QGraphicsRectItem):
             self._img.setPos(self.w*self._coord[0],self.h*self._coord[1])
             self._img.setParentItem(self)
         self.update()
+
+    #Copy Paste imgae
+    def _CPimage(self) :
+        if not (self._img.pixmap().isNull()) :
+            
+            self._img.pixmap().scaled(self.w,self.h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+            self._img.setPos(self.w*self._coord[0],self.h*self._coord[1])
+            self._img.setParentItem(self)
+        else : 
+            self.scene().removeItem(self._img)
+            del self._img
+            self._img = Img()
+        self.update()
+
+
+    def Copy(self):
+        global _cell_cp_data
+        _cell_cp_data["fill"] =True
+        _cell_cp_data["img"] = self._img
+
+    def Paste(self):
+
+
+        global _cell_cp_data
+        print(_cell_cp_data["img"])
+        if self._img is not None :
+            self.scene().removeItem(self._img)
+            del self._img
+        self._img = _cell_cp_data["img"].copy_for_cell()
+        self._CPimage()
+        
+
+    def Cut(self):
+        self.Copy()
+        self.scene().removeItem(self._img)
+        del self._img 
+        self._img = None
+        
+        self.update()
+
 
 class Interface_MouseCoord(QGraphicsRectItem):
     _Mx = None
@@ -278,53 +324,63 @@ class View_Grid(QGraphicsView):
     
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
+        global _cell_cp_data
         if isinstance(item,Interface_Cell):
+
             self.menu = QMenu(self)
-            renameAction = QAction("Copy", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
 
-            renameAction = QAction("Paste", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
-
-            renameAction = QAction("Cut", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
-                        
-            renameAction = QAction("Text", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
+            if _cell_cp_data["fill"] == True :           
+                nameAction = QAction("Paste", self)
+                nameAction.triggered.connect(lambda: item.Paste())
+                self.menu.addAction(nameAction)
             
-            renameAction = QAction("Image", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
+            nameAction = QAction("Copy", self)
+            nameAction.triggered.connect(lambda: item.Copy())
+            self.menu.addAction(nameAction)
+
+
+            nameAction = QAction("Cut", self)
+            nameAction.triggered.connect(lambda: item.Cut())
+            self.menu.addAction(nameAction)
+
+
+            nameAction = QAction("Text", self)
+            #nameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(nameAction)
+            
+            nameAction = QAction("Image", self)
+            #nameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(nameAction)
             
 
             ## add other required actions
             self.menu.popup(QCursor.pos())
         if isinstance(item.parentItem(),Interface_Cell):
+
             self.menu = QMenu(self)
-            renameAction = QAction("Copy", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
 
+            if _cell_cp_data["fill"] == True :
+                nameAction = QAction("Paste", self)
+                nameAction.triggered.connect(lambda: item.parentItem().Paste())
+                self.menu.addAction(nameAction)
             
-            renameAction = QAction("Paste", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
+            nameAction = QAction("Copy", self)
+            nameAction.triggered.connect(lambda: item.parentItem().Copy())
+            self.menu.addAction(nameAction)
 
-            renameAction = QAction("Cut", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
+
+            nameAction = QAction("Cut", self)
+            nameAction.triggered.connect(lambda: item.parentItem().Cut())
+            self.menu.addAction(nameAction)
             
-            renameAction = QAction("Text", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
+
+            nameAction = QAction("Text", self)
+            #nameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(nameAction)
             
-            renameAction = QAction("Image", self)
-            #renameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(renameAction)
+            nameAction = QAction("Image", self)
+            #nameAction.triggered.connect(lambda: self.renameSlot(event))
+            self.menu.addAction(nameAction)
             
             
             ## add other required actions
@@ -626,6 +682,13 @@ class Img(QGraphicsPixmapItem):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         
         return super().paint(painter, option, widget)
+    
+    def copy_for_cell(self):
+        img = Img()
+        img.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+            
+        img.setPixmap(self.pixmap())
+        return img
 
 class InvisibleWallLimit(QGraphicsPathItem):
 
