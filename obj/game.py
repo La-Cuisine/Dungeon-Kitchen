@@ -1,17 +1,27 @@
+import items
 import blueprint
 import pawns
 import player
 
 class Game:
-    def __init__(self):
+    def __init__(self,name="Untitled_Session"):
         #TODO
-        self.__base_length = 50
-        self.__base_width = 50
-        self._layers = dict()# (layer_name:map)
-        self._pawns = dict()# ((x,y):occupant)
-        self._notes = []#TODO ((name,text))
-    
+        self._name = name
+        self.__base_length = 64
+        self.__base_width = 64
+        self._layers = dict() #(layer_name:Blueprint)
+        self._pawns = dict() #((x,y):Pawn)
+        self._itemList = [] #(Item)
+        self._charList = [] #(PC/NPC)
+        self._propList = [] #(Prop)
+        self._bpList = [] #(Blueprint)
+        self._notes = [] #((name,text))
+
+
+
     #getters
+    def name(self):
+        return self._name
     def layers(self):
         return self._layers
     def get_layer(self,s):
@@ -24,9 +34,45 @@ class Game:
         if(not((x,y) in self._pawns)):
             raise Exception("PawnNotFound")
         return self._layers[(x,y)]
+    def items(self):
+        return self._itemList
+    def get_item(self,i):
+        if not(i in self._itemList):
+            raise Exception("ItemDoesNotExist")
+        return self._itemList[i]
+    def characters(self):
+        return self._charList
+    def get_character(self,c):
+        if not(c in self._charList):
+            raise Exception("CharacterDoesNotExist")
+        return self._charList[c]
+    def props(self):
+        return self._propList
+    def get_prop(self,p):
+        if not(p in self._propList):
+            raise Exception("PropDoesNotExist")
+        return self._propList[p]
+    def blueprints(self):
+        return self._bpList
+    def get_blueprint(self,bp):
+        if not(bp in self._bpList):
+            raise Exception("BlueprintDoesNotExist")
+        return self._bpList[bp]
+    def notes(self):
+        return self._notes
+    def get_note(self,i):
+        if(0 > i or i > len(self._notes)):
+            raise Exception("IndexOutOfRange")
+        return self._notes[i]
+
+
 
     #setters
-    #TODO
+    def rename(self,n):
+        self._name = n
+        #change directory name also
+
+
 
     #methods
     def new_layer(self, s="", X=0, Y=0, m=None):
@@ -59,7 +105,7 @@ class Game:
         if (not(m is None)) and (not isinstance(m,blueprint.Blueprint)):
             raise Exception("InvalidArgument")
         self._layers[s] = m
-    def switch_layers(self,s1,s2):
+    def swap_layers(self,s1,s2):
         if not(s1 in self._layers):
             raise Exception("LayerDoesNotExist")
         if not(s2 in self._layers):
@@ -67,7 +113,6 @@ class Game:
         limbo = self._layers[s2]
         self._layers[s2] = self._layers[s1]
         self._layers[s1] = limbo
-
 
 
     def add_pawn(self,p,x,y,l):
@@ -93,7 +138,7 @@ class Game:
             raise Exception("CellAlreadyOccupied")
         self._pawns[(x2,y2)] = self._pawns[(x1,y1)]
         del self._pawns[(x1,y1)]
-    def switch_pawns(self, x1, y1, x2, y2):
+    def swap_pawns(self, x1, y1, x2, y2):
         if(not((x1,y1) in self._pawns)):
             raise Exception("PawnNotFound")
         if(not((x2,y2) in self._pawns)):
@@ -101,4 +146,61 @@ class Game:
         limbo = sel._pawns[(x2,y2)]
         self._pawns[(x2,y2)] = self._pawns[(x1,y1)]
         self._pawns[(x1,y1)] = limbo
+
+
+    def add_item(self, it):
+        if(not isinstance(it, items.Item)):
+            raise Exception("InvalidArgument")
+        self._itemList.append(it)
+    def remove_item(self, i):
+        if(0>i or i> len(self._itemList)):
+            raise Exception("IndexOutOfRange")
+        res = self._itemList[i]
+        del self._itemList[i]
+        return res
+
+    def add_character(self, c):
+        if((not isinstance(c,pawns.NPC)) and (not isinstance(c,pawns.PC))):
+            raise Exception("InvalidArgument")
+        self._charList.append(c)
+    def remove_character(self, c):
+        if(0>i or i> len(self._charList)):
+            raise Exception("IndexOutOfRange")
+        res = self._charList[i]
+        del self._charList[i]
+        return res
+
+    def add_prop(self, p):
+        if(not isinstance(p, blueprint.Prop)):
+            raise Exception("InvalidArgument")
+        self._propList.append(p)
+    def remove_prop(self, i):
+        if(0>i or i> len(self._propList)):
+            raise Exception("IndexOutOfRange")
+        res = self._propList[i]
+        del self._propList[i]
+        return res
+
+    def add_blueprint(self, bp):
+        if(not isinstance(it, blueprint.Blueprint)):
+            raise Exception("InvalidArgument")
+        self._bpList.append(bp)
+    def remove_blueprint(self, i):
+        if(0>i or i> len(self._bpList)):
+            raise Exception("IndexOutOfRange")
+        res = self._bpList[i]
+        del self._bpList[i]
+        return res
+
+    def add_note(self,text,name="Untitled"):
+        self._notes.append((name,text))
+    def remove_note(self, i):
+        if(0>i or i> len(self._notes)):
+            raise Exception("IndexOutOfRange")
+        res = self._notes[i]
+        del self._notes[i]
+        return res
+
+    def copy(self):
+        res = Game(self._name+"  - Copy")
 

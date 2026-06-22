@@ -93,6 +93,10 @@ class Cell:
         del self._contents[i]
         return res
 
+    def copy(self):
+        return Cell(self._contents, self._ground, self._walls, self._doors)
+
+
 
 class Blueprint: 
     def __init__(self, X, Y, s="Unlabeled"):

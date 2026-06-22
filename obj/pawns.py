@@ -68,7 +68,6 @@ class NPC:
             new.addItem(e)
         for k in self._stats:
             new.add_stat(k, self._stats[k])
-        raise Exception("NotImplemented")
         return new
 
 class PC:
@@ -137,5 +136,4 @@ class PC:
             new.addItem(e)
         for k in self._stats:
             new.add_stat(k, self._stats[k])
-        raise Exception("NotImplemented")
         return new
