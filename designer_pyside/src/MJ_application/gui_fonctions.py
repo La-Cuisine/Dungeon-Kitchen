@@ -1,4 +1,4 @@
-from PySide6.QtCore import QSettings
+from PySide6.QtCore import QSettings, QTimer
 from PySide6.QtGui import QColor, QPalette, QPainter, QBrush
 from PySide6.QtWidgets import QGraphicsScene
 from PySide6.QtCore import Qt
@@ -423,16 +423,48 @@ class GuiFunctions():
         # Couleur des liens hypertexte (QLabel avec setOpenExternalLinks)
         palette.setColor(QPalette.ColorRole.Link,          QColor("#58a6ff"))
 
-        self.main.setPalette(palette)   # Applique la palette à la fenêtre et à ses enfants
+        self.main.setPalette(palette)   # Applique la palette à la fenetre et a ses enfants
 
-        # Feuille de style QSS complémentaire pour les composants spécifiques
+        # QSS global sur la fenetre (hors sidebar : Custom_Widgets gere les boutons nav)
         self.main.setStyleSheet(
             "QMainWindow { background-color: #161b22; }"
             "QStatusBar  { background-color: #0d1117; border-top: 1px solid #30363d; }"
             "QLabel      { color: #e6edf3; }"
             "QTextEdit   { background-color: #0d1117; color: #e6edf3; border: 1px solid #30363d; }"
             "QComboBox   { background-color: #21262d; color: #e6edf3; border: 1px solid #30363d; }"
+            "QComboBox QAbstractItemView { background-color: #1c2128; color: #e6edf3; selection-background-color: #30363d; }"
         )
+
+        # Force le fond + texte du panneau central et du stacked_widget
+        self.ui.center_menu.setAutoFillBackground(True)
+        self.ui.center_menu.setStyleSheet(
+            "QWidget#center_menu { background-color: #161b22; }"
+            "QWidget#center_menu QLabel    { color: #e6edf3; }"
+            "QWidget#center_menu QComboBox { background-color: #21262d; color: #e6edf3; border: 1px solid #30363d; }"
+            "QComboBox QAbstractItemView   { background-color: #1c2128; color: #e6edf3; selection-background-color: #30363d; }"
+        )
+        self.ui.stacked_widget.setStyleSheet(
+            "QStackedWidget { background-color: #161b22; }"
+        )
+
+        # Custom_Widgets réapplique son style APRÈS cette fonction (via la boucle
+        # d'événements Qt). On utilise QTimer.singleShot(0) pour s'exécuter après
+        # que CW ait terminé — c'est le seul moyen fiable de garder le dernier mot.
+        def _force_dark_text():
+            for btn in [
+                self.ui.character_btn, self.ui.map_btn, self.ui.server_btn,
+                self.ui.settings_btn, self.ui.information_btn, self.ui.help_btn,
+            ]:
+                s = btn.styleSheet()
+                # Remplace ou ajoute la couleur de texte directement dans le style inline
+                if "color:" in s:
+                    import re
+                    s = re.sub(r'color\s*:\s*[^;]+;', 'color: #fefefe;', s)
+                else:
+                    s = s.rstrip() + " color: #fefefe;"
+                btn.setStyleSheet(s)
+
+        QTimer.singleShot(0, _force_dark_text)
         
     def _apply_light_theme(self):
         """
@@ -469,37 +501,50 @@ class GuiFunctions():
         # Couleur des liens hypertexte (QLabel avec setOpenExternalLinks)
         palette.setColor(QPalette.ColorRole.Link,          QColor("#2563eb"))
 
-        self.main.setPalette(palette)   # Applique la palette à la fenêtre et à ses enfants
+        self.main.setPalette(palette)   # Applique la palette a la fenetre et a ses enfants
 
-        # Feuille de style QSS complémentaire pour les composants spécifiques
-        # NOTE : QPushButton est explicitement stylé ici car Custom_Widgets
-        # applique son propre QSS (issu du JSON de thème) qui peut laisser
-        # un texte clair sur fond clair après reloadJson=True -> boutons
-        # invisibles. On force donc fond + texte + hover + disabled.
         self.main.setStyleSheet(
             "QMainWindow { background-color: #f5f6f8; }"
             "QStatusBar  { background-color: #ffffff; border-top: 1px solid #d0d4d9; }"
             "QLabel      { color: #1c1f24; }"
             "QTextEdit   { background-color: #ffffff; color: #1c1f24; border: 1px solid #d0d4d9; }"
             "QComboBox   { background-color: #e6e8eb; color: #1c1f24; border: 1px solid #d0d4d9; }"
-            "QPushButton {"
-            "  background-color: #e6e8eb;"
-            "  color: #1c1f24;"
-            "  border: 1px solid #d0d4d9;"
-            "  border-radius: 6px;"
-            "  padding: 6px 10px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #d8dbdf;"
-            "}"
-            "QPushButton:pressed {"
-            "  background-color: #c6cad0;"
-            "}"
-            "QPushButton:disabled {"
-            "  background-color: #f0f1f3;"
-            "  color: #9aa0a8;"
-            "}"
+            "QComboBox QAbstractItemView { background-color: #ffffff; color: #1c1f24; selection-background-color: #d8dbdf; }"
         )
+
+        # Force le fond + texte + widgets du panneau central
+        self.ui.center_menu.setAutoFillBackground(True)
+        self.ui.center_menu.setStyleSheet(
+            "QWidget#center_menu { background-color: #f5f6f8; }"
+            "QWidget#center_menu QLabel    { color: #1c1f24; }"
+            "QWidget#center_menu QFrame    { background-color: #eceef1; }"
+            "QWidget#center_menu QComboBox { background-color: #e6e8eb; color: #1c1f24; border: 1px solid #d0d4d9; }"
+            "QComboBox QAbstractItemView   { background-color: #ffffff; color: #1c1f24; selection-background-color: #d8dbdf; }"
+            "QWidget#center_menu QPushButton { background-color: #e6e8eb; color: #1c1f24; border: 1px solid #d0d4d9; border-radius: 6px; padding: 6px 10px; }"
+            "QWidget#center_menu QPushButton:hover    { background-color: #d8dbdf; }"
+            "QWidget#center_menu QPushButton:pressed  { background-color: #c6cad0; }"
+            "QWidget#center_menu QPushButton:disabled { background-color: #f0f1f3; color: #9aa0a8; }"
+        )
+        self.ui.stacked_widget.setStyleSheet(
+            "QStackedWidget { background-color: #f5f6f8; }"
+        )
+
+        # Meme logique que le dark : Custom_Widgets ecrase le QSS global avec un
+        # setStyleSheet inline par bouton. QTimer.singleShot s'execute apres CW.
+        def _force_light_text():
+            for btn in [
+                self.ui.character_btn, self.ui.map_btn, self.ui.server_btn,
+                self.ui.settings_btn, self.ui.information_btn, self.ui.help_btn,
+            ]:
+                s = btn.styleSheet()
+                if "color:" in s:
+                    import re
+                    s = re.sub(r'color\s*:\s*[^;]+;', 'color: #1c1f24;', s)
+                else:
+                    s = s.rstrip() + " color: #1c1f24;"
+                btn.setStyleSheet(s)
+
+        QTimer.singleShot(0, _force_light_text)
 
     @staticmethod
     def _btn_style(color_normal: str, color_hover: str) -> str:
