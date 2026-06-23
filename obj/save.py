@@ -6,14 +6,18 @@ import player
 import blueprint
 import game
 
+
+
 def ntab(x):
     res = ""
     for i in range(x):
         res += "    "
     return res
 
+
+
 def toXML(o,indent=0):
-    #TODO #INACCURATE ?
+    #TODO
     res = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     if (o is None):
         res += ntab(indent) + "<Empty></Empty>\n" 
@@ -23,7 +27,8 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
         res += ntab(indent+1) + "description=\"" + o.description() + "\"\n"
         res += ntab(indent) + "/>\n"
-    
+   
+
     elif isinstance(o,pawns.NPC):
         res = ntab(indent) + "<NPC\n"
         res += ntab(indent+1) + "alignement=\"" + str(o.alignement()) + "\"\n" 
@@ -44,6 +49,7 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "</stats>\n"
         res += ntab(indent) + "</NPC>\n"
 
+
     elif isinstance(o,pawns.PC):
         res = ntab(indent) + "<PC\n"
         res += ntab(indent+1) + "ID=\"" + str(o.player()) + "\"\n" 
@@ -63,8 +69,10 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "</stats>\n"
         res += ntab(indent) + "</PC>\n"
 
+
     elif isinstance(o,player.Player):
         raise Exception("NotHandled?")
+
 
     elif isinstance(o,blueprint.Prop):
         res = ntab(indent) + "<Prop\n"
@@ -72,6 +80,7 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
         res += ntab(indent+1) + "description=\"" + o.description() + "\"\n"
         res += ntab(indent) + "/>\n"
+
 
     elif isinstance(o,blueprint.Cell):
         res = ntab(indent) + "<Cell\n"
@@ -85,6 +94,7 @@ def toXML(o,indent=0):
             res += toXML(p,indent+2)
         res += ntab(indent+1) + "</contents>\n"
         res += ntab(indent) + "</Cell>\n"
+
 
     elif isinstance(o,blueprint.Blueprint):
         res = ntab(indent) + "<Blueprint\n"
@@ -103,12 +113,103 @@ def toXML(o,indent=0):
 
 
     elif isinstance(o,game.Game):
-        raise Exception("NotHandled?")
+        #BE CAREFUL - WILL CREATE FILES
+        res = ntab(indent) + "<Game\n"
+        res += ntab(indent +1) + "name=\"" + o.name() + "\"\n"
+        res += ntab(indent) + ">\n"
+
+        #All [thing]List attributes are implicit in their directories
+        local_path = "./projects/" + o.name() + "/"
+        i=1
+        for e in o.items():
+            try:
+                f = open(local_path + "Items/"+"Item#"+str(i)+"-"+e.name()+".xml","x")
+            except FileExistsError:
+                f = open(local_path + "Items/"+"Item#"+str(i)+"-"+e.name()+".xml","w")
+            finally:
+                f.write(toXML(e))
+                f.close()
+            i+=1
+
+        i=1
+        for e in o.characters():
+            try:
+                if(isinstance(e,pawns.PC)):
+                    f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","x")
+                f = open(local_path + "Sheets/"+"Sheet#"+str(i)+"-"+e.name()+".xml","x")
+            except FileExistsError:
+                if(isinstance(e,pawns.PC)):
+                    f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","w")
+                f = open(local_path + "Sheets/"+"Sheet#"+str(i)+"-"+e.name()+".xml","w")
+            finally:
+                f.write(toXML(e))
+                f.close()
+            i+=1
+
+        i=1
+        for e in o.props():
+            try:
+                f = open(local_path + "Blueprints/Props"+"Prop#"+str(i)+"-"+e.name()+".xml","x")
+            except FileExistsError:
+                f = open(local_path + "Blueprints/Props"+"Prop#"+str(i)+"-"+e.name()+".xml","w")
+            finally:
+                f.write(toXML(e))
+                f.close()
+            i+=1
+
+        i=1
+        for e in o.blueprints():
+            try:
+                f = open(local_path + "Blueprints/"+"Blueprint#"+str(i)+"-"+e.name()+".xml","x")
+            except FileExistsError:
+                f = open(local_path + "Blueprints/"+"Blueprint#"+str(i)+"-"+e.name()+".xml","w")
+            finally:
+                f.write(toXML(e))
+                f.close()
+            i+=1
+
+        res += ntab(indent+1) + "<layers>\n"
+        for l in o.layers():
+            res += ntab(indent+2) + "<layer\n"
+            res += ntab(indent+3) + "name=\"" + l + "\"\n"
+            res += ntab(indent+2) + ">\n"
+            res += toXML(o.layers()[l],indent+3) + "\n"
+            res += ntab(indent+2) + "</layer>\n"
+        res += ntab(indent+1) + "</layers>\n"
+        
+        res += ntab(indent+1) + "<pawns>\n"
+        for p in o.pawns():
+            res += ntab(indent+2) + "<pawn\n"
+            res += ntab(indent+3) + "posX=\"" + str(p[0]) + "\"\n"
+            res += ntab(indent+3) + "posY=\"" + str(p[1]) + "\"\n"
+            res += ntab(indent+2) + ">\n"
+            res += toXML(o.pawns()[p],indent+3) + "\n"
+            res += ntab(indent+2) + "</pawn>\n"
+        res += ntab(indent+1) + "</pawns>\n"
+        
+        res += ntab(indent+1) + "<notes>\n"
+        for n in o.notes():
+            res += ntab(indent+2) + "<note\n"
+            res += ntab(indent+3) + "name=\"" + n[0] + "\"\n"
+            res += ntab(indent+3) + "text=\"" + n[1] + "\"\n"
+            res += ntab(indent+2) + "/>\n"
+        res += ntab(indent+1) + "</notes>\n"
+        
+        try:
+            f = open(local_path + o.name()+".xml","x")
+        except FileExistsError:
+            f = open(local_path + o.name()+".xml","w")
+        finally:
+            f.write(res)
+            f.close()
+
 
     else:
         raise Exception("ObjectNotHandled")
 
     return res
+
+
 
 def fromXMLTree(root):
     observe = root.tag
@@ -127,6 +228,7 @@ def fromXMLTree(root):
             i+=1
         new = items.Item(s,t,d)
     
+
     elif(observe == "NPC"):
         i = 0
         a = 0
@@ -157,6 +259,7 @@ def fromXMLTree(root):
                             v = c.attrib[e]
                         j += 1
                     new.add_stat(s,v)
+
 
     elif(observe == "PC"):
         i = 0
@@ -189,8 +292,10 @@ def fromXMLTree(root):
                         j += 1
                     new.add_stat(s,v)
 
+
     elif(observe == "Player"): #???
         raise Exception("NotHandled?")
+
 
     elif(observe == "Prop"):
         i = 0
@@ -208,7 +313,8 @@ def fromXMLTree(root):
                 s = int(root.attrib[att])
             i+=1
         new = blueprint.Prop(n,t,d,s)
-    
+
+
     elif(observe == "Cell"):
         i = 0
         g = 0
@@ -226,7 +332,8 @@ def fromXMLTree(root):
         for child in root:
             for cont in child:
                 new.add_content(fromXMLTree(cont))
- 
+
+
     elif(observe == "Blueprint"):
         i = 0
         n="Unlabeled"
@@ -248,10 +355,19 @@ def fromXMLTree(root):
                     x+=1
                 y+=1
 
-    elif(observe == "Game"): #???
-        raise Exception("NotHandled?")
+
+    elif(observe == "Game"):
+        raise Exception("NotImplemented")
+        for att in root.attrib:
+            n = root.attrib[att]
+        new = game.Game(n,False)
+
+
+
     else:
         raise Exception("InvalidObject")
+
+    
     return new
 
 def fromXML(path):
@@ -261,20 +377,31 @@ def fromXML(path):
    
 ###################TEST##########################
 
-#bp = blueprint.Blueprint(10,10)
-#bp.set_cell(9,9, (blueprint.Cell( {blueprint.Prop("Levier",1,"ça tire")} )) )
-#bp.get_cell(9,9).remove_content(0)
-
-#new1 = items.Item("Balle",1,"Rigolo")
-#new = pawns.NPC()
-#new.addItem(new1)
-#new.add_stat("INT",14)
-#new.redescribe("BLABLA BLA")
-
-#print(toXML(new))
-
-#print(toXML(bp))
-
-#print(toXML(fromXML("test1.xml")))
+"""
+bp = blueprint.Blueprint(10,10)
+bp.set_cell(9,9, (blueprint.Cell( {blueprint.Prop("Levier",1,"ça tire")} )) )
+#print(toXML(bp)) # >> test2.xml
 #print(fromXML("test2.xml"))
+"""
 
+"""
+new1 = items.Item("Balle",1,"Rigolo")
+new = pawns.NPC()
+new.addItem(new1)
+new.add_stat("INT",14)
+new.redescribe("BLABLA BLA")
+#print(toXML(new)) # >> test1.xml
+#print(toXML(fromXML("test1.xml")))
+"""
+
+"""
+#need the previous two
+#TO BE EXECUTED AT : ../Dungeon-Kitchen/
+g = game.Game("HEYITSME")
+g.new_layer("1st",10,10,bp)
+g.add_blueprint(bp)
+g.add_pawn(new,2,2,"1st")
+g.add_character(new)
+g.add_item(new1)
+toXML(g)
+"""

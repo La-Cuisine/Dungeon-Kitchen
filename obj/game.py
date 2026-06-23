@@ -1,12 +1,32 @@
+import os
+
 import items
 import blueprint
 import pawns
 import player
 
+
+def generate_FileSystemProject(project_name):
+    try:
+        os.mkdir("./projects/"+project_name)
+    except FileExistsError:
+        if(os.path.isdir("./projects/"+project_name)):
+            generate_FileSystem(project_name+"(1)")
+    
+    os.mkdir("./projects/"+project_name+"/Assets")
+    os.mkdir("./projects/"+project_name+"/Items")
+    os.makedirs("./projects/"+project_name+"/Sheets/PC")
+    os.makedirs("./projects/"+project_name+"/Blueprints/Props")
+    #os.mkdir("./projects/"+project_name+"/Players")
+    #Object Class Game is stored locally in the project_name directory 
+    return project_name
+
+
+
 class Game:
-    def __init__(self,name="Untitled_Session"):
+    def __init__(self,name="Untitled_Session",new=True):
         #TODO
-        self._name = name
+        #self._name = name
         self.__base_length = 64
         self.__base_width = 64
         self._layers = dict() #(layer_name:Blueprint)
@@ -16,7 +36,11 @@ class Game:
         self._propList = [] #(Prop)
         self._bpList = [] #(Blueprint)
         self._notes = [] #((name,text))
-
+        
+        if(new):
+            self._name = generate_FileSystemProject(name)
+        else:
+            self._name = name
 
 
     #getters
@@ -182,7 +206,7 @@ class Game:
         return res
 
     def add_blueprint(self, bp):
-        if(not isinstance(it, blueprint.Blueprint)):
+        if(not isinstance(bp, blueprint.Blueprint)):
             raise Exception("InvalidArgument")
         self._bpList.append(bp)
     def remove_blueprint(self, i):
