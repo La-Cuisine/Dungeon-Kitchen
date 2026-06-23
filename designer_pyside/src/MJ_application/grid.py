@@ -369,6 +369,11 @@ class View_Grid(QGraphicsView):
                     self._cell_select.Cut()
                     self._cell_select_use = True
 
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            if event.key() == Qt.Key.Key_P:
+                if self._cell_select is not None and self._Mxy is not None:
+                    self._cell_select.Proprieties(self._Mxy)
+
         return super().keyPressEvent(event)
 
     def mouseDoubleClickEvent(self, event):
