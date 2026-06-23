@@ -89,7 +89,7 @@ class GuiFunctions():
         self.ui.close_server_btn.clicked.connect(self._stop_server)
         self.ui.open_website_btn.clicked.connect(self._open_browser)
     
-    def init_grid(self, n: int = 50, s_cell: int = 64):
+    def init_grid(self, n: int = 100, s_cell: int = 64):
         """
         Remplace le QGraphicsView généré par Qt Designer par un View_Grid,
         puis y injecte la scène, le mur invisible et la grille.

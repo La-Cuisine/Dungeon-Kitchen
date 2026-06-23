@@ -78,6 +78,58 @@ def _get_scaled_pixmap(path: str, w: int, h: int) -> QPixmap:
     return _pixmap_cache[key]
 
 
+class Interface_Proprieties(QGraphicsItem):
+    def __init__(self, xy :QPointF,text : str):
+        super().__init__()
+        self.setPos(xy.x()-25,xy.y()-50)
+        self.rect = QRectF(xy.x()-25.,xy.y()-50,200,320)
+        
+        self.x = xy.x()-25
+        self.y = xy.y()-50
+        
+        self.text = text
+
+        self.setZValue(15)
+
+        self.round = 5
+
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        
+
+    #Espace de rafraichissement un peu plus grand que le rect        
+    def boundingRect(self):
+        return self.rect.adjusted(-1,-1,1,1)
+        
+    #Ajuste l'espace invisible autour l'objet (comparable à une hitbox)    
+    def shape(self):
+        path = QPainterPath()
+        path.addRoundedRect(self.rect,self.round,self.round)
+        
+        return path
+
+    #Dessine
+    def paint(self, painter = None, option = None, widget = None):
+         
+        painter.setPen(QPen(Qt.black,1.5))
+        painter.setBrush(QBrush( QColor("#212121")))
+        painter.drawRoundedRect(self.rect,self.round,self.round)
+
+        
+        print(self.text)
+        font = painter.font()
+        font.setBold(True)
+        font.setPixelSize(15)
+        painter.setFont(font)
+        painter.setPen(QPen(QColor("#e1dfdf")))
+        painter.drawText(self.rect,Qt.AlignmentFlag.AlignHCenter| Qt.AlignmentFlag.AlignJustify,"Proprietes")
+        
+        font.setPixelSize(12)
+        
+        painter.setFont(font)
+        painter.drawText(self.rect,Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignJustify,self.text)
+        
+
+
 class Interface_Cell(QGraphicsRectItem):
 
     def __init__(self, x, y, w, h):
@@ -88,7 +140,7 @@ class Interface_Cell(QGraphicsRectItem):
         self._name = ""
 
         self._img = Img()
-        
+        self.Path = None
         self._text = None
         self.w = w
         self.h = h
@@ -119,6 +171,7 @@ class Interface_Cell(QGraphicsRectItem):
         return self._name
 
     def setImage(self, Path: str):
+        self.Path = Path
         # utilise le cache au lieu de recharger depuis le disque
         scaled = _get_scaled_pixmap(Path, self.w, self.h)
         # Ne retirer de la scène que si l'item y est déjà (pixmap non null = déjà posé)
@@ -129,6 +182,8 @@ class Interface_Cell(QGraphicsRectItem):
         self._img.setPos(self.w * self._coord[0], self.h * self._coord[1])
         self._img.setParentItem(self)
         self.update()
+
+
 
     # Copy Paste imgae
 
@@ -163,6 +218,20 @@ class Interface_Cell(QGraphicsRectItem):
         del tmp
         self._img = None
         self.update()
+
+    def Proprieties(self,xy:QPointF|None):
+        if xy is not None : 
+            view =self.scene().views()[0]
+            text = "\n\n\n    Coord :   " + str(self._coord[0]) + " : " + str(self._coord[0]) + "\n" + "\n    Img :   "
+            if self._img.pixmap().isNull():
+                text = text + "None\n"
+            else:
+                text = text + self.Path + "\n"
+            prop = Interface_Proprieties(xy,text)
+            view.addItemNeeds(prop)
+            self.scene().addItem(prop)
+        
+        
 
 
 class Interface_MouseCoord(QLabel):
@@ -217,6 +286,8 @@ class View_Grid(QGraphicsView):
         self.zoom = 1.0
         self._fitted_once = False
 
+        self._Mxy = None
+
         self._Items_needs = []
 
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
@@ -267,10 +338,10 @@ class View_Grid(QGraphicsView):
         for it in self._Items_needs:
             if hasattr(it, "setMxy"):
                 it.setMxy(event.position().x(), event.position().y())
-
+        
         return super().mouseMoveEvent(event)
 
-    def addItemNeeds(self, item: QGraphicsItem):
+    def addItemNeeds(self, item : QGraphicsItem):
         self._Items_needs.append(item)
 
     def keyPressEvent(self, event):
@@ -315,6 +386,12 @@ class View_Grid(QGraphicsView):
     def mousePressEvent(self, event):
         view_pt = event.position().toPoint()
 
+        #PAS PARFAIT
+        for it in self._Items_needs:
+            if isinstance(it,Interface_Proprieties) :
+                if  not ((it.x+7 < view_pt.x()< it.x+164) and (it.y < view_pt.y() < it.y + 275)) : 
+                    self.scene().removeItem(it)
+
         # Désélection cellule précédente si on clique ailleurs
         if self._cell_select is not None:
             cell = self._cell_at_view_pos(view_pt)
@@ -324,6 +401,10 @@ class View_Grid(QGraphicsView):
                 )
                 if not self._cell_select_use:
                     self._cell_select = None
+
+        if event.button() == Qt.MouseButton.RightButton:
+            self._Mxy = view_pt
+            print(self._Mxy)
 
         # activer le movable ici (une seule fois par clic).
         # On remonte la hiérarchie pour gérer tous les cas :
@@ -338,6 +419,7 @@ class View_Grid(QGraphicsView):
                 self._grid = candidate
                 break
             candidate = candidate.parentItem()
+
 
         return super().mousePressEvent(event)
 
@@ -402,7 +484,7 @@ class View_Grid(QGraphicsView):
         # QContextMenuEvent.pos() retourne déjà un QPoint (pas de .position() ici)
         cell = self._cell_at_view_pos(event.pos())
         global _cell_cp_data
-
+        
         if cell is not None:
             self.menu = QMenu(self)
 
@@ -419,12 +501,8 @@ class View_Grid(QGraphicsView):
             nameAction.triggered.connect(lambda: cell.Cut())
             self.menu.addAction(nameAction)
 
-            nameAction = QAction("Text", self)
-            #nameAction.triggered.connect(lambda: self.renameSlot(event))
-            self.menu.addAction(nameAction)
-
-            nameAction = QAction("Image", self)
-            #nameAction.triggered.connect(lambda: self.renameSlot(event))
+            nameAction = QAction("Proprieties", self)
+            nameAction.triggered.connect(lambda: cell.Proprieties(self._Mxy))
             self.menu.addAction(nameAction)
 
             ## add other required actions
