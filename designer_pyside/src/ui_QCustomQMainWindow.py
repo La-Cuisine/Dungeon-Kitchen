@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'new_QCustomQMainWindow.ui'
+## Form generated from reading UI file 'QCustomQMainWindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.11.1
 ##
@@ -15,12 +15,12 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGraphicsView,
-    QHBoxLayout, QLabel, QPushButton, QSizePolicy,
-    QSpacerItem, QStackedWidget, QTextEdit, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QHBoxLayout,
+    QLabel, QPushButton, QSizePolicy, QSpacerItem,
+    QStackedWidget, QTextEdit, QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQMainWindow import QCustomQMainWindow
+
 class Ui_CustomMainWindow(object):
     def setupUi(self, CustomMainWindow):
         if not CustomMainWindow.objectName():
@@ -45,11 +45,10 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_2.setContentsMargins(5, 5, 5, 5)
         self.open_info_menu_btn = QPushButton(self.widget_2)
         self.open_info_menu_btn.setObjectName(u"open_info_menu_btn")
-        self.open_info_menu_btn.setMinimumSize(QSize(30, 30))
-        self.open_info_menu_btn.setMaximumSize(QSize(30, 30))
+        self.open_info_menu_btn.setMaximumSize(QSize(30, 16777215))
         self.open_info_menu_btn.setAutoFillBackground(False)
         icon = QIcon()
-        icon.addFile(u":/image/Undo.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(u":/image/Redo.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.open_info_menu_btn.setIcon(icon)
 
         self.verticalLayout_2.addWidget(self.open_info_menu_btn)
@@ -85,7 +84,7 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_4.addWidget(self.server_btn)
 
 
-        self.verticalLayout.addWidget(self.widget_3, 0, Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTop)
+        self.verticalLayout.addWidget(self.widget_3, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
 
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -119,7 +118,7 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_3.addWidget(self.help_btn)
 
 
-        self.verticalLayout.addWidget(self.widget, 0, Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignBottom)
+        self.verticalLayout.addWidget(self.widget, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignBottom)
 
 
         self.horizontalLayout.addWidget(self.sidebar, 0, Qt.AlignmentFlag.AlignLeft)
@@ -331,11 +330,6 @@ class Ui_CustomMainWindow(object):
         self.main_body.setSizePolicy(sizePolicy1)
         self.verticalLayout_10 = QVBoxLayout(self.main_body)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
-        self.graphicsView = QGraphicsView(self.main_body)
-        self.graphicsView.setObjectName(u"graphicsView")
-
-        self.verticalLayout_10.addWidget(self.graphicsView)
-
         self.widget_5 = QWidget(self.main_body)
         self.widget_5.setObjectName(u"widget_5")
         self.horizontalLayout_4 = QHBoxLayout(self.widget_5)
@@ -367,7 +361,7 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(1)
+        self.stacked_widget.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)

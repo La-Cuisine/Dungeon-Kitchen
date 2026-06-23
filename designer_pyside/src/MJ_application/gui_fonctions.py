@@ -97,21 +97,22 @@ class GuiFunctions():
         :param n:      Nombre de cellules par côté de la grille.
         :param s_cell: Taille en pixels d'une cellule.
         """
-        # Récupère le layout parent du graphicsView
+        from PySide6.QtWidgets import QGraphicsItem
+        import src.MJ_application.grid as _grid_module
+
+        # Recupere le layout parent du graphicsView
         layout = self.ui.verticalLayout_10
 
-        # Retire l'ancien QGraphicsView du layout (sans le détruire tout de suite)
-        layout.removeWidget(self.ui.graphicsView)
-        self.ui.graphicsView.hide()
-        self.ui.graphicsView.deleteLater()
-
-        # Crée la scène graphique
+        # Cree la scene graphique
         self._scene = QGraphicsScene()
         self._scene.setSceneRect(0, 0, 700, 520)
+        # Desactive l'index BSP : inutile pour une grille rigide,
+        # evite de recalculer les bounding rects de tous les enfants au drag.
+        self._scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
 
         # Crée le View_Grid et le branche sur la scène
         self._view_grid = View_Grid(self._scene)
-        self._view_grid.setObjectName("graphicsView")          # Conserve le même nom
+        self._view_grid.setObjectName("graphicsView")
         self._view_grid.setRenderHint(
             QPainter.RenderHint.Antialiasing
             | QPainter.RenderHint.TextAntialiasing
@@ -124,25 +125,22 @@ class GuiFunctions():
         self._view_grid.setDragMode(View_Grid.DragMode.ScrollHandDrag)
         self._view_grid.setMouseTracking(True)
 
-        
+        # Insere le View_Grid AVANT de creer l'overlay (la vue doit etre
+        # dans le layout pour avoir une taille et un parent valides).
+        layout.insertWidget(0, self._view_grid)
 
-
-        import src.MJ_application.grid as _grid_module
-
-        #Interface qui affiche coordonnées de la souris
-        self.InterMouseCoor = _grid_module.Interface_MouseCoord(self._scene.sceneRect().center().x()+(self._scene.sceneRect().center().x()/2.1),0,self._scene.sceneRect().width()/8,15)
-        self._scene.addItem(self.InterMouseCoor)
+        # Overlay coordonnees souris : QLabel enfant de la vue (plus un item scene).
+        # Taille fixe, toujours en haut a droite, insensible au pan/zoom.
+        self.InterMouseCoor = _grid_module.Interface_MouseCoord(self._view_grid)
         self._view_grid.addItemNeeds(self.InterMouseCoor)
 
         # Mur invisible (doit exister avant la grille)
         self._wall = InvisibleWallLimit(self._scene)
         _grid_module._wall = self._wall          # Met à jour la globale du module
         self._scene.addItem(self._wall)
-        self._wall.Align()
 
         # Grille
         self._world = Grid(n, s_cell)
-        from PySide6.QtWidgets import QGraphicsItem
         (self._world.atoms[0]).setName("TL")
         (self._world.atoms[0]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
         (self._world.atoms[n - 1]).setName("TR")
@@ -153,8 +151,9 @@ class GuiFunctions():
         (self._world.atoms[(n - 1) * n + (n - 1)]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
         self._scene.addItem(self._world)
 
-        # Insère le View_Grid à la place du graphicsView (index 0)
-        layout.insertWidget(0, self._view_grid)
+        # Reference directe sur la grille pour que _cell_at_view_pos()
+        # fonctionne meme avant le premier mouseMoveEvent.
+        self._view_grid._grid = self._world
 
         # Met à jour la référence ui.graphicsView pour que le reste du code
         # continue à fonctionner via self.ui.graphicsView si besoin
