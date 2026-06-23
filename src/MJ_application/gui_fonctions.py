@@ -1,31 +1,43 @@
+from PySide6.QtWidgets import QGraphicsDropShadowEffect
 from PySide6.QtCore import QSettings
 from PySide6.QtGui import QColor, QPalette
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
-import webbrowser   
+from Custom_Widgets.QCustomTheme import QCustomTheme
+import webbrowser
 # Import interne
-from server import SERVER_URL, ServerController
-from LogReaderThread import LogReaderThread
+from src.MJ_application.server import SERVER_URL, ServerController
+from src.MJ_application.LogReaderThread import LogReaderThread
 
 class GuiFunctions():
     def __init__(self,MainWindow):
         self.main = MainWindow
         self.ui = MainWindow.ui
+        self._log_thread = None
         self._controller = ServerController()
+        self.settings =  QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
+        self.last_menu = self.settings.value("Menu")
 
         self.init_app_theme()
-        self.init_app_widget_color()
+        self.init_action_menubar()
         self.init_app_btn_connect()
         self._open_center_menu()
-
+        
     # ----------------------------------------------------------------
     # Initialisation de l'application 
     # ----------------------------------------------------------------
 
-    def init_app_widget_color(self):
+    def init_app_theme(self):
         """
-        Initialise les couleurs de certains éléments de l'UI
+        Initialise le thème de l'application
         """
+        self.themeEngine = QCustomTheme()
+        current_theme = self.settings.value("THEME")
+        # Ajoute des thèmes à la liste des thèmes
+        self.ui.theme_list.addItem("Dark")
+        self.ui.theme_list.addItem("Light")
+        self.ui.theme_list.setCurrentText(current_theme)
+
         # Couleur du label du menu "server"
         self.ui.server_state_label.setStyleSheet("color: #e74c3c; font-size: 13px;")
 
@@ -40,24 +52,10 @@ class GuiFunctions():
             self._btn_style("#3498db", "#2980b9")
         )
 
-    def init_app_theme(self):
-        """
-        Initialise le thème de l'application
-        """
-        settings = QSettings()
-        settings.setValue("theme",0)
-        current_theme = settings.value("theme")
-        # Ajoute des thèmes à la liste des thèmes
-        self.ui.theme_list.addItem("Dark")
-        self.ui.theme_list.addItem("Light")
-        print(current_theme)
-        if(current_theme == None):
+        if current_theme == "Dark":
             self._apply_dark_theme()
-
-        # Positionne le combobox sur le thème actuel sans déclencher le signal
-        index = self.ui.theme_list.findText(current_theme)
-        if index >= 0:
-            self.ui.theme_list.setCurrentIndex(index)
+        else:
+            self._apply_light_theme()
 
         # Connect le signal pour changer de thème
         self.ui.theme_list.currentTextChanged.connect(self.changeAppTheme)
@@ -75,9 +73,16 @@ class GuiFunctions():
         self.ui.help_btn.clicked.connect(self.switch_to_help_menu)
         
         # Ouvre ou ferme le menu d'information
-        self.ui.open_info_menu_btn.clicked.connect(self._open_center_menu)
-        self.ui.close_info_menu_btn.clicked.connect(self._close_center_menu)
-        
+        self.ui.open_info_menu_btn.clicked.connect(self.switch_center_menu_display_state)
+        self.ui.close_info_menu_btn.clicked.connect(self.switch_center_menu_display_state)
+
+        # Change le menu character
+        self.ui.character_menu_stat_btn.clicked.connect(self.switch_stat_info)
+        self.ui.character_menu_inv_btn.clicked.connect(self.switch_inv_info)
+
+        # Ouvre ou ferme le log/chat
+        self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
+
         # Démarre ou ferme le serveur
         self.ui.open_server_btn.clicked.connect(self._update_server_label_open)
         self.ui.close_server_btn.clicked.connect(self._update_server_label_close)
@@ -86,21 +91,26 @@ class GuiFunctions():
         self.ui.close_server_btn.clicked.connect(self._stop_server)
         self.ui.open_website_btn.clicked.connect(self._open_browser)
     
+    def init_action_menubar(self):
+        self.ui.actionLog_Chat.toggled.connect(self.switch_log_display_state)
+        self.ui.actionInfo_menu.toggled.connect(self.switch_center_menu_display_state)
+        self.ui.actionClose.triggered.connect(self.closeEvent)
     # ----------------------------------------------------------------
     # Changement des attributs de widget
     # ----------------------------------------------------------------
 
-    def change_open_menu_btn(self, state):
+    def change_actionInfo_menu_state(self,state):
         if(state == True):
-            self.ui.open_info_menu_btn.clicked.connect(self._close_center_menu)
-            self.ui.open_info_menu_btn.setIcon(QIcon("image/Undo.png"))
+            self.ui.actionInfo_menu.toggled.connect(self._close_center_menu)
+            self.ui.actionInfo_menu.setChecked(True)
         elif(state == False):
-            self.ui.open_info_menu_btn.clicked.connect(self._open_center_menu)
-            self.ui.open_info_menu_btn.setIcon(QIcon("image/Redo.png"))
+            self.ui.actionInfo_menu.toggled.connect(self._open_center_menu)
+            self.ui.actionInfo_menu.setChecked(False)
 
-    # ====================================================================
+    # ----------------------------------------------------------------
     # Slots – méthodes connectées aux signaux des boutons et du thread
-    # ====================================================================
+    # ----------------------------------------------------------------
+    
     def _start_server(self):
         """
         Slot connecté au signal clicked du bouton "Démarrer le serveur".
@@ -137,7 +147,6 @@ class GuiFunctions():
         self._append_log(f"[INFO] Serveur PHP démarré → {SERVER_URL}")
         self._update_server_label_open()
 
-    # ------------------------------------------------------------------
     def _stop_server(self):
         """
         Slot connecté au signal clicked du bouton "Arrêter le serveur".
@@ -170,7 +179,6 @@ class GuiFunctions():
             self._append_log("[INFO] Serveur PHP arrêté.")
             self._update_server_label_close()
 
-    # ------------------------------------------------------------------
     def _open_browser(self):
         """
         Slot connecté au signal clicked du bouton "Ouvrir dans le navigateur".
@@ -183,26 +191,8 @@ class GuiFunctions():
             webbrowser.open(SERVER_URL)   # Ouvre http://127.0.0.1:8080 dans le navigateur
             self._append_log(f"[INFO] Navigateur ouvert sur {SERVER_URL}")
 
-    # ====================================================================
-    # Gestion de l'événement de fermeture de la fenêtre
-    # ====================================================================
-
-    def closeEvent(self, event):
-        """
-        Surcharge de l'événement Qt déclenché quand l'utilisateur ferme la fenêtre
-        (clic sur la croix, Alt+F4, Cmd+Q…).
-
-        Sans cette surcharge, fermer la fenêtre laisserait le processus PHP
-        tourner en arrière-plan (processus orphelin). On s'assure ici d'arrêter
-        proprement le serveur et le thread de logs avant de fermer.
-
-        :param event: QCloseEvent transmis par Qt ; on l'accepte pour confirmer la fermeture.
-        """
-        self._stop_server()   # Arrête le thread de logs et le processus PHP
-        event.accept()        # Confirme la fermeture → la fenêtre est détruite
-
     # ----------------------------------------------------------------
-    # Fonctions pour changer la page de menu d'information 
+    # Menu d'information 
     # ----------------------------------------------------------------
 
     def switch_to_settings_menu(self):
@@ -235,22 +225,50 @@ class GuiFunctions():
         if self.ui.center_menu.isVisible() == False:
             self._open_center_menu()
 
-    # ----------------------------------------------------------------
-    # Panneau central (center_menu)
-    # ----------------------------------------------------------------
+    def switch_stat_info(self):
+        self.ui.stackedWidget.setCurrentIndex(0)
+
+    def switch_inv_info(self):
+        self.ui.stackedWidget.setCurrentIndex(1)
 
     def _open_center_menu(self):
-        """Affiche le panneau central."""
+        """
+        Affiche le menu d'information
+        """
         self.ui.center_menu.setVisible(True)
-        self.change_open_menu_btn(True)
+        self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Undo.png"))
+        self.ui.actionInfo_menu.setChecked(True)
 
     def _close_center_menu(self):
-        """Cache le panneau central."""
+        """
+        Cache le menu d'information
+        """
         self.ui.center_menu.setVisible(False)
-        self.change_open_menu_btn(False)
+        self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Redo.png"))
+        self.ui.actionInfo_menu.setChecked(True)
 
+    def switch_center_menu_display_state(self):
+        """
+        Affiche ou cache le menu d'information selon
+        l'état de visibilité du menu
+        """
+        self.ui.actionInfo_menu.toggled.disconnect(self.switch_center_menu_display_state)
+        
+        # Cacher la fenêtre
+        if(self.ui.center_menu.isVisible() == True):
+            self._close_center_menu()
+
+        # Afficher la fenêtre
+        elif(self.ui.center_menu.isVisible() == False):
+            self._open_center_menu()
+        
+        else:
+            print("Erreur switch center menu display")
+
+        self.ui.actionInfo_menu.toggled.connect(self.switch_center_menu_display_state)
+            
     # ----------------------------------------------------------------
-    # Ajout de message dans le chat
+    # Chat/Log
     # ----------------------------------------------------------------
 
     def _append_log(self, text: str):
@@ -267,6 +285,27 @@ class GuiFunctions():
         sb = self.ui.log_view.verticalScrollBar()
         sb.setValue(sb.maximum())
 
+    def switch_log_display_state(self):
+        # Cache le chat
+        self.ui.actionLog_Chat.toggled.disconnect(self.switch_log_display_state)
+        if(self.ui.log_view.isVisible() == True):
+            self.ui.log_view.setVisible(False)
+            self.ui.log_view_top.setVisible(False)
+            if(self.ui.actionLog_Chat.isChecked() == True):
+                self.ui.actionLog_Chat.setChecked(False)
+
+        # Affiche le chat
+        elif(self.ui.log_view.isVisible() == False):
+            self.ui.log_view.setVisible(True)
+            self.ui.log_view_top.setVisible(True)
+            if(self.ui.actionLog_Chat.isChecked() == False):
+                self.ui.actionLog_Chat.setChecked(True)
+
+        else:
+            print("Erreur switch log_view display")
+
+        self.ui.actionLog_Chat.toggled.connect(self.switch_log_display_state)
+
     # ----------------------------------------------------------------
     # Fonctions pour manipuler le style de la page et des boutons
     # ----------------------------------------------------------------
@@ -275,22 +314,11 @@ class GuiFunctions():
         """
         Change le thème de l'application
         """ 
-        settings = QSettings()
-        current_theme = settings.value("THEME")
+        current_theme = self.settings.value("THEME")
         selected_theme = self.ui.theme_list.currentText()
-
-        #deka
-        # if current_theme != selected_theme:
-        #     print("AAAAA")
-        #     # Applique le nouveau thème
-        #     settings.setValue("THEME", selected_theme)
-        #     QAppSettings.updateAppSettings(self.main, reloadJson=True)
-        
-        #sam
         if current_theme != selected_theme:
-            settings.setValue("THEME", selected_theme)
+            self.settings.setValue("THEME", selected_theme)
             QAppSettings.updateAppSettings(self.main, reloadJson=True)
-
             if selected_theme == "Dark":
                 self._apply_dark_theme()
             else:
@@ -324,7 +352,7 @@ class GuiFunctions():
         #self._status_bar.setStyleSheet(f"color: {color}; font-weight: bold;")
         # showMessage() remplace le contenu actuel de la barre d'état
         #self._status_bar.showMessage(message)
-        print("STATUS")
+        pass
 
     def _apply_dark_theme(self):
         """
@@ -473,5 +501,24 @@ class GuiFunctions():
             f"}}"
         )
 
+    # ----------------------------------------------------------------
+    # Gestion de l'événement de fermeture de la fenêtre
+    # ----------------------------------------------------------------
 
+    def closeEvent(self, event):
+        """
+        Surcharge de l'événement Qt déclenché quand l'utilisateur ferme la fenêtre
+        (clic sur la croix, Alt+F4, Cmd+Q…).
+
+        Sans cette surcharge, fermer la fenêtre laisserait le processus PHP
+        tourner en arrière-plan (processus orphelin). On s'assure ici d'arrêter
+        proprement le serveur et le thread de logs avant de fermer.
+
+        :param event: QCloseEvent transmis par Qt ; on l'accepte pour confirmer la fermeture.
+        """
+        self._stop_server()   # Arrête le thread de logs et le processus PHP
+        try:
+            event.accept()        # Confirme la fermeture → la fenêtre est détruite
+        except:
+            exit()
 

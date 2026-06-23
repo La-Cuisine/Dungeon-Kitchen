@@ -1,0 +1,14 @@
+{
+  "QPushButton": [
+    {
+      "name": "open_info_menu_btn",
+      "icon": "/Undo.png"
+    }
+  ],
+  "QComboBox": [
+    {
+      "name": "theme_list",
+      "items": []
+    }
+  ]
+}

@@ -44,7 +44,7 @@ PHP_EXECUTABLE = os.path.join(PHP_DIR, PHP_BIN)
 
 # Chemin vers le dossier racine du site PHP à servir.
 # PHP utilisera ce dossier comme document root (option -t).
-SITE_DIR = os.path.join(_BASE_DIR, "site")
+SITE_DIR = os.path.join(_BASE_DIR, "../site")
 
 # Adresse IP sur laquelle le serveur PHP écoute.
 # "127.0.0.1" = localhost uniquement (non accessible depuis le réseau local).
@@ -57,7 +57,7 @@ SERVER_PORT = 8080
 
 # URL complète construite à partir de l'hôte et du port.
 # Utilisée pour l'affichage dans l'interface et pour ouvrir le navigateur.
-SERVER_URL = f"http://{SERVER_HOST}:{SERVER_PORT}"
+SERVER_URL = f"http://localhost:{SERVER_PORT}"
 
 
 # ---------------------------------------------------------------------------
