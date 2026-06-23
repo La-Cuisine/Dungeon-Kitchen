@@ -223,7 +223,9 @@ class Interface_Cell(QGraphicsRectItem):
         if xy is not None : 
             view =self.scene().views()[0]
             text = "\n\n\n    Coord :   " + str(self._coord[0]) + " : " + str(self._coord[0]) + "\n" + "\n    Img :   "
-            if self._img.pixmap().isNull():
+            if self._img is None:
+                text = text + "None\n"
+            elif self._img.pixmap().isNull():
                 text = text + "None\n"
             else:
                 text = text + self.Path + "\n"
