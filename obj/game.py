@@ -189,7 +189,7 @@ class Game:
         if((not isinstance(c,pawns.NPC)) and (not isinstance(c,pawns.PC))):
             raise Exception("InvalidArgument")
         self._charList.append(c)
-    def remove_character(self, c):
+    def remove_character(self, i):
         if(0>i or i> len(self._charList)):
             raise Exception("IndexOutOfRange")
         res = self._charList[i]
