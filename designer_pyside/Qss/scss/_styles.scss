@@ -984,7 +984,7 @@ QTextBrowser {
     }
 
     &:hover,
-    &:!hover,
+    &:not(:hover),
     &:selected,
     &:pressed {
         border: $BORDER_2;
@@ -1008,7 +1008,7 @@ QGraphicsView {
     }
 
     &:hover,
-    &:!hover,
+    &:not(:hover),
     &:selected,
     &:pressed {
         border: $BORDER_2;
@@ -1626,54 +1626,54 @@ QTabBar, QDockWidget QTabBar {
             background-color: $COLOR_BACKGROUND_4;
         }
 
-        &:right:selected:disabled {
+        &:right:not(:selected):disabled {
             border-left: 3px solid $COLOR_ACCENT_1;
             color: $COLOR_TEXT_4;
             background-color: $COLOR_BACKGROUND_4;
         }
 
-        /* !selected and disabled ----------------------------------------- */
-        &:top:!selected:disabled {
+        /* not(:selected) and disabled ----------------------------------------- */
+        &:top:selected:disabled {
             border-bottom: 3px solid $COLOR_BACKGROUND_1;
             color: $COLOR_TEXT_4;
             background-color: $COLOR_BACKGROUND_1;
         }
 
-        &:bottom:!selected:disabled {
+        &:bottom:not(:selected):disabled {
             border-top: 3px solid $COLOR_BACKGROUND_1;
             color: $COLOR_TEXT_4;
             background-color: $COLOR_BACKGROUND_1;
         }
 
-        &:left:!selected:disabled {
+        &:left:not(:selected):disabled {
             border-right: 3px solid $COLOR_BACKGROUND_1;
             color: $COLOR_TEXT_4;
             background-color: $COLOR_BACKGROUND_1;
         }
 
-        &:right:!selected:disabled {
+        &:right:not(:selected):disabled {
             border-left: 3px solid $COLOR_BACKGROUND_1;
             color: $COLOR_TEXT_4;
             background-color: $COLOR_BACKGROUND_1;
         }
 
         /* selected ------------------------------------------------------- */
-        &:top:!selected {
+        &:top:not(:selected) {
             border-bottom: 2px solid $COLOR_BACKGROUND_1;
             margin-top: 2px;
         }
 
-        &:bottom:!selected {
+        &:bottom:not(:selected) {
             border-top: 2px solid $COLOR_BACKGROUND_1;
             margin-bottom: 2px;
         }
 
-        &:left:!selected {
+        &:left:not(:selected) {
             border-left: 2px solid $COLOR_BACKGROUND_1;
             margin-right: 2px;
         }
 
-        &:right:!selected {
+        &:right:not(:selected) {
             border-right: 2px solid $COLOR_BACKGROUND_1;
             margin-left: 2px;
         }
@@ -1697,7 +1697,7 @@ QTabBar, QDockWidget QTabBar {
                 border-top-right-radius: $SIZE_BORDER_RADIUS;
             }
 
-            &:!selected:hover {
+            &:not(:selected):hover {
                 border: $BORDER_SELECTION_3;
                 border-bottom: 3px solid $COLOR_ACCENT_3;
                 /* Fixes spyder-ide/spyder#9766 and #243 */
@@ -1725,7 +1725,7 @@ QTabBar, QDockWidget QTabBar {
                 border-bottom-right-radius: $SIZE_BORDER_RADIUS;
             }
 
-            &:!selected:hover {
+            &:not(:selected):hover {
                 border: $BORDER_SELECTION_3;
                 border-top: 3px solid $COLOR_ACCENT_3;
                 /* Fixes spyder-ide/spyder#9766 and #243 */
@@ -1751,7 +1751,7 @@ QTabBar, QDockWidget QTabBar {
                 border-right: 3px solid $COLOR_ACCENT_4;
             }
 
-            &:!selected:hover {
+            &:not(:selected):hover {
                 border: $BORDER_SELECTION_3;
                 border-right: 3px solid $COLOR_ACCENT_3;
                 /* Fixes different behavior #271 */
@@ -1777,7 +1777,7 @@ QTabBar, QDockWidget QTabBar {
 
             }
 
-            &:!selected:hover {
+            &:not(:selected):hover {
                 border: $BORDER_SELECTION_3;
                 border-left: 3px solid $COLOR_ACCENT_3;
                 /* Fixes different behavior #271 */
@@ -2020,7 +2020,7 @@ QColumnView {
             }
         }
 
-        &:!selected {
+        &:not(:selected) {
 
             &:hover {
                 outline: 0;
@@ -2157,7 +2157,7 @@ QToolBox {
             }
         }
 
-        &:!selected {
+        &:not(:selected) {
             background-color: $COLOR_BACKGROUND_4;
             border-bottom: 2px solid $COLOR_BACKGROUND_4;
 
