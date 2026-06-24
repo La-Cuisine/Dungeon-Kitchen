@@ -78,56 +78,78 @@ def _get_scaled_pixmap(path: str, w: int, h: int) -> QPixmap:
     return _pixmap_cache[key]
 
 
-class Interface_Proprieties(QGraphicsItem):
-    def __init__(self, xy :QPointF,text : str):
-        super().__init__()
-        self.setPos(xy.x()-25,xy.y()-50)
-        self.rect = QRectF(xy.x()-25.,xy.y()-50,200,320)
-        
-        self.x = xy.x()-25
-        self.y = xy.y()-50
-        
-        self.text = text
+class Interface_Proprieties(QWidget):
+    """Overlay fixe en bas a droite de la QGraphicsView, affichant les
+    proprietes de la case selectionnee.
 
-        self.setZValue(15)
+    Comme Interface_MouseCoord : widget enfant de la vue (pas un item de
+    scene), taille et position fixes -> insensible au zoom et au pan de la
+    scene, repositionne automatiquement au resize via align()."""
 
+    W = 200
+    H = 320
+    MARGIN = 8
+
+    def __init__(self, parent_view):
+        super().__init__(parent_view)
+        self.setFixedSize(self.W, self.H)
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+
+        self.text = ""
         self.round = 5
 
-        self.setCursor(Qt.CursorShape.ArrowCursor)
-        
+        self._reposition()
+        self.hide()
 
-    #Espace de rafraichissement un peu plus grand que le rect        
-    def boundingRect(self):
-        return self.rect.adjusted(-1,-1,1,1)
-        
-    #Ajuste l'espace invisible autour l'objet (comparable à une hitbox)    
-    def shape(self):
-        path = QPainterPath()
-        path.addRoundedRect(self.rect,self.round,self.round)
-        
-        return path
+    def _reposition(self):
+        parent = self.parent()
+        if parent is not None:
+            self.move(
+                parent.width() - self.W - self.MARGIN,
+                parent.height() - self.H - self.MARGIN,
+            )
 
-    #Dessine
-    def paint(self, painter = None, option = None, widget = None):
-         
-        painter.setPen(QPen(Qt.black,1.5))
-        painter.setBrush(QBrush( QColor("#212121")))
-        painter.drawRoundedRect(self.rect,self.round,self.round)
+    # Repositionne au resize de la vue (appele depuis View_Grid.resizeEvent,
+    # comme pour Interface_MouseCoord)
+    def align(self):
+        self._reposition()
 
-        
-        print(self.text)
+    # Met a jour le texte affiche et (re)affiche le panneau en bas a droite
+    def setProperties(self, text: str):
+        self.text = text
+        self._reposition()
+        self.raise_()
+        self.show()
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        rect = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
+
+        painter.setPen(QPen(Qt.black, 1.5))
+        painter.setBrush(QBrush(QColor("#212121")))
+        painter.drawRoundedRect(rect, self.round, self.round)
+
+        header_rect = rect.adjusted(0, 8, 0, 0)
         font = painter.font()
         font.setBold(True)
         font.setPixelSize(15)
         painter.setFont(font)
         painter.setPen(QPen(QColor("#e1dfdf")))
-        painter.drawText(self.rect,Qt.AlignmentFlag.AlignHCenter| Qt.AlignmentFlag.AlignJustify,"Proprietes")
-        
+        painter.drawText(header_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, "Proprietes")
+
+        body_rect = rect.adjusted(10, 32, -10, -10)
+        font.setBold(False)
         font.setPixelSize(12)
-        
         painter.setFont(font)
-        painter.drawText(self.rect,Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignJustify,self.text)
-        
+        painter.drawText(
+            body_rect,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop | Qt.TextFlag.TextWordWrap,
+            self.text,
+        )
+
 
 
 class Interface_Cell(QGraphicsRectItem):
@@ -222,16 +244,14 @@ class Interface_Cell(QGraphicsRectItem):
     def Proprieties(self,xy:QPointF|None):
         if xy is not None : 
             view =self.scene().views()[0]
-            text = "\n\n\n    Coord :   " + str(self._coord[0]) + " : " + str(self._coord[0]) + "\n" + "\n    Img :   "
+            text = "Coord :   " + str(self._coord[0]) + " : " + str(self._coord[1]) + "\n\nImg :   "
             if self._img is None:
                 text = text + "None\n"
             elif self._img.pixmap().isNull():
                 text = text + "None\n"
             else:
                 text = text + self.Path + "\n"
-            prop = Interface_Proprieties(xy,text)
-            view.addItemNeeds(prop)
-            self.scene().addItem(prop)
+            view.showProperties(text)
         
         
 
@@ -263,8 +283,10 @@ class Interface_MouseCoord(QLabel):
         if parent is not None:
             self.move(parent.width() - self.W - 4, 4)
 
-    def setMxy(self, x: float, y: float):
-        self.setText(f"{round(x, 1)} : {round(y, 1)}")
+    def setMxy(self, x: int, y: int):
+        # x, y sont desormais des indices de case (colonne, ligne), pas des
+        # pixels : 0 : 0 correspond a la case en haut a gauche de la grille.
+        self.setText(f"{x} : {y}")
 
     def align(self):
         self._reposition()
@@ -291,6 +313,12 @@ class View_Grid(QGraphicsView):
         self._Mxy = None
 
         self._Items_needs = []
+
+        # Overlay fixe (bas a droite) affichant les proprietes d'une case :
+        # widget enfant de la vue, donc insensible au zoom/pan, et
+        # repositionne automatiquement au resize via align()
+        self._properties_overlay = Interface_Proprieties(self)
+        self.addItemNeeds(self._properties_overlay)
 
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
@@ -330,6 +358,24 @@ class View_Grid(QGraphicsView):
             return self._grid.atoms[idx]
         return None
 
+    # Meme resolution mathematique que _cell_at_view_pos, mais renvoie
+    # directement la coordonnee (colonne, ligne) de la case sous le curseur,
+    # sans etre limitee aux indices valides de la grille (utilise pour
+    # l'overlay de coordonnees). (0, 0) correspond a la case en haut a
+    # gauche de la grille, comme pour Interface_Cell.setCoord().
+    # On utilise une division entiere (//) plutot que int(x / s) pour que
+    # les positions situees avant l'origine de la grille donnent bien des
+    # indices negatifs coherents plutot que d'etre arrondies vers 0.
+    def _grid_coord_at_view_pos(self, view_pos) -> "tuple[int, int] | None":
+        if self._grid is None:
+            return None
+        scene_pos = self.mapToScene(view_pos)
+        grid_pos = self._grid.mapFromScene(scene_pos)
+        s = self._grid.s_cell
+        col = int(grid_pos.x() // s)
+        row = int(grid_pos.y() // s)
+        return col, row
+
     def mouseMoveEvent(self, event):
         # itemAt() complètement supprimé du mouseMoveEvent.
         # C'était la source principale du lag drag : avec NoIndex, Qt parcourt
@@ -337,14 +383,24 @@ class View_Grid(QGraphicsView):
         # Le movable est maintenant géré dans mousePressEvent / mouseReleaseEvent
         # (activé une fois au clic, désactivé une fois au relâchement).
 
-        for it in self._Items_needs:
-            if hasattr(it, "setMxy"):
-                it.setMxy(event.position().x(), event.position().y())
-        
+        # L'overlay affiche la case (colonne, ligne) sous le curseur, et non
+        # plus la position en pixels : (0, 0) correspond a la case en haut
+        # a gauche de la grille, comme dans le panneau Proprietes.
+        coord = self._grid_coord_at_view_pos(event.position().toPoint())
+        if coord is not None:
+            for it in self._Items_needs:
+                if hasattr(it, "setMxy"):
+                    it.setMxy(coord[0], coord[1])
+
         return super().mouseMoveEvent(event)
 
     def addItemNeeds(self, item : QGraphicsItem):
         self._Items_needs.append(item)
+
+    # Affiche/actualise le panneau de proprietes (overlay fixe en bas a
+    # droite de la vue, cf. Interface_Proprieties)
+    def showProperties(self, text: str):
+        self._properties_overlay.setProperties(text)
 
     def keyPressEvent(self, event):
 
@@ -393,11 +449,10 @@ class View_Grid(QGraphicsView):
     def mousePressEvent(self, event):
         view_pt = event.position().toPoint()
 
-        #PAS PARFAIT
-        for it in self._Items_needs:
-            if isinstance(it,Interface_Proprieties) :
-                if  not ((it.x+7 < view_pt.x()< it.x+164) and (it.y < view_pt.y() < it.y + 275)) : 
-                    self.scene().removeItem(it)
+        # Ferme le panneau de proprietes si on clique en dehors de celui-ci
+        if self._properties_overlay.isVisible():
+            if not self._properties_overlay.geometry().contains(view_pt):
+                self._properties_overlay.hide()
 
         # Désélection cellule précédente si on clique ailleurs
         if self._cell_select is not None:
