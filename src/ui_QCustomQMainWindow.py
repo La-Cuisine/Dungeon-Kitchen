@@ -16,10 +16,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGraphicsView,
-    QGridLayout, QHBoxLayout, QLabel, QMenu,
-    QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
-    QStackedWidget, QTextEdit, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
+    QHBoxLayout, QLabel, QMenu, QMenuBar,
+    QPushButton, QSizePolicy, QSpacerItem, QStackedWidget,
+    QTextEdit, QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQMainWindow import QCustomQMainWindow
 class Ui_CustomMainWindow(object):
@@ -504,17 +504,12 @@ class Ui_CustomMainWindow(object):
         self.main_body.setSizePolicy(sizePolicy2)
         self.verticalLayout_10 = QVBoxLayout(self.main_body)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
-        self.graphicsView = QGraphicsView(self.main_body)
-        self.graphicsView.setObjectName(u"graphicsView")
-
-        self.verticalLayout_10.addWidget(self.graphicsView)
-
         self.log_view_top = QWidget(self.main_body)
         self.log_view_top.setObjectName(u"log_view_top")
         self.horizontalLayout_4 = QHBoxLayout(self.log_view_top)
         self.horizontalLayout_4.setSpacing(0)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.horizontalLayout_4.setContentsMargins(-1, 0, -1, 0)
+        self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
         self.log_view_label = QLabel(self.log_view_top)
         self.log_view_label.setObjectName(u"log_view_label")
 
@@ -537,7 +532,8 @@ class Ui_CustomMainWindow(object):
         sizePolicy3.setVerticalStretch(0)
         sizePolicy3.setHeightForWidth(self.log_view.sizePolicy().hasHeightForWidth())
         self.log_view.setSizePolicy(sizePolicy3)
-        self.log_view.setMaximumSize(QSize(16777215, 130))
+        self.log_view.setMinimumSize(QSize(0, 130))
+        self.log_view.setMaximumSize(QSize(166666, 130))
         self.log_view.setReadOnly(True)
 
         self.verticalLayout_10.addWidget(self.log_view)
@@ -587,7 +583,7 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(1)
+        self.stacked_widget.setCurrentIndex(3)
         self.stackedWidget.setCurrentIndex(0)
 
 

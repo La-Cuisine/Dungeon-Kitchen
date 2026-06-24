@@ -1,0 +1,84 @@
+#XML FORMAT USED HERE
+
+<Item name="..." type="..." description="..."/>
+=> Located at ./[Game.name]/Items
+
+
+
+<NPC alignement="..." name="..." description="...">
+    <inventory> 
+        [<Item>]
+        [ ... ]
+    </inventory>
+    <stats>
+        [<couple stat="..." value="..."/>]
+        [ ... ]
+    </stats>
+</NPC>
+=> Located at ./[Game.name]/Sheets
+
+
+<PC ID="..." name="..." description="...">
+    <Inventory> 
+        [<Item>]
+        [ ... ]
+    </Inventory>
+    <stats>
+        [<couple stat="..." value="..."/>]
+        [ ... ]
+    </stats>
+</PC>
+=> Located at ./[Game.name]/Sheets/PC
+
+
+
+<Prop name="..." type="..." description="..." state="..."/>
+=> Located at ./[Game.name]/Blueprints/Props
+
+
+<Cell ground="..." walls="..." doors="...">
+    <contents>
+        [<Prop>]
+        [ ... ]
+    </contents>
+</Cell>
+=> N/A (Not saved for obvious reasons)
+
+
+<Blueprint name="..." length="..." width="...">
+    <grid>
+        <row>
+            <Cell>
+            [ ... ]
+        </row>
+        [ ... ]
+    </grid>
+</Blueprint>
+=> Located at ./[Game.name]/Blueprints
+
+
+
+<Game name="...">
+    <layers>
+        [ 
+         <layer name="...">
+               <Blueprint>
+         </layer>
+        ]
+        [ ... ]
+    </layers>
+    <pawns>
+        [
+         <pawn posX="..." posY="..." layer="...">
+             <NPC> | <PC>
+         </pawn>
+        ]
+        [ ... ]
+    </pawns>
+    <notes>
+        [ <note name="..." text="..."/> ]
+        [ ... ]
+    </notes>
+</Game>
+=> Located at ./[Game.name]/
+==> Implicit references to other directories

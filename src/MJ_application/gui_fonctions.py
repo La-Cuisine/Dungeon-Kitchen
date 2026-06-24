@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QGraphicsDropShadowEffect
-from PySide6.QtCore import QSettings
-from PySide6.QtGui import QColor, QPalette
+from PySide6.QtCore import QSettings, QTimer
+from PySide6.QtGui import QColor, QPalette, QPainter, QBrush
+from PySide6.QtWidgets import QGraphicsScene
+from PySide6.QtCore import Qt
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 from Custom_Widgets.QCustomTheme import QCustomTheme
@@ -8,6 +10,7 @@ import webbrowser
 # Import interne
 from src.MJ_application.server import SERVER_URL, ServerController
 from src.MJ_application.LogReaderThread import LogReaderThread
+from src.MJ_application.grid import View_Grid, Grid, InvisibleWallLimit
 
 class GuiFunctions():
     def __init__(self,MainWindow):
@@ -22,7 +25,8 @@ class GuiFunctions():
         self.init_action_menubar()
         self.init_app_btn_connect()
         self._open_center_menu()
-        
+        self.init_grid()
+
     # ----------------------------------------------------------------
     # Initialisation de l'application 
     # ----------------------------------------------------------------
@@ -91,21 +95,80 @@ class GuiFunctions():
         self.ui.close_server_btn.clicked.connect(self._stop_server)
         self.ui.open_website_btn.clicked.connect(self._open_browser)
     
+    def init_grid(self, n: int = 100, s_cell: int = 64):
+        """
+        Remplace le QGraphicsView généré par Qt Designer par un View_Grid,
+        puis y injecte la scène, le mur invisible et la grille.
+
+        :param n:      Nombre de cellules par côté de la grille.
+        :param s_cell: Taille en pixels d'une cellule.
+        """
+        from PySide6.QtWidgets import QGraphicsItem
+        import src.MJ_application.grid as _grid_module
+
+        # Recupere le layout parent du graphicsView
+        layout = self.ui.verticalLayout_10
+
+        # Cree la scene graphique
+        self._scene = QGraphicsScene()
+        self._scene.setSceneRect(0, 0, 700, 520)
+        # Desactive l'index BSP : inutile pour une grille rigide,
+        # evite de recalculer les bounding rects de tous les enfants au drag.
+        self._scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
+
+        # Crée le View_Grid et le branche sur la scène
+        self._view_grid = View_Grid(self._scene)
+        self._view_grid.setObjectName("graphicsView")
+        self._view_grid.setRenderHint(
+            QPainter.RenderHint.Antialiasing
+            | QPainter.RenderHint.TextAntialiasing
+            | QPainter.RenderHint.SmoothPixmapTransform
+        )
+        self._view_grid.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._view_grid.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._view_grid.setBackgroundBrush(QBrush(QColor("#171717ff")))
+        self._view_grid.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._view_grid.setDragMode(View_Grid.DragMode.ScrollHandDrag)
+        self._view_grid.setMouseTracking(True)
+
+        # Insere le View_Grid AVANT de creer l'overlay (la vue doit etre
+        # dans le layout pour avoir une taille et un parent valides).
+        layout.insertWidget(0, self._view_grid)
+
+        # Overlay coordonnees souris : QLabel enfant de la vue (plus un item scene).
+        # Taille fixe, toujours en haut a droite, insensible au pan/zoom.
+        self.InterMouseCoor = _grid_module.Interface_MouseCoord(self._view_grid)
+        self._view_grid.addItemNeeds(self.InterMouseCoor)
+
+        # Mur invisible (doit exister avant la grille)
+        self._wall = InvisibleWallLimit(self._scene)
+        _grid_module._wall = self._wall          # Met à jour la globale du module
+        self._scene.addItem(self._wall)
+
+        # Grille
+        self._world = Grid(n, s_cell)
+        (self._world.atoms[0]).setName("TL")
+        (self._world.atoms[0]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+        (self._world.atoms[n - 1]).setName("TR")
+        (self._world.atoms[n - 1]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+        (self._world.atoms[(n - 1) * n]).setName("BL")
+        (self._world.atoms[(n - 1) * n]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+        (self._world.atoms[(n - 1) * n + (n - 1)]).setName("BR")
+        (self._world.atoms[(n - 1) * n + (n - 1)]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+        self._scene.addItem(self._world)
+
+        # Reference directe sur la grille pour que _cell_at_view_pos()
+        # fonctionne meme avant le premier mouseMoveEvent.
+        self._view_grid._grid = self._world
+
+        # Met à jour la référence ui.graphicsView pour que le reste du code
+        # continue à fonctionner via self.ui.graphicsView si besoin
+        self.ui.graphicsView = self._view_grid
+    
     def init_action_menubar(self):
         self.ui.actionLog_Chat.toggled.connect(self.switch_log_display_state)
         self.ui.actionInfo_menu.toggled.connect(self.switch_center_menu_display_state)
         self.ui.actionClose.triggered.connect(self.closeEvent)
-    # ----------------------------------------------------------------
-    # Changement des attributs de widget
-    # ----------------------------------------------------------------
-
-    def change_actionInfo_menu_state(self,state):
-        if(state == True):
-            self.ui.actionInfo_menu.toggled.connect(self._close_center_menu)
-            self.ui.actionInfo_menu.setChecked(True)
-        elif(state == False):
-            self.ui.actionInfo_menu.toggled.connect(self._open_center_menu)
-            self.ui.actionInfo_menu.setChecked(False)
 
     # ----------------------------------------------------------------
     # Slots – méthodes connectées aux signaux des boutons et du thread
@@ -245,7 +308,7 @@ class GuiFunctions():
         """
         self.ui.center_menu.setVisible(False)
         self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Redo.png"))
-        self.ui.actionInfo_menu.setChecked(True)
+        self.ui.actionInfo_menu.setChecked(False)
 
     def switch_center_menu_display_state(self):
         """
@@ -401,7 +464,39 @@ class GuiFunctions():
             "QLabel      { color: #e6edf3; }"
             "QTextEdit   { background-color: #0d1117; color: #e6edf3; border: 1px solid #30363d; }"
             "QComboBox   { background-color: #21262d; color: #e6edf3; border: 1px solid #30363d; }"
+            "QComboBox QAbstractItemView { background-color: #1c2128; color: #e6edf3; selection-background-color: #30363d; }"
         )
+
+        # Force le fond + texte du panneau central et du stacked_widget
+        self.ui.center_menu.setAutoFillBackground(True)
+        self.ui.center_menu.setStyleSheet(
+            "QWidget#center_menu { background-color: #161b22; }"
+            "QWidget#center_menu QLabel    { color: #e6edf3; }"
+            "QWidget#center_menu QComboBox { background-color: #21262d; color: #e6edf3; border: 1px solid #30363d; }"
+            "QComboBox QAbstractItemView   { background-color: #1c2128; color: #e6edf3; selection-background-color: #30363d; }"
+        )
+        self.ui.stacked_widget.setStyleSheet(
+            "QStackedWidget { background-color: #161b22; }"
+        )
+
+        # Custom_Widgets réapplique son style APRÈS cette fonction (via la boucle
+        # d'événements Qt). On utilise QTimer.singleShot(0) pour s'exécuter après
+        # que CW ait terminé — c'est le seul moyen fiable de garder le dernier mot.
+        def _force_dark_text():
+            for btn in [
+                self.ui.character_btn, self.ui.map_btn, self.ui.server_btn,
+                self.ui.settings_btn, self.ui.information_btn, self.ui.help_btn,
+            ]:
+                s = btn.styleSheet()
+                # Remplace ou ajoute la couleur de texte directement dans le style inline
+                if "color:" in s:
+                    import re
+                    s = re.sub(r'color\s*:\s*[^;]+;', 'color: #fefefe;', s)
+                else:
+                    s = s.rstrip() + " color: #fefefe;"
+                btn.setStyleSheet(s)
+
+        QTimer.singleShot(0, _force_dark_text)
         
     def _apply_light_theme(self):
         """
@@ -468,7 +563,42 @@ class GuiFunctions():
             "  background-color: #f0f1f3;"
             "  color: #9aa0a8;"
             "}"
+            "QComboBox QAbstractItemView { background-color: #ffffff; color: #1c1f24; selection-background-color: #d8dbdf; }"
         )
+
+        # Force le fond + texte + widgets du panneau central
+        self.ui.center_menu.setAutoFillBackground(True)
+        self.ui.center_menu.setStyleSheet(
+            "QWidget#center_menu { background-color: #f5f6f8; }"
+            "QWidget#center_menu QLabel    { color: #1c1f24; }"
+            "QWidget#center_menu QFrame    { background-color: #eceef1; }"
+            "QWidget#center_menu QComboBox { background-color: #e6e8eb; color: #1c1f24; border: 1px solid #d0d4d9; }"
+            "QComboBox QAbstractItemView   { background-color: #ffffff; color: #1c1f24; selection-background-color: #d8dbdf; }"
+            "QWidget#center_menu QPushButton { background-color: #e6e8eb; color: #1c1f24; border: 1px solid #d0d4d9; border-radius: 6px; padding: 6px 10px; }"
+            "QWidget#center_menu QPushButton:hover    { background-color: #d8dbdf; }"
+            "QWidget#center_menu QPushButton:pressed  { background-color: #c6cad0; }"
+            "QWidget#center_menu QPushButton:disabled { background-color: #f0f1f3; color: #9aa0a8; }"
+        )
+        self.ui.stacked_widget.setStyleSheet(
+            "QStackedWidget { background-color: #f5f6f8; }"
+        )
+
+        # Meme logique que le dark : Custom_Widgets ecrase le QSS global avec un
+        # setStyleSheet inline par bouton. QTimer.singleShot s'execute apres CW.
+        def _force_light_text():
+            for btn in [
+                self.ui.character_btn, self.ui.map_btn, self.ui.server_btn,
+                self.ui.settings_btn, self.ui.information_btn, self.ui.help_btn,
+            ]:
+                s = btn.styleSheet()
+                if "color:" in s:
+                    import re
+                    s = re.sub(r'color\s*:\s*[^;]+;', 'color: #1c1f24;', s)
+                else:
+                    s = s.rstrip() + " color: #1c1f24;"
+                btn.setStyleSheet(s)
+
+        QTimer.singleShot(0, _force_light_text)
 
     @staticmethod
     def _btn_style(color_normal: str, color_hover: str) -> str:

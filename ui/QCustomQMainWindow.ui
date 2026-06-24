@@ -343,7 +343,11 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
+<<<<<<< HEAD
           <number>1</number>
+=======
+          <number>3</number>
+>>>>>>> new-sam
          </property>
          <widget class="QWidget" name="settings_menu">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -929,17 +933,32 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_10">
        <item>
+<<<<<<< HEAD
         <widget class="QGraphicsView" name="graphicsView"/>
        </item>
        <item>
+=======
+>>>>>>> new-sam
         <widget class="QWidget" name="log_view_top" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <property name="spacing">
            <number>0</number>
           </property>
+<<<<<<< HEAD
           <property name="topMargin">
            <number>0</number>
           </property>
+=======
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+>>>>>>> new-sam
           <property name="bottomMargin">
            <number>0</number>
           </property>
@@ -980,9 +999,21 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+<<<<<<< HEAD
          <property name="maximumSize">
           <size>
            <width>16777215</width>
+=======
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>130</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>166666</width>
+>>>>>>> new-sam
            <height>130</height>
           </size>
          </property>
