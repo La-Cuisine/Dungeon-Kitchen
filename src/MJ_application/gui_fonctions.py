@@ -169,17 +169,6 @@ class GuiFunctions():
         self.ui.actionLog_Chat.toggled.connect(self.switch_log_display_state)
         self.ui.actionInfo_menu.toggled.connect(self.switch_center_menu_display_state)
         self.ui.actionClose.triggered.connect(self.closeEvent)
-    # ----------------------------------------------------------------
-    # Changement des attributs de widget
-    # ----------------------------------------------------------------
-
-    def change_actionInfo_menu_state(self,state):
-        if(state == True):
-            self.ui.actionInfo_menu.toggled.connect(self._close_center_menu)
-            self.ui.actionInfo_menu.setChecked(True)
-        elif(state == False):
-            self.ui.actionInfo_menu.toggled.connect(self._open_center_menu)
-            self.ui.actionInfo_menu.setChecked(False)
 
     # ----------------------------------------------------------------
     # Slots – méthodes connectées aux signaux des boutons et du thread
@@ -319,7 +308,7 @@ class GuiFunctions():
         """
         self.ui.center_menu.setVisible(False)
         self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Redo.png"))
-        self.ui.actionInfo_menu.setChecked(True)
+        self.ui.actionInfo_menu.setChecked(False)
 
     def switch_center_menu_display_state(self):
         """

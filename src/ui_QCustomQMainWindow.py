@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'QCustomQMainWindow.ui'
+## Form generated from reading UI file 'new_QCustomQMainWindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.11.1
 ##
@@ -22,7 +22,6 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
     QTextEdit, QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQMainWindow import QCustomQMainWindow
-
 class Ui_CustomMainWindow(object):
     def setupUi(self, CustomMainWindow):
         if not CustomMainWindow.objectName():
@@ -505,18 +504,18 @@ class Ui_CustomMainWindow(object):
         self.main_body.setSizePolicy(sizePolicy2)
         self.verticalLayout_10 = QVBoxLayout(self.main_body)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
-        self.widget_5 = QWidget(self.main_body)
-        self.widget_5.setObjectName(u"widget_5")
-        self.horizontalLayout_4 = QHBoxLayout(self.widget_5)
+        self.log_view_top = QWidget(self.main_body)
+        self.log_view_top.setObjectName(u"log_view_top")
+        self.horizontalLayout_4 = QHBoxLayout(self.log_view_top)
         self.horizontalLayout_4.setSpacing(0)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.horizontalLayout_4.setContentsMargins(-1, 0, -1, 0)
-        self.log_view_label = QLabel(self.widget_5)
+        self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.log_view_label = QLabel(self.log_view_top)
         self.log_view_label.setObjectName(u"log_view_label")
 
         self.horizontalLayout_4.addWidget(self.log_view_label)
 
-        self.close_log_view_btn = QPushButton(self.widget_5)
+        self.close_log_view_btn = QPushButton(self.log_view_top)
         self.close_log_view_btn.setObjectName(u"close_log_view_btn")
         self.close_log_view_btn.setMinimumSize(QSize(30, 30))
         self.close_log_view_btn.setMaximumSize(QSize(30, 30))
@@ -524,7 +523,7 @@ class Ui_CustomMainWindow(object):
         self.horizontalLayout_4.addWidget(self.close_log_view_btn)
 
 
-        self.verticalLayout_10.addWidget(self.widget_5)
+        self.verticalLayout_10.addWidget(self.log_view_top)
 
         self.log_view = QTextEdit(self.main_body)
         self.log_view.setObjectName(u"log_view")
@@ -533,7 +532,8 @@ class Ui_CustomMainWindow(object):
         sizePolicy3.setVerticalStretch(0)
         sizePolicy3.setHeightForWidth(self.log_view.sizePolicy().hasHeightForWidth())
         self.log_view.setSizePolicy(sizePolicy3)
-        self.log_view.setMaximumSize(QSize(16777215, 130))
+        self.log_view.setMinimumSize(QSize(0, 130))
+        self.log_view.setMaximumSize(QSize(166666, 130))
         self.log_view.setReadOnly(True)
 
         self.verticalLayout_10.addWidget(self.log_view)
@@ -583,7 +583,7 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(1)
+        self.stacked_widget.setCurrentIndex(3)
         self.stackedWidget.setCurrentIndex(0)
 
 
