@@ -46,6 +46,7 @@ from PySide6.QtGui import (
 )
 
 z_dic = {}
+layerwindow_dic = {}
 
 _LimitBoundingLeft = None
 _LimitBoundingRight = None
@@ -71,6 +72,9 @@ class View_GameMode(QGraphicsView):
 
         self.zoom = 1.0
         self._fitted_once = False
+
+        self.profile_rect = ProfileBox(self,self.scene())
+
 
         self._Mxy = None
 
@@ -119,14 +123,16 @@ class View_GameMode(QGraphicsView):
                 self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding)
         #Force la scene à s'adapter correctement à la partie visible de la scene  (plus de scrolling H et V)
         self.setSceneRect(self.mapToScene(self.viewport().rect()).boundingRect())
-        #self.profile_rect.Align(Qt.AlignmentFlag.AlignVCenter)
+        
         self._update_world_bounds()
+        self.profile_rect.Align()
         scale = self.transform().m11()
+        
         
         for item in self.scene().items():
             if isinstance(item,layerwindow):
                 item.setScale(1.0/scale)
-                
+            
                 
                 
             #if isinstance(item,ProfileBox):
@@ -175,7 +181,7 @@ class MainWindow(QMainWindow):
         self.univers.addItem(self.LimitBoundingRight)
 
 
-        self.profile_rect = ProfileBox(0,0,60,350,1)    
+        
 
         layer1 = layerwindow(50,80,200,500,3,"Black")
         layer2 = layerwindow(300,80,200,500,2,"Black")
@@ -186,8 +192,8 @@ class MainWindow(QMainWindow):
         self.univers.addItem(layer1)
         self.univers.addItem(layer2)
         self.univers.addItem(layer3)
-        self.univers.addItem(self.profile_rect)
-        self.profile_rect.Align(Qt.AlignmentFlag.AlignVCenter)
+        
+        
         
         #self.user_profile_1 = self.addButItem(15,20)
             
@@ -403,41 +409,112 @@ class LimitBounding(QGraphicsPathItem):
             walls.addRect(cx, cy,1, span_h)
         if self.n.value == 1 :    
             walls.addRect(cx+span_w, cy,1, span_h)
-            walls.addRect(cx, cy+span_h,span_w, 1)
+            walls.addRect(cx, cy+span_h+73,span_w, 1)
         self.setPath(walls)
 
 
-class ProfileBox(QGraphicsRectItem):
-    def __init__(self, x, y, w, h,z):
-        super().__init__(0, 0, w, h)
-        self.setPos(x,y)
-        self.rect = QRectF(0,0,w,h)
+class ProfileBox(QLabel):
+    W = 120
+    H = 600
+
+    def __init__(self, parent_view : QGraphicsView, scene : QGraphicsScene):
+        super().__init__(parent_view)
+        self.setFixedSize(self.W, self.H)
         
-        self.color = QColor(255, 0, 0, 255)
-        self.setBrush(QBrush(self.color))
-        self.setPen(QPen(Qt.black,-1))
-        self.setZValue(z)
-
-        self.round = 12
-
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
+        self.profs = []
+        self.nbprofs = 0
+        self.scene = scene
         
 
-        self.setOpacity(0.8)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents,False)
+        self.raise_()
+        self._reposition()
+        self.profile(4)
+
+
+    def _reposition(self):
+        parent = self.parent()
+        if parent is not None:
+            print(parent.height())
+            self.move(4, (parent.height()-self.H)/2)
+
+
+    def Align(self):
+        self._reposition()
+
+    def profile(self,n : int):
+        for i in range(n):
+            self.profs.append(Profile(self,n,i,i))
+        self.nbprofs = n
+
+    def prof_remove(self,id):
+
+        for i in self.profs:
+            if isinstance(i,Profile):
+                if i.get_id() == id:
+                    self.profs.remove(i)
+                    i.deleteLater()
+
+        
                     
-        self.setCursor(Qt.CursorShape.ArrowCursor)
 
-    def Align(self,align : Qt.AlignmentFlag):
-        scene = self.scene().sceneRect()
-        if align == Qt.AlignmentFlag.AlignVCenter:
-            y = scene.top() + (scene.height()- self.rect.height()) /2 
+
+    #def profs_replace(self,i,id):
         
-        x = scene.left()
-        self.setPos(x,y)
+                
+
         
+class Profile(QPushButton):
+    WH=80
+    def __init__(self, parent : ProfileBox,nb_joueurs : int, n : int, id : int):
+        super().__init__(parent)
+        self._idplayer = id 
+        self.ficheIsOpen=False
+        self.place = n
+        self.scene = parent.scene
+        pos_h = (parent.height()-self.WH)/2/nb_joueurs
+        gap = 0
+        if n > 0 :
+            gap = 52
+        for _ in range(n):
+            
+            pos_h = pos_h + (parent.height()-self.WH)/2/nb_joueurs + gap
+
+        self.setGeometry((parent.width()-self.WH)/2,pos_h,self.WH,self.WH)
+        self.setStyleSheet("border-radius : 40px;"       
+                           "border : 2px solid black;"
+                           "background-color: black;")
+        
+        self.clicked.connect(self.openFiche)
+        
+
+    def get_id(self):
+        return self._idplayer    
+    
+    def openFiche(self):
+        global layerwindow_dic
+        global z_dic
+        scale = self.parent().parent().transform().m11()
+        layerwindow_dic["profile"+str(self.place)] = layerwindow(50,80,200,500,self.place,"Black")
+        layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
+        z_dic[layerwindow_dic["profile"+str(self.place)]] = layerwindow_dic["profile"+str(self.place)].zValue()
+        self.scene.addItem(layerwindow_dic["profile"+str(self.place)])
+
+    def setPlace(self,new_place:int):
+        
+        global layerwindow_dic
+        global z_dic
+        tmp = "profile"+str(self.place)
+        layerwindow_dic["profile"+str(new_place)] =  layerwindow_dic[tmp]
+        
+        z_dic[layerwindow_dic["profile"+str(new_place)]] = z_dic[layerwindow_dic[tmp]] 
+        
+        z_dic.pop(layerwindow_dic[tmp],None)
+        layerwindow_dic.pop(tmp,None)
+        self.place = new_place
+
+
 
         
 if __name__ == "__main__":
