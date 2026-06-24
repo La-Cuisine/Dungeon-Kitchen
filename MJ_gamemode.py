@@ -1,4 +1,5 @@
 import sys
+from enum import Enum
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -18,6 +19,7 @@ from PySide6.QtWidgets import (
     QGraphicsProxyWidget,
     QScrollArea,
     QScrollBar,
+    QGraphicsPathItem,
     
 )
 from PySide6.QtCore import (
@@ -26,7 +28,7 @@ from PySide6.QtCore import (
     Signal,
     QRectF, 
     QSize,
-    
+    QPointF,
     
 )
 from PySide6.QtGui import (
@@ -45,7 +47,96 @@ from PySide6.QtGui import (
 
 z_dic = {}
 
+_LimitBoundingLeft = None
+_LimitBoundingRight = None
+
+class EnumBound(Enum):
+    LEFT = 0
+    RIGHT = 1
+
+_view_bounds = {"cw": 350.0, "ch": 260.0}
+
 #METTRE DES FONCT / VAR EN PRIVE SI NECESSAIRE "__"
+
+
+class View_GameMode(QGraphicsView):
+    def __init__(self, scene):
+        super().__init__(scene)
+
+        self._grid = None
+        self._shift_press = False
+
+        self._cell_select = None
+        self._cell_select_use = False
+
+        self.zoom = 1.0
+        self._fitted_once = False
+
+        self._Mxy = None
+
+        self._Items_needs = []
+
+        # Overlay fixe (bas a droite) affichant les proprietes d'une case :
+        # widget enfant de la vue, donc insensible au zoom/pan, et
+        # repositionne automatiquement au resize via align()
+        #self._properties_overlay = Interface_Proprieties(self)
+        #self.addItemNeeds(self._properties_overlay)
+
+        self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
+        self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
+        self.setRenderHint(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing | QPainter.RenderHint.SmoothPixmapTransform) #antialiasing + meilleur rendu pour image 
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff) # desactive la barre de scroll-V VISUELEMENT UNIQUEMENT
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff) # desactive la barre de scroll-H VISUELEMENT UNIQUEMENT
+        self.setBackgroundBrush(QBrush(QColor("#e8e8e8ff")))
+        self.setAlignment(Qt.AlignmentFlag.AlignLeft) # force l'espace à ce coller gauche (permet par exemple un meilleur rendu du rectangle "profile_rect")
+        self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate)
+
+    
+    def _update_world_bounds(self):
+        global _LimitBoundingLeft, _view_bounds
+
+        if self.scene() is None:
+            return
+
+        visible = self.mapToScene(self.viewport().rect()).boundingRect()
+        _view_bounds["cw"] = visible.center().x()
+        _view_bounds["ch"] = visible.center().y()
+
+        if _LimitBoundingLeft is not None and _LimitBoundingRight is not None :
+            _LimitBoundingLeft.sizeUpdate(visible)
+            _LimitBoundingRight.sizeUpdate(visible)
+
+    def resizeEvent(self, event: QResizeEvent):
+        
+        if not (event.oldSize().height() == -1 and event.oldSize().width() == -1):
+            if event.size().height() > event.oldSize().height() and event.size().width() > event.oldSize().width(): 
+                
+                #adapte la view de façon proporttionnel à la scene
+                self.fitInView(self.scene().sceneRect().adjusted(-1.1,-1.1,1.1,1.1),Qt.AspectRatioMode.KeepAspectRatioByExpanding) 
+            elif event.size().height() < event.oldSize().height() and event.size().width() < event.oldSize().width():
+                
+                #adapte la view de façon proporttionnel à la scene
+                self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding)
+        #Force la scene à s'adapter correctement à la partie visible de la scene  (plus de scrolling H et V)
+        self.setSceneRect(self.mapToScene(self.viewport().rect()).boundingRect())
+        #self.profile_rect.Align(Qt.AlignmentFlag.AlignVCenter)
+        self._update_world_bounds()
+        scale = self.transform().m11()
+        
+        for item in self.scene().items():
+            if isinstance(item,layerwindow):
+                item.setScale(1.0/scale)
+                
+                
+                
+            #if isinstance(item,ProfileBox):
+            #    item.setScale(item.scale()/scale)
+        
+        
+        super().resizeEvent(event)
+   
+
+
 
 class MainWindow(QMainWindow):
 
@@ -56,6 +147,9 @@ class MainWindow(QMainWindow):
         """
         super().__init__()   # Initialise QMainWindow (obligatoire)
         
+        global _LimitBoundingLeft
+        global _LimitBoundingRight
+        
         self.setMinimumSize(700, 520)
         self.setWindowTitle("GameMode")
 
@@ -63,12 +157,8 @@ class MainWindow(QMainWindow):
         self.univers = QGraphicsScene()
         self.univers.setSceneRect(0,0,700, 520)
         # cree un espace de "visualisation"/"rendu" de la scene
-        self.view = QGraphicsView(self.univers)
-        self.view.setRenderHint(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing | QPainter.RenderHint.SmoothPixmapTransform) #antialiasing + meilleur rendu pour image 
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff) # desactive la barre de scroll-V VISUELEMENT UNIQUEMENT
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff) # desactive la barre de scroll-H VISUELEMENT UNIQUEMENT
-        self.view.setBackgroundBrush(QBrush(QColor("#e8e8e8ff")))
-        self.view.setAlignment(Qt.AlignmentFlag.AlignLeft) # force l'espace à ce coller gauche (permet par exemple un meilleur rendu du rectangle "profile_rect")
+        self.view = View_GameMode(self.univers)
+        
         contain = QWidget()
         self.root_layout = QVBoxLayout(contain)
         #root_layout.setSpacing(12)
@@ -76,7 +166,16 @@ class MainWindow(QMainWindow):
         self.root_layout.addWidget(self.view)
         self.setCentralWidget(contain)
         
-        self.profile_rect = layerrect(0,0,60,350,1)    
+        self.LimitBoundingLeft = LimitBounding(EnumBound.LEFT,self.univers)  
+        _LimitBoundingLeft = self.LimitBoundingLeft
+        self.univers.addItem(self.LimitBoundingLeft)
+
+        self.LimitBoundingRight = LimitBounding(EnumBound.RIGHT,self.univers)  
+        _LimitBoundingRight = self.LimitBoundingRight
+        self.univers.addItem(self.LimitBoundingRight)
+
+
+        self.profile_rect = ProfileBox(0,0,60,350,1)    
 
         layer1 = layerwindow(50,80,200,500,3,"Black")
         layer2 = layerwindow(300,80,200,500,2,"Black")
@@ -91,51 +190,10 @@ class MainWindow(QMainWindow):
         self.profile_rect.Align(Qt.AlignmentFlag.AlignVCenter)
         
         #self.user_profile_1 = self.addButItem(15,20)
+            
         
-        
-
-    def addButItem(self,x,y):
-        button = QPushButton("L") # cree la donnée bouton
-        button.setFixedSize(26, 26)
-        #button.clicked.connect(self.close) # Bouton clické -> lance close()
-        # Fait une beauté au bouton
-        button.setStyleSheet("""
-                QPushButton {
-                             background : transparent ;
-                             border : none ;
-                             font-size : 22px;
-                             }
-                QPushButton:hover {
-                             font-size : 23px;
-                             }""")
-        
-        #conteneur du boutton
-        self.root_layout.addWidget(button)
-        
-        
-        #Defini l'espace comme un lieu ne pouvant pas faire bouger layerwindow
-        #cont.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
-        #return cont
-
-    def resizeEvent(self, event: QResizeEvent):
-        
-        #adapte la view de façon proporttionnel à la scene
-        self.view.fitInView(self.univers.sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding) 
-        #Force la scene à s'adapter correctement à la partie visible de la scene  (plus de scrolling H et V)
-        self.view.setSceneRect(self.view.mapToScene(self.view.viewport().rect()).boundingRect())
-        self.profile_rect.Align(Qt.AlignmentFlag.AlignVCenter)
-        scale = self.view.transform().m11()
-
-        for item in self.univers.items():
-            if isinstance(item,layerwindow):
-                item.setScale(1.0/scale)
-                
-            #if isinstance(item,layerrect):
-            #    item.setScale(item.scale()/scale)
-        
-        print("here")
-        super().resizeEvent(event)
-   
+       
+    
 
 
 class layerwindow(QGraphicsItem):
@@ -146,13 +204,15 @@ class layerwindow(QGraphicsItem):
         self.color = QColor(color)
         self.setZValue(z)
 
+        self._gpos = QPointF(50,80)
         self.round = 12
 
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
-    
+
+
         self.setOpacity(0.8)
             
         
@@ -196,12 +256,56 @@ class layerwindow(QGraphicsItem):
 
     #Dessine
     def paint(self, painter = None, option = None, widget = None):
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing) 
         painter.setPen(QPen(Qt.black,0))
         painter.setBrush(QBrush(self.color))
         painter.drawRoundedRect(self.rect,self.round,self.round)
-
+        
     
+    def itemChange(self, change, value):
+        
+        if change == QGraphicsItem.GraphicsItemChange.ItemPositionChange:
+            global _LimitBoundingLeft    
+            new_pos = value
+            old_pos = self.pos()
+
+            cw = _view_bounds["cw"]
+            ch = _view_bounds["ch"]
+
+
+            if _LimitBoundingLeft is not None :    
+                if _LimitBoundingLeft.collidesWithItem(self) and _LimitBoundingRight.collidesWithItem(self):
+                    if new_pos.x() < cw/2 and new_pos.y() < ch/2:
+                       
+                        return QPointF(max(old_pos.x(), new_pos.x()), max(old_pos.y(), new_pos.y()))
+                    if new_pos.x() < cw/2 and new_pos.y() > ch/2:
+                       
+                        return QPointF(max(old_pos.x(), new_pos.x()), min(old_pos.y(), new_pos.y()))
+                    if new_pos.x() > cw/2 and new_pos.y() < ch/2:
+                       
+                        return QPointF(min(old_pos.x(), new_pos.x()), max(old_pos.y(), new_pos.y()))       
+                    if new_pos.x() > cw/2 and new_pos.y() > ch/2:
+                       
+                        return QPointF(min(old_pos.x(), new_pos.x()), min(old_pos.y(), new_pos.y()))         
+                if _LimitBoundingLeft.collidesWithItem(self):  
+
+                    return QPointF(max(old_pos.x(), new_pos.x()), max(old_pos.y(), new_pos.y()))
+                if _LimitBoundingRight.collidesWithItem(self):  
+
+                    return QPointF(min(old_pos.x(), new_pos.x()), min(old_pos.y(), new_pos.y()))
+                #inter = self._sweep(self.boundingRect(), i)
+                #if inter is None:
+                #    return super().itemChange(change, value)
+                #col = _LimitBounding.mapFromScene(_LimitBounding.shape())
+                #if inter.intersects(col):
+                #    print("OPP")
+                #    return QPointF(min(old_pos.x(), new_pos.x()), min(old_pos.y(), new_pos.y()))
+                #if self.boundingRect().x() >= cw + 8 or self.boundingRect().y() >= ch + 8:
+                #    print("TPPP")
+                #    self.ungrabMouse()
+                #    return QPointF(self._gpos.x() + cw - self.s_cell, self._gpos.y() + ch - self.s_cell)
+                #self.update()
+
+        return super().itemChange(change, value)
     
 
 
@@ -215,6 +319,8 @@ class childrect(QGraphicsItem):
         self.setOpacity(1)
         self.parent = parent
         self.round = 10
+        # Defini l'espace comme un lieu ne pouvant pas faire bouger layerwindow
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
         self.button = self.addButItem(88/100*w,y-1)
         
@@ -232,7 +338,6 @@ class childrect(QGraphicsItem):
 
     #Dessine
     def paint(self, painter = None, option = None, widget = None):
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing) 
         painter.setPen(QPen(Qt.black,0))
         painter.setBrush(QBrush(self.color))
         painter.drawRoundedRect(self.rect,self.round,self.round)
@@ -259,8 +364,7 @@ class childrect(QGraphicsItem):
         cont.setWidget(button)
         
         cont.setPos(x,y)
-        # Defini l'espace comme un lieu ne pouvant pas faire bouger layerwindow
-        cont.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
+        
        
         return cont
 
@@ -272,7 +376,38 @@ class childrect(QGraphicsItem):
             del self.parent           
             del self
 
-class layerrect(QGraphicsRectItem):
+class LimitBounding(QGraphicsPathItem):
+    """Croix de murs invisibles utilisee par Grid pour limiter le
+    deplacement. Sa position/etendue suit desormais la zone REELLEMENT
+    VISIBLE dans la vue (passee via sizeUpdate), et non plus le centre
+    fixe de la sceneRect d'origine -> elle reste coherente quand on
+    zoome ou qu'on redimensionne la fenetre."""
+
+    def __init__(self, n : EnumBound ,scene: QGraphicsScene):
+        super().__init__()
+        self.setZValue(0)
+        self.setPen(QPen(QColor("#ff0000"), 5))
+        self.setPos(0, 0)
+        self.n = n 
+        self.sizeUpdate(scene.sceneRect())
+
+    def sizeUpdate(self, visible_rect: QRectF):
+        cx = visible_rect.topLeft().x()
+        cy = visible_rect.topLeft().y()
+        span_w = max(visible_rect.width(), 1.0) * 1
+        span_h = max(visible_rect.height(), 1.0) * 1
+
+        walls = QPainterPath()
+        if self.n.value == 0 :
+            walls.addRect(cx, cy, span_w, 1)
+            walls.addRect(cx, cy,1, span_h)
+        if self.n.value == 1 :    
+            walls.addRect(cx+span_w, cy,1, span_h)
+            walls.addRect(cx, cy+span_h,span_w, 1)
+        self.setPath(walls)
+
+
+class ProfileBox(QGraphicsRectItem):
     def __init__(self, x, y, w, h,z):
         super().__init__(0, 0, w, h)
         self.setPos(x,y)
