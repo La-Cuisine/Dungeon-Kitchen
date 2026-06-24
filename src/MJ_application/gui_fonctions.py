@@ -11,6 +11,12 @@ import webbrowser
 from src.MJ_application.server import SERVER_URL, ServerController
 from src.MJ_application.LogReaderThread import LogReaderThread
 from src.MJ_application.grid import View_Grid, Grid, InvisibleWallLimit
+from obj.blueprint import *
+from obj.game import *
+from obj.items import *
+from obj.pawns import *
+from obj.player import *
+from obj.save import *
 
 class GuiFunctions():
     def __init__(self,MainWindow):
@@ -20,11 +26,13 @@ class GuiFunctions():
         self._controller = ServerController()
         self.settings =  QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
         self.last_menu = self.settings.value("Menu")
+        self.loaded_character = False
+
 
         self.init_app_theme()
         self.init_action_menubar()
         self.init_app_btn_connect()
-        self._open_center_menu()
+        self.init_info_menu()
         self.init_grid()
 
     # ----------------------------------------------------------------
@@ -42,8 +50,16 @@ class GuiFunctions():
         self.ui.theme_list.addItem("Light")
         self.ui.theme_list.setCurrentText(current_theme)
 
+        if current_theme == "Light":
+            self._apply_light_theme()
+        else:
+            self._apply_dark_theme()
+
         # Couleur du label du menu "server"
         self.ui.server_state_label.setStyleSheet("color: #e74c3c; font-size: 13px;")
+
+        # Cache des éléments à l'initialisation
+        self.ui.alignement_NPC.setVisible(False)
 
         # Couleurs des boutons du menu "server"
         self.ui.open_server_btn.setStyleSheet(
@@ -56,11 +72,6 @@ class GuiFunctions():
             self._btn_style("#3498db", "#2980b9")
         )
 
-        if current_theme == "Dark":
-            self._apply_dark_theme()
-        else:
-            self._apply_light_theme()
-
         # Connect le signal pour changer de thème
         self.ui.theme_list.currentTextChanged.connect(self.changeAppTheme)
 
@@ -69,23 +80,27 @@ class GuiFunctions():
         Initialise les signaux pour les boutons de l'application
         """
         # Change le menu d'information
-        self.ui.character_btn.clicked.connect(self.switch_to_character_menu)
+        self.ui.character_btn.clicked.connect(self.switch_to_character_menu_selection)
         self.ui.map_btn.clicked.connect(self.switch_to_map_menu)
         self.ui.server_btn.clicked.connect(self.switch_to_server_menu)
         self.ui.settings_btn.clicked.connect(self.switch_to_settings_menu)
         self.ui.information_btn.clicked.connect(self.switch_to_information_menu)
         self.ui.help_btn.clicked.connect(self.switch_to_help_menu)
-        
+        self.ui.create_character_btn.clicked.connect(self.switch_to_character_menu_info)
+
+
         # Ouvre ou ferme le menu d'information
         self.ui.open_info_menu_btn.clicked.connect(self.switch_center_menu_display_state)
         self.ui.close_info_menu_btn.clicked.connect(self.switch_center_menu_display_state)
 
-        # Change le menu character
-        self.ui.character_menu_stat_btn.clicked.connect(self.switch_stat_info)
-        self.ui.character_menu_inv_btn.clicked.connect(self.switch_inv_info)
+        # Stat/Inv
+        self.ui.isNPC.toggled.connect(self.setNPC)
 
         # Ouvre ou ferme le log/chat
         self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
+
+        # Save/Load
+        self.ui.save_character_btn.clicked.connect(self.save_character)
 
         # Démarre ou ferme le serveur
         self.ui.open_server_btn.clicked.connect(self._update_server_label_open)
@@ -170,6 +185,13 @@ class GuiFunctions():
         self.ui.actionInfo_menu.toggled.connect(self.switch_center_menu_display_state)
         self.ui.actionClose.triggered.connect(self.closeEvent)
 
+    def init_info_menu(self):
+        self.last_menu = self.settings.value("MENU INFO")
+
+        if(self.last_menu == None):
+            self.switch_to_server_menu()
+        else:
+            self.ui.stacked_widget.setCurrentIndex(self.last_menu)
     # ----------------------------------------------------------------
     # Slots – méthodes connectées aux signaux des boutons et du thread
     # ----------------------------------------------------------------
@@ -260,39 +282,46 @@ class GuiFunctions():
 
     def switch_to_settings_menu(self):
         self.ui.stacked_widget.setCurrentIndex(0)
+        self.settings.setValue("MENU INFO",0)
         if self.ui.center_menu.isVisible() == False:
             self._open_center_menu()
 
-    def switch_to_character_menu(self):
-        self.ui.stacked_widget.setCurrentIndex(1)
-        if self.ui.center_menu.isVisible() == False:
+    def switch_to_character_menu_selection(self):
+        if(self.loaded_character == False):
+            self.ui.stacked_widget.setCurrentIndex(6)
+            self.settings.setValue("MENU INFO",6)
+        else:
+            self.ui.stacked_widget.setCurrentIndex(1)
+        if(self.ui.center_menu.isVisible() == False):
             self._open_center_menu()
+
+    def switch_to_character_menu_info(self):
+        self.loaded_character = True
+        self.ui.stacked_widget.setCurrentIndex(1)
 
     def switch_to_map_menu(self):
         self.ui.stacked_widget.setCurrentIndex(2)
+        self.settings.setValue("MENU INFO",2)
         if self.ui.center_menu.isVisible() == False:
             self._open_center_menu()
     
     def switch_to_server_menu(self):
         self.ui.stacked_widget.setCurrentIndex(3)
+        self.settings.setValue("MENU INFO",3)
         if self.ui.center_menu.isVisible() == False:
             self._open_center_menu()
 
     def switch_to_information_menu(self):
         self.ui.stacked_widget.setCurrentIndex(4)
+        self.settings.setValue("MENU INFO",4)
         if self.ui.center_menu.isVisible() == False:
             self._open_center_menu()
 
     def switch_to_help_menu(self):
         self.ui.stacked_widget.setCurrentIndex(5)
+        self.settings.setValue("MENU INFO",5)
         if self.ui.center_menu.isVisible() == False:
             self._open_center_menu()
-
-    def switch_stat_info(self):
-        self.ui.stackedWidget.setCurrentIndex(1)
-
-    def switch_inv_info(self):
-        self.ui.stackedWidget.setCurrentIndex(0)
 
     def _open_center_menu(self):
         """
@@ -330,6 +359,22 @@ class GuiFunctions():
 
         self.ui.actionInfo_menu.toggled.connect(self.switch_center_menu_display_state)
             
+    # ----------------------------------------------------------------
+    # Stat/Inv
+    # ----------------------------------------------------------------
+
+    def setNPC(self):
+        # Active le choix de l'alignement d'un npc
+        if(self.ui.isNPC.isChecked() == True):
+            self.ui.alignement_NPC.setVisible(True)
+
+        # Désactive le choix de l'alignement d'un npc
+        elif(self.ui.isNPC.isChecked() == False):
+            self.ui.alignement_NPC.setVisible(False)
+
+        else:
+            print("Erreur setNPC")
+
     # ----------------------------------------------------------------
     # Chat/Log
     # ----------------------------------------------------------------
@@ -651,4 +696,28 @@ class GuiFunctions():
             event.accept()        # Confirme la fermeture → la fenêtre est détruite
         except:
             exit()
+
+    # ----------------------------------------------------------------
+    # Gestion de save/load
+    # ----------------------------------------------------------------
+
+    def save_character(self):
+        name = self.ui.character_name.toMarkdown()
+        self.pc_sheet = PC(Name=name)
+        # Add stats to the save file
+        hp = self.ui.hp_nb.value()
+        str = self.ui.str_nb.value()
+        dex = self.ui.dex_nb.value()
+        con = self.ui.con_nb.value()
+        int = self.ui.int_nb.value()
+        wis = self.ui.wis_nb.value()
+        cha = self.ui.cha_nb.value()
+        self.pc_sheet.add_stat("HP",hp)
+        self.pc_sheet.add_stat("STR",str)
+        self.pc_sheet.add_stat("DEX",dex)
+        self.pc_sheet.add_stat("CON",con)
+        self.pc_sheet.add_stat("INT",int)
+        self.pc_sheet.add_stat("WIS",wis)
+        self.pc_sheet.add_stat("CHA",cha)
+
 

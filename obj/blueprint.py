@@ -199,7 +199,7 @@ class Blueprint:
         for i in range(tmp):
             acc.append(self._grid[x1][y1].get_content(0))
             self._grid[x1][y1].remove_content(0)
-        AllMoveTo_content(x2,y2,x1,y1)
+        self.AllMoveTo_content(x2,y2,x1,y1)
         for j in range(tmp):
             self._grid[x2][y2].add_content(acc[j])    
 

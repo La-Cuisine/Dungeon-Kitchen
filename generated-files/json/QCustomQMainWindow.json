@@ -9,6 +9,20 @@
     {
       "name": "theme_list",
       "items": []
+    },
+    {
+      "name": "alignement_NPC",
+      "items": [
+        {
+          "name": "Ally"
+        },
+        {
+          "name": "Neutral"
+        },
+        {
+          "name": "Enemy"
+        }
+      ]
     }
   ]
 }

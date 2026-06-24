@@ -1,11 +1,11 @@
 import xml.etree.ElementTree as ET
 import os
 
-import items
-import pawns
-import player
-import blueprint
-import game
+from obj.items import *
+from obj.pawns import *
+from obj.player import *
+from obj.blueprint import *
+from obj.game import *
 
 TARGET_DIRECTORY = "./projects/"
 
@@ -18,6 +18,15 @@ def ntab(x):
 
 
 def toXML(o,indent=0):
+
+    items = Item()
+    pawns = NPC()
+    pc = PC()
+    player = Player()
+    blueprint = Blueprint()
+    prop = Prop()
+    cell = Cell()
+    game = Game()
     #TODO Player Instance ?
     res = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     if (o is None):
@@ -30,7 +39,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "/>\n"
    
 
-    elif isinstance(o,pawns.NPC):
+    elif isinstance(o,pawns):
         res = ntab(indent) + "<NPC\n"
         res += ntab(indent+1) + "alignement=\"" + str(o.alignement()) + "\"\n" 
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n"
@@ -51,7 +60,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "</NPC>\n"
 
 
-    elif isinstance(o,pawns.PC):
+    elif isinstance(o,pc):
         res = ntab(indent) + "<PC\n"
         res += ntab(indent+1) + "ID=\"" + str(o.player()) + "\"\n" 
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n"
@@ -71,11 +80,11 @@ def toXML(o,indent=0):
         res += ntab(indent) + "</PC>\n"
 
 
-    elif isinstance(o,player.Player):
+    elif isinstance(o,player):
         raise Exception("NotHandled?")
         #TODO
 
-    elif isinstance(o,blueprint.Prop):
+    elif isinstance(o,prop):
         res = ntab(indent) + "<Prop\n"
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n" 
         res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
@@ -83,7 +92,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "/>\n"
 
 
-    elif isinstance(o,blueprint.Cell):
+    elif isinstance(o,cell):
         res = ntab(indent) + "<Cell\n"
         #note: retrieve bin from string with bin(int(x,2)) 
         res += ntab(indent+1) + "ground=\"" + str(o.ground()) + "\"\n"
@@ -97,7 +106,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "</Cell>\n"
 
 
-    elif isinstance(o,blueprint.Blueprint):
+    elif isinstance(o,blueprint):
         res = ntab(indent) + "<Blueprint\n"
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n"
         res += ntab(indent+1) + "length=\"" + str(o.length()) + "\"\n"
@@ -113,7 +122,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "</Blueprint>\n"
 
 
-    elif isinstance(o,game.Game):
+    elif isinstance(o,game):
         #BE CAREFUL - WILL CREATE FILES
         res = ntab(indent) + "<Game\n"
         res += ntab(indent +1) + "name=\"" + o.name() + "\"\n"
@@ -135,11 +144,11 @@ def toXML(o,indent=0):
         i=1
         for e in o.characters():
             try:
-                if(isinstance(e,pawns.PC)):
+                if(isinstance(e,pawns)):
                     f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","x")
                 f = open(local_path + "Sheets/"+"Sheet#"+str(i)+"-"+e.name()+".xml","x")
             except FileExistsError:
-                if(isinstance(e,pawns.PC)):
+                if(isinstance(e,pawns)):
                     f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","w")
                 f = open(local_path + "Sheets/"+"Sheet#"+str(i)+"-"+e.name()+".xml","w")
             finally:
@@ -231,7 +240,7 @@ def fromXMLTree(root):
             if i==2:
                 d = root.attrib[att]
             i+=1
-        new = items.Item(s,t,d)
+        new = Item(s,t,d)
     
 
     elif(observe == "NPC"):
@@ -246,7 +255,7 @@ def fromXMLTree(root):
             if i==2:
                 d = root.attrib[att]
             i+=1
-        new = pawns.NPC(n,a)
+        new = NPC(n,a)
         new.redescribe(d)
         for child in root:
             if(child.tag == "inventory"):
@@ -278,7 +287,7 @@ def fromXMLTree(root):
             if i==2:
                 d = root.attrib[att]
             i+=1
-        new = pawns.PC(ID,n)
+        new = PC(ID,n)
         new.redescribe(d)
         for child in root:
             if(child.tag == "inventory"):
@@ -317,7 +326,7 @@ def fromXMLTree(root):
             if i==3:
                 s = int(root.attrib[att])
             i+=1
-        new = blueprint.Prop(n,t,d,s)
+        new = Prop(n,t,d,s)
 
 
     elif(observe == "Cell"):
@@ -333,7 +342,7 @@ def fromXMLTree(root):
             if i==2:
                 d = (int(root.attrib[att],2))
             i+=1
-        new = blueprint.Cell([],g,w,d)
+        new = Cell([],g,w,d)
         for child in root:
             for cont in child:
                 new.add_content(fromXMLTree(cont))
@@ -350,7 +359,7 @@ def fromXMLTree(root):
             if i==2:
                 w = int(root.attrib[att])
             i+=1
-        new = blueprint.Blueprint(l,w,n)
+        new = Blueprint(l,w,n)
         for grid in root:
             y = 0
             for row in grid:
@@ -364,7 +373,7 @@ def fromXMLTree(root):
     elif(observe == "Game"):
         for att in root.attrib:
             n = root.attrib[att]
-        new = game.Game(n,False)
+        new = Game(n,False)
         for tab in root:
             if (tab.tag == "layers"):
                 for l in tab:

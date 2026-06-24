@@ -16,11 +16,12 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QComboBox, QFormLayout,
-    QFrame, QGridLayout, QHBoxLayout, QLabel,
-    QMenu, QMenuBar, QPushButton, QSizePolicy,
-    QSpacerItem, QSpinBox, QStackedWidget, QTextEdit,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QComboBox,
+    QFormLayout, QFrame, QGridLayout, QHBoxLayout,
+    QLabel, QLayout, QMenu, QMenuBar,
+    QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
+    QStackedWidget, QTabWidget, QTextEdit, QVBoxLayout,
+    QWidget)
 
 from Custom_Widgets.QCustomQMainWindow import QCustomQMainWindow
 class Ui_CustomMainWindow(object):
@@ -268,149 +269,227 @@ class Ui_CustomMainWindow(object):
         self.horizontalLayout_5.setSpacing(0)
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.horizontalLayout_5.setContentsMargins(0, 0, 0, 0)
-        self.character_menu_stat_btn = QPushButton(self.character_menu_selection_bar)
-        self.character_menu_stat_btn.setObjectName(u"character_menu_stat_btn")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.character_menu_stat_btn.sizePolicy().hasHeightForWidth())
-        self.character_menu_stat_btn.setSizePolicy(sizePolicy1)
-        self.character_menu_stat_btn.setMaximumSize(QSize(16000, 20))
+        self.tabWidget = QTabWidget(self.character_menu_selection_bar)
+        self.tabWidget.setObjectName(u"tabWidget")
+        self.tabWidget.setTabShape(QTabWidget.TabShape.Rounded)
+        self.tabWidget.setElideMode(Qt.TextElideMode.ElideNone)
+        self.tabWidget.setTabsClosable(False)
+        self.stat = QWidget()
+        self.stat.setObjectName(u"stat")
+        self.verticalLayout_14 = QVBoxLayout(self.stat)
+        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
+        self.formWidget = QWidget(self.stat)
+        self.formWidget.setObjectName(u"formWidget")
+        self.formWidget.setMaximumSize(QSize(16777215, 30))
+        self.formLayout = QFormLayout(self.formWidget)
+        self.formLayout.setObjectName(u"formLayout")
+        self.formLayout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        self.formLayout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
+        self.formLayout.setContentsMargins(0, 0, 0, 2)
+        self.hp_label = QLabel(self.formWidget)
+        self.hp_label.setObjectName(u"hp_label")
 
-        self.horizontalLayout_5.addWidget(self.character_menu_stat_btn)
+        self.formLayout.setWidget(0, QFormLayout.ItemRole.LabelRole, self.hp_label)
 
-        self.character_menu_inv_btn = QPushButton(self.character_menu_selection_bar)
-        self.character_menu_inv_btn.setObjectName(u"character_menu_inv_btn")
-        self.character_menu_inv_btn.setMaximumSize(QSize(16000, 20))
+        self.hp_nb = QSpinBox(self.formWidget)
+        self.hp_nb.setObjectName(u"hp_nb")
+        self.hp_nb.setMaximumSize(QSize(50, 16777215))
+        self.hp_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.hp_nb.setCorrectionMode(QAbstractSpinBox.CorrectionMode.CorrectToPreviousValue)
 
-        self.horizontalLayout_5.addWidget(self.character_menu_inv_btn)
+        self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.hp_nb)
 
 
-        self.verticalLayout_12.addWidget(self.character_menu_selection_bar)
+        self.verticalLayout_14.addWidget(self.formWidget)
 
-        self.stackedWidget = QStackedWidget(self.character_menu)
-        self.stackedWidget.setObjectName(u"stackedWidget")
-        self.inv_info = QWidget()
-        self.inv_info.setObjectName(u"inv_info")
-        self.verticalLayout_15 = QVBoxLayout(self.inv_info)
-        self.verticalLayout_15.setSpacing(0)
+        self.line = QFrame(self.stat)
+        self.line.setObjectName(u"line")
+        self.line.setFrameShape(QFrame.Shape.HLine)
+        self.line.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_14.addWidget(self.line)
+
+        self.formWidget_2 = QWidget(self.stat)
+        self.formWidget_2.setObjectName(u"formWidget_2")
+        self.formLayout_2 = QFormLayout(self.formWidget_2)
+        self.formLayout_2.setObjectName(u"formLayout_2")
+        self.formLayout_2.setSizeConstraint(QLayout.SizeConstraint.SetMaximumSize)
+        self.formLayout_2.setContentsMargins(0, 2, 0, 2)
+        self.str_label = QLabel(self.formWidget_2)
+        self.str_label.setObjectName(u"str_label")
+
+        self.formLayout_2.setWidget(0, QFormLayout.ItemRole.LabelRole, self.str_label)
+
+        self.str_nb = QSpinBox(self.formWidget_2)
+        self.str_nb.setObjectName(u"str_nb")
+        self.str_nb.setMaximumSize(QSize(50, 16777215))
+        self.str_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+
+        self.formLayout_2.setWidget(0, QFormLayout.ItemRole.FieldRole, self.str_nb)
+
+        self.dex_label = QLabel(self.formWidget_2)
+        self.dex_label.setObjectName(u"dex_label")
+
+        self.formLayout_2.setWidget(1, QFormLayout.ItemRole.LabelRole, self.dex_label)
+
+        self.dex_nb = QSpinBox(self.formWidget_2)
+        self.dex_nb.setObjectName(u"dex_nb")
+        self.dex_nb.setMaximumSize(QSize(50, 16777215))
+        self.dex_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+
+        self.formLayout_2.setWidget(1, QFormLayout.ItemRole.FieldRole, self.dex_nb)
+
+        self.con_nb = QSpinBox(self.formWidget_2)
+        self.con_nb.setObjectName(u"con_nb")
+        self.con_nb.setMaximumSize(QSize(50, 16777215))
+        self.con_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+
+        self.formLayout_2.setWidget(2, QFormLayout.ItemRole.FieldRole, self.con_nb)
+
+        self.int_label = QLabel(self.formWidget_2)
+        self.int_label.setObjectName(u"int_label")
+
+        self.formLayout_2.setWidget(3, QFormLayout.ItemRole.LabelRole, self.int_label)
+
+        self.int_nb = QSpinBox(self.formWidget_2)
+        self.int_nb.setObjectName(u"int_nb")
+        self.int_nb.setMaximumSize(QSize(50, 16777215))
+        self.int_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+
+        self.formLayout_2.setWidget(3, QFormLayout.ItemRole.FieldRole, self.int_nb)
+
+        self.wis_label = QLabel(self.formWidget_2)
+        self.wis_label.setObjectName(u"wis_label")
+
+        self.formLayout_2.setWidget(4, QFormLayout.ItemRole.LabelRole, self.wis_label)
+
+        self.wis_nb = QSpinBox(self.formWidget_2)
+        self.wis_nb.setObjectName(u"wis_nb")
+        self.wis_nb.setMaximumSize(QSize(50, 16777215))
+        self.wis_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+
+        self.formLayout_2.setWidget(4, QFormLayout.ItemRole.FieldRole, self.wis_nb)
+
+        self.cha_label = QLabel(self.formWidget_2)
+        self.cha_label.setObjectName(u"cha_label")
+
+        self.formLayout_2.setWidget(5, QFormLayout.ItemRole.LabelRole, self.cha_label)
+
+        self.cha_nb = QSpinBox(self.formWidget_2)
+        self.cha_nb.setObjectName(u"cha_nb")
+        self.cha_nb.setMaximumSize(QSize(50, 16777215))
+        self.cha_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+
+        self.formLayout_2.setWidget(5, QFormLayout.ItemRole.FieldRole, self.cha_nb)
+
+        self.con_label = QLabel(self.formWidget_2)
+        self.con_label.setObjectName(u"con_label")
+
+        self.formLayout_2.setWidget(2, QFormLayout.ItemRole.LabelRole, self.con_label)
+
+
+        self.verticalLayout_14.addWidget(self.formWidget_2)
+
+        self.line_2 = QFrame(self.stat)
+        self.line_2.setObjectName(u"line_2")
+        self.line_2.setFrameShape(QFrame.Shape.HLine)
+        self.line_2.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_14.addWidget(self.line_2)
+
+        self.widget_7 = QWidget(self.stat)
+        self.widget_7.setObjectName(u"widget_7")
+        self.verticalLayout_15 = QVBoxLayout(self.widget_7)
         self.verticalLayout_15.setObjectName(u"verticalLayout_15")
-        self.verticalLayout_15.setContentsMargins(0, 0, 0, 0)
-        self.frame_2 = QFrame(self.inv_info)
-        self.frame_2.setObjectName(u"frame_2")
-        self.frame_2.setFrameShape(QFrame.Shape.StyledPanel)
-        self.frame_2.setFrameShadow(QFrame.Shadow.Raised)
-        self.frame_2.setMidLineWidth(0)
-        self.horizontalLayout_6 = QHBoxLayout(self.frame_2)
-        self.horizontalLayout_6.setSpacing(0)
+        self.verticalLayout_15.setContentsMargins(0, 2, 0, 2)
+        self.isNPC = QCheckBox(self.widget_7)
+        self.isNPC.setObjectName(u"isNPC")
+
+        self.verticalLayout_15.addWidget(self.isNPC)
+
+        self.alignement_NPC = QComboBox(self.widget_7)
+        self.alignement_NPC.addItem("")
+        self.alignement_NPC.addItem("")
+        self.alignement_NPC.addItem("")
+        self.alignement_NPC.setObjectName(u"alignement_NPC")
+        self.alignement_NPC.setEnabled(True)
+        self.alignement_NPC.setMaximumSize(QSize(100, 16777215))
+        self.alignement_NPC.setDuplicatesEnabled(True)
+
+        self.verticalLayout_15.addWidget(self.alignement_NPC)
+
+
+        self.verticalLayout_14.addWidget(self.widget_7)
+
+        self.line_3 = QFrame(self.stat)
+        self.line_3.setObjectName(u"line_3")
+        self.line_3.setFrameShape(QFrame.Shape.HLine)
+        self.line_3.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_14.addWidget(self.line_3)
+
+        self.widget_5 = QWidget(self.stat)
+        self.widget_5.setObjectName(u"widget_5")
+        self.horizontalLayout_8 = QHBoxLayout(self.widget_5)
+        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.horizontalLayout_8.setContentsMargins(0, 0, 0, 0)
+        self.save_character_btn = QPushButton(self.widget_5)
+        self.save_character_btn.setObjectName(u"save_character_btn")
+
+        self.horizontalLayout_8.addWidget(self.save_character_btn)
+
+        self.load_character_btn_2 = QPushButton(self.widget_5)
+        self.load_character_btn_2.setObjectName(u"load_character_btn_2")
+
+        self.horizontalLayout_8.addWidget(self.load_character_btn_2)
+
+
+        self.verticalLayout_14.addWidget(self.widget_5)
+
+        self.tabWidget.addTab(self.stat, "")
+        self.inventory = QWidget()
+        self.inventory.setObjectName(u"inventory")
+        self.horizontalLayout_6 = QHBoxLayout(self.inventory)
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.horizontalLayout_6.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         self.horizontalLayout_6.setContentsMargins(0, 0, 0, 0)
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
 
         self.horizontalLayout_6.addLayout(self.gridLayout)
 
-
-        self.verticalLayout_15.addWidget(self.frame_2)
-
-        self.stackedWidget.addWidget(self.inv_info)
-        self.stat_info = QWidget()
-        self.stat_info.setObjectName(u"stat_info")
-        self.verticalLayout_16 = QVBoxLayout(self.stat_info)
+        self.tabWidget.addTab(self.inventory, "")
+        self.spell = QWidget()
+        self.spell.setObjectName(u"spell")
+        self.verticalLayout_16 = QVBoxLayout(self.spell)
         self.verticalLayout_16.setSpacing(0)
         self.verticalLayout_16.setObjectName(u"verticalLayout_16")
+        self.verticalLayout_16.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         self.verticalLayout_16.setContentsMargins(0, 0, 0, 0)
-        self.attibutes_menu = QFormLayout()
-        self.attibutes_menu.setObjectName(u"attibutes_menu")
-        self.attibutes_menu.setRowWrapPolicy(QFormLayout.RowWrapPolicy.DontWrapRows)
-        self.attibutes_menu.setVerticalSpacing(15)
-        self.attibutes_menu.setContentsMargins(-1, 9, -1, -1)
-        self.str_label = QLabel(self.stat_info)
-        self.str_label.setObjectName(u"str_label")
+        self.gridLayout_2 = QGridLayout()
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.gridLayout_2.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
 
-        self.attibutes_menu.setWidget(0, QFormLayout.ItemRole.LabelRole, self.str_label)
+        self.verticalLayout_16.addLayout(self.gridLayout_2)
 
-        self.str_nb = QSpinBox(self.stat_info)
-        self.str_nb.setObjectName(u"str_nb")
-        self.str_nb.setMaximumSize(QSize(50, 16777215))
-        self.str_nb.setWrapping(False)
-        self.str_nb.setFrame(True)
-        self.str_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
-        self.str_nb.setProperty(u"showGroupSeparator", False)
-        self.str_nb.setValue(10)
+        self.tabWidget.addTab(self.spell, "")
+        self.trait = QWidget()
+        self.trait.setObjectName(u"trait")
+        self.horizontalLayout_9 = QHBoxLayout(self.trait)
+        self.horizontalLayout_9.setSpacing(0)
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.horizontalLayout_9.setContentsMargins(0, 0, 0, 0)
+        self.textEdit = QTextEdit(self.trait)
+        self.textEdit.setObjectName(u"textEdit")
 
-        self.attibutes_menu.setWidget(0, QFormLayout.ItemRole.FieldRole, self.str_nb)
+        self.horizontalLayout_9.addWidget(self.textEdit)
 
-        self.dex_label = QLabel(self.stat_info)
-        self.dex_label.setObjectName(u"dex_label")
+        self.tabWidget.addTab(self.trait, "")
 
-        self.attibutes_menu.setWidget(1, QFormLayout.ItemRole.LabelRole, self.dex_label)
-
-        self.dex_nb = QSpinBox(self.stat_info)
-        self.dex_nb.setObjectName(u"dex_nb")
-        self.dex_nb.setMaximumSize(QSize(50, 16777215))
-        self.dex_nb.setWrapping(False)
-        self.dex_nb.setFrame(True)
-        self.dex_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
-        self.dex_nb.setProperty(u"showGroupSeparator", False)
-        self.dex_nb.setValue(10)
-
-        self.attibutes_menu.setWidget(1, QFormLayout.ItemRole.FieldRole, self.dex_nb)
-
-        self.int_label = QLabel(self.stat_info)
-        self.int_label.setObjectName(u"int_label")
-
-        self.attibutes_menu.setWidget(2, QFormLayout.ItemRole.LabelRole, self.int_label)
-
-        self.int_nb = QSpinBox(self.stat_info)
-        self.int_nb.setObjectName(u"int_nb")
-        self.int_nb.setMaximumSize(QSize(50, 16777215))
-        self.int_nb.setWrapping(False)
-        self.int_nb.setFrame(True)
-        self.int_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
-        self.int_nb.setProperty(u"showGroupSeparator", False)
-        self.int_nb.setValue(10)
-
-        self.attibutes_menu.setWidget(2, QFormLayout.ItemRole.FieldRole, self.int_nb)
-
-        self.wis_label = QLabel(self.stat_info)
-        self.wis_label.setObjectName(u"wis_label")
-
-        self.attibutes_menu.setWidget(3, QFormLayout.ItemRole.LabelRole, self.wis_label)
-
-        self.wis_nb = QSpinBox(self.stat_info)
-        self.wis_nb.setObjectName(u"wis_nb")
-        self.wis_nb.setMaximumSize(QSize(50, 16777215))
-        self.wis_nb.setWrapping(False)
-        self.wis_nb.setFrame(True)
-        self.wis_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
-        self.wis_nb.setProperty(u"showGroupSeparator", False)
-        self.wis_nb.setValue(10)
-
-        self.attibutes_menu.setWidget(3, QFormLayout.ItemRole.FieldRole, self.wis_nb)
-
-        self.cha_label = QLabel(self.stat_info)
-        self.cha_label.setObjectName(u"cha_label")
-
-        self.attibutes_menu.setWidget(4, QFormLayout.ItemRole.LabelRole, self.cha_label)
-
-        self.cha_nb = QSpinBox(self.stat_info)
-        self.cha_nb.setObjectName(u"cha_nb")
-        self.cha_nb.setMaximumSize(QSize(50, 16777215))
-        self.cha_nb.setWrapping(False)
-        self.cha_nb.setFrame(True)
-        self.cha_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
-        self.cha_nb.setProperty(u"showGroupSeparator", False)
-        self.cha_nb.setValue(10)
-
-        self.attibutes_menu.setWidget(4, QFormLayout.ItemRole.FieldRole, self.cha_nb)
+        self.horizontalLayout_5.addWidget(self.tabWidget)
 
 
-        self.verticalLayout_16.addLayout(self.attibutes_menu)
-
-        self.stackedWidget.addWidget(self.stat_info)
-
-        self.verticalLayout_12.addWidget(self.stackedWidget)
+        self.verticalLayout_12.addWidget(self.character_menu_selection_bar)
 
         self.stacked_widget.addWidget(self.character_menu)
         self.map_menu = QWidget()
@@ -474,6 +553,13 @@ class Ui_CustomMainWindow(object):
 
         self.verticalLayout_11.addWidget(self.open_website_btn)
 
+        self.pushButton = QPushButton(self.server_menu)
+        self.pushButton.setObjectName(u"pushButton")
+        self.pushButton.setMinimumSize(QSize(0, 38))
+        self.pushButton.setMaximumSize(QSize(16777215, 38))
+
+        self.verticalLayout_11.addWidget(self.pushButton)
+
         self.verticalSpacer_4 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_11.addItem(self.verticalSpacer_4)
@@ -530,11 +616,11 @@ class Ui_CustomMainWindow(object):
 
         self.main_body = QWidget(self.central_widget)
         self.main_body.setObjectName(u"main_body")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.main_body.sizePolicy().hasHeightForWidth())
-        self.main_body.setSizePolicy(sizePolicy2)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.main_body.sizePolicy().hasHeightForWidth())
+        self.main_body.setSizePolicy(sizePolicy1)
         self.verticalLayout_10 = QVBoxLayout(self.main_body)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.log_view_top = QWidget(self.main_body)
@@ -560,11 +646,11 @@ class Ui_CustomMainWindow(object):
 
         self.log_view = QTextEdit(self.main_body)
         self.log_view.setObjectName(u"log_view")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.log_view.sizePolicy().hasHeightForWidth())
-        self.log_view.setSizePolicy(sizePolicy3)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.log_view.sizePolicy().hasHeightForWidth())
+        self.log_view.setSizePolicy(sizePolicy2)
         self.log_view.setMinimumSize(QSize(0, 130))
         self.log_view.setMaximumSize(QSize(166666, 130))
         self.log_view.setReadOnly(True)
@@ -616,8 +702,8 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(1)
-        self.stackedWidget.setCurrentIndex(1)
+        self.stacked_widget.setCurrentIndex(6)
+        self.tabWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
@@ -659,20 +745,40 @@ class Ui_CustomMainWindow(object):
         self.close_info_menu_btn.setText(QCoreApplication.translate("CustomMainWindow", u"\u2715", None))
         self.settings_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Settings", None))
         self.theme_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Theme", None))
+        self.character_name.setHtml(QCoreApplication.translate("CustomMainWindow", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"hr { height: 1px; border-width: 0; }\n"
+"li.unchecked::marker { content: \"\\2610\"; }\n"
+"li.checked::marker { content: \"\\2612\"; }\n"
+"</style></head><body style=\" font-family:'Segoe UI'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>", None))
         self.character_name.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Chraracter Name", None))
-        self.character_menu_stat_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Stat", None))
-        self.character_menu_inv_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Inventory", None))
+        self.hp_label.setText(QCoreApplication.translate("CustomMainWindow", u"HP:", None))
         self.str_label.setText(QCoreApplication.translate("CustomMainWindow", u"STR:", None))
         self.dex_label.setText(QCoreApplication.translate("CustomMainWindow", u"DEX:", None))
         self.int_label.setText(QCoreApplication.translate("CustomMainWindow", u"INT:", None))
         self.wis_label.setText(QCoreApplication.translate("CustomMainWindow", u"WIS:", None))
         self.cha_label.setText(QCoreApplication.translate("CustomMainWindow", u"CHA:", None))
+        self.con_label.setText(QCoreApplication.translate("CustomMainWindow", u"CON:", None))
+        self.isNPC.setText(QCoreApplication.translate("CustomMainWindow", u"isNPC?", None))
+        self.alignement_NPC.setItemText(0, QCoreApplication.translate("CustomMainWindow", u"Ally", None))
+        self.alignement_NPC.setItemText(1, QCoreApplication.translate("CustomMainWindow", u"Neutral", None))
+        self.alignement_NPC.setItemText(2, QCoreApplication.translate("CustomMainWindow", u"Enemy", None))
+
+        self.save_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Save", None))
+        self.load_character_btn_2.setText(QCoreApplication.translate("CustomMainWindow", u"Load", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.stat), QCoreApplication.translate("CustomMainWindow", u"Stat", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.inventory), QCoreApplication.translate("CustomMainWindow", u"Inventory", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.spell), QCoreApplication.translate("CustomMainWindow", u"Spell", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools ?", None))
         self.server_state_label.setText(QCoreApplication.translate("CustomMainWindow", u"Server: closed", None))
         self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"URL : <a href='{SERVER_URL}'>{SERVER_URL}</a>", None))
         self.open_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open server", None))
         self.close_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Close server", None))
         self.open_website_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open website", None))
+        self.pushButton.setText(QCoreApplication.translate("CustomMainWindow", u"Open game interface", None))
         self.information_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Information", None))
         self.help_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Help", None))
         self.create_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Create character", None))
