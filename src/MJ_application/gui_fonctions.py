@@ -289,10 +289,10 @@ class GuiFunctions():
             self._open_center_menu()
 
     def switch_stat_info(self):
-        self.ui.stackedWidget.setCurrentIndex(0)
+        self.ui.stackedWidget.setCurrentIndex(1)
 
     def switch_inv_info(self):
-        self.ui.stackedWidget.setCurrentIndex(1)
+        self.ui.stackedWidget.setCurrentIndex(0)
 
     def _open_center_menu(self):
         """

@@ -16,10 +16,11 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
-    QHBoxLayout, QLabel, QMenu, QMenuBar,
-    QPushButton, QSizePolicy, QSpacerItem, QStackedWidget,
-    QTextEdit, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QComboBox, QFormLayout,
+    QFrame, QGridLayout, QHBoxLayout, QLabel,
+    QMenu, QMenuBar, QPushButton, QSizePolicy,
+    QSpacerItem, QSpinBox, QStackedWidget, QTextEdit,
+    QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQMainWindow import QCustomQMainWindow
 class Ui_CustomMainWindow(object):
@@ -253,11 +254,13 @@ class Ui_CustomMainWindow(object):
         self.character_menu.setObjectName(u"character_menu")
         self.verticalLayout_12 = QVBoxLayout(self.character_menu)
         self.verticalLayout_12.setObjectName(u"verticalLayout_12")
-        self.character_menu_label = QLabel(self.character_menu)
-        self.character_menu_label.setObjectName(u"character_menu_label")
-        self.character_menu_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.character_name = QTextEdit(self.character_menu)
+        self.character_name.setObjectName(u"character_name")
+        self.character_name.setMaximumSize(QSize(16777215, 30))
+        self.character_name.setAcceptDrops(False)
+        self.character_name.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        self.verticalLayout_12.addWidget(self.character_menu_label, 0, Qt.AlignmentFlag.AlignTop)
+        self.verticalLayout_12.addWidget(self.character_name)
 
         self.character_menu_selection_bar = QWidget(self.character_menu)
         self.character_menu_selection_bar.setObjectName(u"character_menu_selection_bar")
@@ -287,71 +290,6 @@ class Ui_CustomMainWindow(object):
 
         self.stackedWidget = QStackedWidget(self.character_menu)
         self.stackedWidget.setObjectName(u"stackedWidget")
-        self.stat_info = QWidget()
-        self.stat_info.setObjectName(u"stat_info")
-        self.verticalLayout_14 = QVBoxLayout(self.stat_info)
-        self.verticalLayout_14.setSpacing(0)
-        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
-        self.verticalLayout_14.setContentsMargins(0, 0, 0, 0)
-        self.hp_label = QLabel(self.stat_info)
-        self.hp_label.setObjectName(u"hp_label")
-        self.hp_label.setMaximumSize(QSize(16777215, 40))
-        self.hp_label.setAlignment(Qt.AlignmentFlag.AlignBottom|Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft)
-
-        self.verticalLayout_14.addWidget(self.hp_label)
-
-        self.attributes_menu = QWidget(self.stat_info)
-        self.attributes_menu.setObjectName(u"attributes_menu")
-        self.verticalLayout_16 = QVBoxLayout(self.attributes_menu)
-        self.verticalLayout_16.setSpacing(0)
-        self.verticalLayout_16.setObjectName(u"verticalLayout_16")
-        self.verticalLayout_16.setContentsMargins(0, 0, -1, -1)
-        self.label = QLabel(self.attributes_menu)
-        self.label.setObjectName(u"label")
-        self.label.setMaximumSize(QSize(16777215, 10))
-
-        self.verticalLayout_16.addWidget(self.label)
-
-        self.str_label = QLabel(self.attributes_menu)
-        self.str_label.setObjectName(u"str_label")
-        self.str_label.setMaximumSize(QSize(16777215, 30))
-
-        self.verticalLayout_16.addWidget(self.str_label)
-
-        self.dex_label = QLabel(self.attributes_menu)
-        self.dex_label.setObjectName(u"dex_label")
-        self.dex_label.setMaximumSize(QSize(16777215, 30))
-
-        self.verticalLayout_16.addWidget(self.dex_label)
-
-        self.con_label = QLabel(self.attributes_menu)
-        self.con_label.setObjectName(u"con_label")
-        self.con_label.setMaximumSize(QSize(16777215, 30))
-
-        self.verticalLayout_16.addWidget(self.con_label)
-
-        self.cha_label = QLabel(self.attributes_menu)
-        self.cha_label.setObjectName(u"cha_label")
-        self.cha_label.setMaximumSize(QSize(16777215, 30))
-
-        self.verticalLayout_16.addWidget(self.cha_label)
-
-        self.int_label = QLabel(self.attributes_menu)
-        self.int_label.setObjectName(u"int_label")
-        self.int_label.setMaximumSize(QSize(16777215, 30))
-
-        self.verticalLayout_16.addWidget(self.int_label)
-
-        self.wis_label = QLabel(self.attributes_menu)
-        self.wis_label.setObjectName(u"wis_label")
-        self.wis_label.setMaximumSize(QSize(16777215, 30))
-
-        self.verticalLayout_16.addWidget(self.wis_label)
-
-
-        self.verticalLayout_14.addWidget(self.attributes_menu)
-
-        self.stackedWidget.addWidget(self.stat_info)
         self.inv_info = QWidget()
         self.inv_info.setObjectName(u"inv_info")
         self.verticalLayout_15 = QVBoxLayout(self.inv_info)
@@ -376,6 +314,101 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_15.addWidget(self.frame_2)
 
         self.stackedWidget.addWidget(self.inv_info)
+        self.stat_info = QWidget()
+        self.stat_info.setObjectName(u"stat_info")
+        self.verticalLayout_16 = QVBoxLayout(self.stat_info)
+        self.verticalLayout_16.setSpacing(0)
+        self.verticalLayout_16.setObjectName(u"verticalLayout_16")
+        self.verticalLayout_16.setContentsMargins(0, 0, 0, 0)
+        self.attibutes_menu = QFormLayout()
+        self.attibutes_menu.setObjectName(u"attibutes_menu")
+        self.attibutes_menu.setRowWrapPolicy(QFormLayout.RowWrapPolicy.DontWrapRows)
+        self.attibutes_menu.setVerticalSpacing(15)
+        self.attibutes_menu.setContentsMargins(-1, 9, -1, -1)
+        self.str_label = QLabel(self.stat_info)
+        self.str_label.setObjectName(u"str_label")
+
+        self.attibutes_menu.setWidget(0, QFormLayout.ItemRole.LabelRole, self.str_label)
+
+        self.str_nb = QSpinBox(self.stat_info)
+        self.str_nb.setObjectName(u"str_nb")
+        self.str_nb.setMaximumSize(QSize(50, 16777215))
+        self.str_nb.setWrapping(False)
+        self.str_nb.setFrame(True)
+        self.str_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.str_nb.setProperty(u"showGroupSeparator", False)
+        self.str_nb.setValue(10)
+
+        self.attibutes_menu.setWidget(0, QFormLayout.ItemRole.FieldRole, self.str_nb)
+
+        self.dex_label = QLabel(self.stat_info)
+        self.dex_label.setObjectName(u"dex_label")
+
+        self.attibutes_menu.setWidget(1, QFormLayout.ItemRole.LabelRole, self.dex_label)
+
+        self.dex_nb = QSpinBox(self.stat_info)
+        self.dex_nb.setObjectName(u"dex_nb")
+        self.dex_nb.setMaximumSize(QSize(50, 16777215))
+        self.dex_nb.setWrapping(False)
+        self.dex_nb.setFrame(True)
+        self.dex_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.dex_nb.setProperty(u"showGroupSeparator", False)
+        self.dex_nb.setValue(10)
+
+        self.attibutes_menu.setWidget(1, QFormLayout.ItemRole.FieldRole, self.dex_nb)
+
+        self.int_label = QLabel(self.stat_info)
+        self.int_label.setObjectName(u"int_label")
+
+        self.attibutes_menu.setWidget(2, QFormLayout.ItemRole.LabelRole, self.int_label)
+
+        self.int_nb = QSpinBox(self.stat_info)
+        self.int_nb.setObjectName(u"int_nb")
+        self.int_nb.setMaximumSize(QSize(50, 16777215))
+        self.int_nb.setWrapping(False)
+        self.int_nb.setFrame(True)
+        self.int_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.int_nb.setProperty(u"showGroupSeparator", False)
+        self.int_nb.setValue(10)
+
+        self.attibutes_menu.setWidget(2, QFormLayout.ItemRole.FieldRole, self.int_nb)
+
+        self.wis_label = QLabel(self.stat_info)
+        self.wis_label.setObjectName(u"wis_label")
+
+        self.attibutes_menu.setWidget(3, QFormLayout.ItemRole.LabelRole, self.wis_label)
+
+        self.wis_nb = QSpinBox(self.stat_info)
+        self.wis_nb.setObjectName(u"wis_nb")
+        self.wis_nb.setMaximumSize(QSize(50, 16777215))
+        self.wis_nb.setWrapping(False)
+        self.wis_nb.setFrame(True)
+        self.wis_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.wis_nb.setProperty(u"showGroupSeparator", False)
+        self.wis_nb.setValue(10)
+
+        self.attibutes_menu.setWidget(3, QFormLayout.ItemRole.FieldRole, self.wis_nb)
+
+        self.cha_label = QLabel(self.stat_info)
+        self.cha_label.setObjectName(u"cha_label")
+
+        self.attibutes_menu.setWidget(4, QFormLayout.ItemRole.LabelRole, self.cha_label)
+
+        self.cha_nb = QSpinBox(self.stat_info)
+        self.cha_nb.setObjectName(u"cha_nb")
+        self.cha_nb.setMaximumSize(QSize(50, 16777215))
+        self.cha_nb.setWrapping(False)
+        self.cha_nb.setFrame(True)
+        self.cha_nb.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.cha_nb.setProperty(u"showGroupSeparator", False)
+        self.cha_nb.setValue(10)
+
+        self.attibutes_menu.setWidget(4, QFormLayout.ItemRole.FieldRole, self.cha_nb)
+
+
+        self.verticalLayout_16.addLayout(self.attibutes_menu)
+
+        self.stackedWidget.addWidget(self.stat_info)
 
         self.verticalLayout_12.addWidget(self.stackedWidget)
 
@@ -472,17 +505,17 @@ class Ui_CustomMainWindow(object):
         self.character_menu_start.setObjectName(u"character_menu_start")
         self.verticalLayout_17 = QVBoxLayout(self.character_menu_start)
         self.verticalLayout_17.setObjectName(u"verticalLayout_17")
-        self.pushButton = QPushButton(self.character_menu_start)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setMaximumSize(QSize(16777215, 35))
+        self.create_character_btn = QPushButton(self.character_menu_start)
+        self.create_character_btn.setObjectName(u"create_character_btn")
+        self.create_character_btn.setMaximumSize(QSize(16777215, 35))
 
-        self.verticalLayout_17.addWidget(self.pushButton)
+        self.verticalLayout_17.addWidget(self.create_character_btn)
 
-        self.pushButton_2 = QPushButton(self.character_menu_start)
-        self.pushButton_2.setObjectName(u"pushButton_2")
-        self.pushButton_2.setMaximumSize(QSize(16777215, 35))
+        self.load_character_btn = QPushButton(self.character_menu_start)
+        self.load_character_btn.setObjectName(u"load_character_btn")
+        self.load_character_btn.setMaximumSize(QSize(16777215, 35))
 
-        self.verticalLayout_17.addWidget(self.pushButton_2)
+        self.verticalLayout_17.addWidget(self.load_character_btn)
 
         self.verticalSpacer_6 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -583,8 +616,8 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(3)
-        self.stackedWidget.setCurrentIndex(0)
+        self.stacked_widget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
@@ -626,17 +659,14 @@ class Ui_CustomMainWindow(object):
         self.close_info_menu_btn.setText(QCoreApplication.translate("CustomMainWindow", u"\u2715", None))
         self.settings_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Settings", None))
         self.theme_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Theme", None))
-        self.character_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"<Character name>", None))
+        self.character_name.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Chraracter Name", None))
         self.character_menu_stat_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Stat", None))
         self.character_menu_inv_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Inventory", None))
-        self.hp_label.setText(QCoreApplication.translate("CustomMainWindow", u"HP:", None))
-        self.label.setText(QCoreApplication.translate("CustomMainWindow", u"-----------------------------", None))
         self.str_label.setText(QCoreApplication.translate("CustomMainWindow", u"STR:", None))
         self.dex_label.setText(QCoreApplication.translate("CustomMainWindow", u"DEX:", None))
-        self.con_label.setText(QCoreApplication.translate("CustomMainWindow", u"CON:", None))
-        self.cha_label.setText(QCoreApplication.translate("CustomMainWindow", u"CHA:", None))
         self.int_label.setText(QCoreApplication.translate("CustomMainWindow", u"INT:", None))
         self.wis_label.setText(QCoreApplication.translate("CustomMainWindow", u"WIS:", None))
+        self.cha_label.setText(QCoreApplication.translate("CustomMainWindow", u"CHA:", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools ?", None))
         self.server_state_label.setText(QCoreApplication.translate("CustomMainWindow", u"Server: closed", None))
         self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"URL : <a href='{SERVER_URL}'>{SERVER_URL}</a>", None))
@@ -645,8 +675,8 @@ class Ui_CustomMainWindow(object):
         self.open_website_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open website", None))
         self.information_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Information", None))
         self.help_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Help", None))
-        self.pushButton.setText(QCoreApplication.translate("CustomMainWindow", u"Create character", None))
-        self.pushButton_2.setText(QCoreApplication.translate("CustomMainWindow", u"Load character", None))
+        self.create_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Create character", None))
+        self.load_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Load character", None))
         self.log_view_label.setText(QCoreApplication.translate("CustomMainWindow", u"Logs du serveur PHP :", None))
         self.close_log_view_btn.setText(QCoreApplication.translate("CustomMainWindow", u"\u2715", None))
         self.menuFile.setTitle(QCoreApplication.translate("CustomMainWindow", u"File", None))
