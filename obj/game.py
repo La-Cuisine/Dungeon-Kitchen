@@ -11,7 +11,7 @@ def generate_FileSystemProject(project_name):
         os.mkdir("./projects/"+project_name)
     except FileExistsError:
         if(os.path.isdir("./projects/"+project_name)):
-            generate_FileSystem(project_name+"(1)")
+            generate_FileSystemProject(project_name+"(1)")
     
     os.mkdir("./projects/"+project_name+"/Assets")
     os.mkdir("./projects/"+project_name+"/Items")
@@ -30,7 +30,7 @@ class Game:
         self.__base_length = 64
         self.__base_width = 64
         self._layers = dict() #(layer_name:Blueprint)
-        self._pawns = dict() #((x,y):Pawn)
+        self._pawns = dict() #((x,y,layer_name):Pawn)
         self._itemList = [] #(Item)
         self._charList = [] #(PC/NPC)
         self._propList = [] #(Prop)
@@ -54,10 +54,10 @@ class Game:
         return self._layers[s]
     def pawns(self):
         return self._pawns
-    def get_pawn(self,x,y):
-        if(not((x,y) in self._pawns)):
+    def get_pawn(self,x,y,l):
+        if(not((x,y,l) in self._pawns)):
             raise Exception("PawnNotFound")
-        return self._layers[(x,y)]
+        return self._layers[(x,y,l)]
     def items(self):
         return self._itemList
     def get_item(self,i):
@@ -93,8 +93,8 @@ class Game:
 
     #setters
     def rename(self,n):
+        os.rename(self._name,n)
         self._name = n
-        #change directory name also
 
 
 
@@ -111,7 +111,7 @@ class Game:
             raise Exception("InvalidArgument")
         else:
             if m is None:
-                new = Blueprint(self._base_length, self._base_width) 
+                new = blueprint.Blueprint(self._base_length, self._base_width) 
                 if not(X<1 or Y<1):
                     new.resize(X,Y)
             else: 
@@ -140,36 +140,38 @@ class Game:
 
 
     def add_pawn(self,p,x,y,l):
-        if((x,y) in self._pawns):
+        if((x,y,l) in self._pawns):
             raise Exception("CellAlreadyOccupied")
         if(not (l in self._layers)):
             raise Exception("LayerDoesNotExist")
         if(x<0 or x>self._layers[l].length() or y<0 or y>self._layers[l].width()):
+            print(x,y)
+            print("\n")
             raise Exception("IndexOutOfRange")
         if((not isinstance(p,pawns.NPC)) and (not isinstance(p,pawns.PC))):
             raise Exception("InvalidArgument")
-        self._pawns[(x,y)] = p
-    def remove_pawn(self,x,y):
-        if(not((x,y) in self._pawns)):
+        self._pawns[(x,y,l)] = p
+    def remove_pawn(self,x,y,l):
+        if(not((x,y,l) in self._pawns)):
             raise Exception("PawnNotFound")
-        res = self._pawns[(x,y)] 
-        del self._pawns[(x,y)]
+        res = self._pawns[(x,y,l)] 
+        del self._pawns[(x,y,l)]
         return res
-    def move_pawn(self, x1, y1, x2, y2):
-        if(not((x1,y1) in self._pawns)):
+    def move_pawn(self, x1, y1, l1, x2, y2, l2):
+        if(not((x1,y1,l1) in self._pawns)):
             raise Exception("PawnNotFound")
-        if((x2,y2) in self._pawns):
+        if((x2,y2,l2) in self._pawns):
             raise Exception("CellAlreadyOccupied")
-        self._pawns[(x2,y2)] = self._pawns[(x1,y1)]
-        del self._pawns[(x1,y1)]
-    def swap_pawns(self, x1, y1, x2, y2):
-        if(not((x1,y1) in self._pawns)):
+        self._pawns[(x2,y2,l2)] = self._pawns[(x1,y1,l1)]
+        del self._pawns[(x1,y1,l1)]
+    def swap_pawns(self, x1, y1, l1, x2, y2, l2):
+        if(not((x1,y1,l1) in self._pawns)):
             raise Exception("PawnNotFound")
-        if(not((x2,y2) in self._pawns)):
+        if(not((x2,y2,l2) in self._pawns)):
             raise Exception("PawnNotFound")
-        limbo = sel._pawns[(x2,y2)]
-        self._pawns[(x2,y2)] = self._pawns[(x1,y1)]
-        self._pawns[(x1,y1)] = limbo
+        limbo = self._pawns[(x2,y2,l2)]
+        self._pawns[(x2,y2,l2)] = self._pawns[(x1,y1,l1)]
+        self._pawns[(x1,y1,l1)] = limbo
 
 
     def add_item(self, it):
@@ -226,5 +228,20 @@ class Game:
         return res
 
     def copy(self):
-        res = Game(self._name+"  - Copy")
+        res = Game(self._name+" - Copy")
+        for l in self._layers:
+            res.new_layer(l,0,0,self._layers[l])
+        for p in self._pawns:
+            res.add_pawn(self._pawns[p],p[0],p[1],p[2])
+        for it in self._itemList:
+            res.add_item(it)
+        for c in self._charList:
+            res.add_character(c)
+        for p in self._propList:
+            res.add_prop(p)
+        for bp in self._bpList:
+            res.add_blueprint(bp)
+        for nte in self._notes:
+            res.add_note(nte[1],nte[0])
 
+        return res

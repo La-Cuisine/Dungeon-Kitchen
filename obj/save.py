@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import os
 
 import items
 import pawns
@@ -6,7 +7,7 @@ import player
 import blueprint
 import game
 
-
+TARGET_DIRECTORY = "./projects/"
 
 def ntab(x):
     res = ""
@@ -17,7 +18,7 @@ def ntab(x):
 
 
 def toXML(o,indent=0):
-    #TODO
+    #TODO Player Instance ?
     res = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     if (o is None):
         res += ntab(indent) + "<Empty></Empty>\n" 
@@ -72,7 +73,7 @@ def toXML(o,indent=0):
 
     elif isinstance(o,player.Player):
         raise Exception("NotHandled?")
-
+        #TODO
 
     elif isinstance(o,blueprint.Prop):
         res = ntab(indent) + "<Prop\n"
@@ -119,7 +120,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + ">\n"
 
         #All [thing]List attributes are implicit in their directories
-        local_path = "./projects/" + o.name() + "/"
+        local_path = TARGET_DIRECTORY + o.name() + "/"
         i=1
         for e in o.items():
             try:
@@ -182,18 +183,20 @@ def toXML(o,indent=0):
             res += ntab(indent+2) + "<pawn\n"
             res += ntab(indent+3) + "posX=\"" + str(p[0]) + "\"\n"
             res += ntab(indent+3) + "posY=\"" + str(p[1]) + "\"\n"
+            res += ntab(indent+3) + "layer=\"" + p[2] + "\"\n"
             res += ntab(indent+2) + ">\n"
             res += toXML(o.pawns()[p],indent+3) + "\n"
             res += ntab(indent+2) + "</pawn>\n"
         res += ntab(indent+1) + "</pawns>\n"
         
         res += ntab(indent+1) + "<notes>\n"
-        for n in o.notes():
+        for nte in o.notes():
             res += ntab(indent+2) + "<note\n"
-            res += ntab(indent+3) + "name=\"" + n[0] + "\"\n"
-            res += ntab(indent+3) + "text=\"" + n[1] + "\"\n"
+            res += ntab(indent+3) + "name=\"" + nte[0] + "\"\n"
+            res += ntab(indent+3) + "text=\"" + nte[1] + "\"\n"
             res += ntab(indent+2) + "/>\n"
         res += ntab(indent+1) + "</notes>\n"
+        res += ntab(indent) + "</Game>\n"
         
         try:
             f = open(local_path + o.name()+".xml","x")
@@ -207,11 +210,13 @@ def toXML(o,indent=0):
     else:
         raise Exception("ObjectNotHandled")
 
+
     return res
 
 
 
 def fromXMLTree(root):
+    #TODO Player Instance ? + Cleanup
     observe = root.tag
     new = None
     if(observe == "Item"):
@@ -295,7 +300,7 @@ def fromXMLTree(root):
 
     elif(observe == "Player"): #???
         raise Exception("NotHandled?")
-
+        #TODO
 
     elif(observe == "Prop"):
         i = 0
@@ -357,11 +362,55 @@ def fromXMLTree(root):
 
 
     elif(observe == "Game"):
-        raise Exception("NotImplemented")
         for att in root.attrib:
             n = root.attrib[att]
         new = game.Game(n,False)
-
+        for tab in root:
+            if (tab.tag == "layers"):
+                for l in tab:
+                    for att in l.attrib:
+                        if(att=="name"):
+                            layer_name = l.attrib[att]
+                    for child in l:
+                        bp = fromXMLTree(child)
+                    new.new_layer(layer_name,0,0,bp)
+            if (tab.tag == "pawns"):
+                for p in tab:
+                    x = (-1)
+                    y = (-1)
+                    for att in p.attrib:
+                        if(att=="posX"):
+                            x = int(p.attrib[att])
+                        elif(att=="posY"):
+                            y = int(p.attrib[att])
+                        else:
+                            layer = p.attrib[att]
+                    for child in p:
+                        sheet = fromXMLTree(child)
+                    new.add_pawn(sheet,x,y,layer)
+            if (tab.tag == "notes"):
+                for nte in tab:
+                    name=""
+                    text=""
+                    for att in nte.attrib:
+                        name = nte.atrib[0]
+                        text = nte.attrib[1]
+                    new.add_note(text,name)
+       
+        local_path = TARGET_DIRECTORY + n + "/"
+        for it in os.listdir(local_path+"Items/"):
+            new.add_item(fromXML(local_path+"Items/"+it))
+        for npc in os.listdir(local_path+"Sheets/"):
+            if(npc.endswith(".xml")): 
+                new.add_character(fromXML(local_path+"Sheets/"+npc))
+        for pc in os.listdir(local_path+"Sheets/PC/"):
+            new.add_character(fromXML(local_path+"Sheets/PC"+pc))
+        for blp in os.listdir(local_path+"Blueprints/"):
+            if(blp.endswith(".xml")): 
+                new.add_blueprint(fromXML(local_path+"Blueprints/"+blp))
+        for pr in os.listdir(local_path+"Blueprints/Props/"):
+            new.add_prop(fromXML(local_path+"Blueprints/"+pr))
+        #for pl in listdir(local_path+"Player/"):
 
 
     else:
@@ -397,11 +446,14 @@ new.redescribe("BLABLA BLA")
 """
 #need the previous two
 #TO BE EXECUTED AT : ../Dungeon-Kitchen/
-g = game.Game("HEYITSME")
+g = game.Game("HEYITSME") # add False if exists
 g.new_layer("1st",10,10,bp)
 g.add_blueprint(bp)
 g.add_pawn(new,2,2,"1st")
 g.add_character(new)
 g.add_item(new1)
-toXML(g)
+#toXML(g)
+#g1 = fromXML("./projects/HEYITSME/HEYITSME.xml")
+#g2 = g1.copy()
+#toXML(g2)
 """
