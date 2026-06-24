@@ -25,7 +25,7 @@ else
 endif
 
 # ── Répertoires ─────────────────────────────────────────────────────────────
-SRC_DIR   := designer_pyside
+# SRC_DIR   := designer_pyside
 DIST_DIR  := dist
 BUILD_DIR := build
 SPEC_DIR  := .
@@ -35,7 +35,7 @@ APP_NAME  := MJ_Application
 
 # ── Chemins sources des données à embarquer ─────────────────────────────────
 # Chemins relatifs à SRC_DIR (on fait "cd $(SRC_DIR)" avant pyinstaller)
-D_IMAGE := image
+D_IMAGE := ui/image
 D_JSON  := json-styles
 D_QSS   := Qss
 D_SITE  := src/site
@@ -77,13 +77,13 @@ help:
 # run
 # ---------------------------------------------------------------------------
 run:
-	cd $(SRC_DIR) && $(PYTHON) main.py
+	$(PYTHON) main.py
 
 # ---------------------------------------------------------------------------
 # build-win  (peut aussi être lancé depuis Linux si cross-toolchain dispo)
 # ---------------------------------------------------------------------------
 build-win:
-	cd $(SRC_DIR) && pyinstaller \
+	pyinstaller \
 		$(PYINST_OPTS) \
 		--windowed \
 		--icon "image/placeholder.png" \
@@ -96,7 +96,7 @@ build-win:
 # build-linux
 # ---------------------------------------------------------------------------
 build-linux:
-	cd $(SRC_DIR) && pyinstaller \
+	pyinstaller \
 		$(PYINST_OPTS) \
 		--onedir \
 		main.py
@@ -108,13 +108,13 @@ build-linux:
 # ---------------------------------------------------------------------------
 clean:
 ifeq ($(DETECTED_OS), Windows)
-	-cd $(SRC_DIR) && $(RM_DIR) $(BUILD_DIR) 2>nul
-	-cd $(SRC_DIR) && $(RM_DIR) $(DIST_DIR)  2>nul
-	-cd $(SRC_DIR) && $(RM_FILE) $(APP_NAME).spec 2>nul
-	-cd $(SRC_DIR) && for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d" 2>nul
-	-cd $(SRC_DIR) && del /s /q *.pyc 2>nul
+	-$(RM_DIR) $(BUILD_DIR) 2>nul
+	-$(RM_DIR) $(DIST_DIR)  2>nul
+	-$(RM_FILE) $(APP_NAME).spec 2>nul
+	-for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d" 2>nul
+	-del /s /q *.pyc 2>nul
 else
-	cd $(SRC_DIR) && $(RM_DIR) $(BUILD_DIR) $(DIST_DIR) $(APP_NAME).spec
-	cd $(SRC_DIR) && $(CLEAN_PYC)
+	$(RM_DIR) $(BUILD_DIR) $(DIST_DIR) $(APP_NAME).spec
+	$(CLEAN_PYC)
 endif
 	@echo "  OK  Nettoyage termine."
