@@ -128,6 +128,11 @@ class Blueprint:
         if(x<0 or y<0 or x>self._length or y>self._width):
             raise Exception("IndexOutOfRange")
         return self._grid[x][y]
+    def get_cellContents(self,x,y):
+        return self.get_cell(x,y).contents()
+    def get_cellContent(self,x,y,i):
+        return self.get_cell(x,y).get_content(i)
+
 
     #setters
     def rename(self,s):
@@ -172,6 +177,18 @@ class Blueprint:
             for j in range(posY,endY):
                 self.set_cell(i,j,mp.get_cell((i-posX),(j-posY)))
     
+    def cell_add_content(self,x,y,p):
+        if(x<0 or y<0 or x>self._length or y>self._width):
+            raise Exception("IndexOutOfRange")
+        if(not(isinstance(p,Prop))):
+            raise Exception("InvalidArgument")
+        self._grid[x][y].add_content(p)
+    def cell_remove_content(self,x,y,i):
+        if(x<0 or y<0 or x>self._length or y>self._width):
+            raise Exception("IndexOutOfRange")
+        if(i<0 or i>len(self._grid[x][y].contents())):
+            raise Exception("IndexOutOfRange")
+        return self._grid[x][y].remove_content(i)
     def moveTo_content(self, x1, y1, x2, y2, i):
         if(x1<0 or y1<0 or x1>self._length or y1>self._width):
             raise Exception("IndexOutOfRange")

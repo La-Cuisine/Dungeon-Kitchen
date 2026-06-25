@@ -3,6 +3,8 @@ import os
 from obj.items import *
 from obj.blueprint import *
 from obj.pawns import *
+from obj.player import *
+
 
 def generate_FileSystemProject(project_name):
     try:
