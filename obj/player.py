@@ -24,7 +24,7 @@ class Player:
     def reassign(self, ID):
         self._playerID = ID
     def newRole(self, sheet):
-        if(not (isinstance(sheet,pawns.PC))):
+        if(not (isinstance(sheet,PC))):
             raise Exception("InvalidArgument")
         self._char = sheet
 

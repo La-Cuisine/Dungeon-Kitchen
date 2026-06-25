@@ -129,9 +129,9 @@ class Blueprint:
             raise Exception("IndexOutOfRange")
         return self._grid[x][y]
     def get_cellContents(self,x,y):
-        return get_cell(x,y).contents()
+        return self.get_cell(x,y).contents()
     def get_cellContent(self,x,y,i):
-        return get_cell(x,y).get_content(i)
+        return self.get_cell(x,y).get_content(i)
 
 
     #setters
