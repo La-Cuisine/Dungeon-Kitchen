@@ -74,8 +74,8 @@
              <string />
             </property>
             <property name="icon">
-             <iconset resource="test.qrc">
-              <normaloff>:/image/Undo.png</normaloff>:/image/Undo.png</iconset>
+             <iconset>
+              <normaloff>image/Undo.png</normaloff>image/Undo.png</iconset>
             </property>
            </widget>
           </item>
@@ -343,7 +343,7 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
-          <number>6</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="settings_menu">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -468,7 +468,7 @@ li.checked::marker { content: "\2612"; }
                  <enum>QTabWidget::TabShape::Rounded</enum>
                 </property>
                 <property name="currentIndex">
-                 <number>0</number>
+                 <number>1</number>
                 </property>
                 <property name="elideMode">
                  <enum>Qt::TextElideMode::ElideNone</enum>
@@ -790,7 +790,7 @@ li.checked::marker { content: "\2612"; }
                  <attribute name="title">
                   <string>Inventory</string>
                  </attribute>
-                 <layout class="QHBoxLayout" name="horizontalLayout_6">
+                 <layout class="QVBoxLayout" name="verticalLayout_18">
                   <property name="sizeConstraint">
                    <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
                   </property>
@@ -806,6 +806,62 @@ li.checked::marker { content: "\2612"; }
                   <property name="bottomMargin">
                    <number>0</number>
                   </property>
+                  <item alignment="Qt::AlignmentFlag::AlignTop">
+                   <widget class="QWidget" name="widget_8" native="true">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>60</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>60</height>
+                     </size>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_19">
+                     <property name="sizeConstraint">
+                      <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_2">
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                       <property name="text">
+                        <string>Add item</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_3">
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                       <property name="text">
+                        <string>Remove item</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
                   <item>
                    <layout class="QGridLayout" name="gridLayout" />
                   </item>
