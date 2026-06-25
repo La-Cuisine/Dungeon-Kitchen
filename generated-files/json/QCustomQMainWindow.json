@@ -23,6 +23,33 @@
           "name": "Enemy"
         }
       ]
+    },
+    {
+      "name": "item_type",
+      "items": [
+        {
+          "name": "Weapon"
+        },
+        {
+          "name": "Armour"
+        },
+        {
+          "name": "Consumable"
+        },
+        {
+          "name": "Miscellaneous"
+        }
+      ]
+    }
+  ],
+  "QLabel": [
+    {
+      "name": "item_img",
+      "pixmap": "ui\\image\\placeholder.png"
+    },
+    {
+      "name": "spell_img",
+      "pixmap": "ui\\image\\placeholder.png"
     }
   ]
 }

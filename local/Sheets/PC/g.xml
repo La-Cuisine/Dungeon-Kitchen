@@ -1,0 +1,40 @@
+<PC
+    ID="0"
+    name="g"
+    description=""
+>
+    <inventory>
+    </inventory>
+    <skills>
+    </skills>
+    <stats>
+        <couple
+            stat="HP"
+            value="0"
+        />
+        <couple
+            stat="STR"
+            value="0"
+        />
+        <couple
+            stat="DEX"
+            value="0"
+        />
+        <couple
+            stat="CON"
+            value="0"
+        />
+        <couple
+            stat="INT"
+            value="0"
+        />
+        <couple
+            stat="WIS"
+            value="0"
+        />
+        <couple
+            stat="CHA"
+            value="0"
+        />
+    </stats>
+</PC>

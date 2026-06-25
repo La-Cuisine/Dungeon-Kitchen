@@ -1,0 +1,38 @@
+<NPC
+    alignement="2"
+    name="f"
+    description=""
+>
+    <inventory>
+    </inventory>
+    <stats>
+        <couple
+            stat="HP"
+            value="10"
+        />
+        <couple
+            stat="STR"
+            value="10"
+        />
+        <couple
+            stat="DEX"
+            value="2"
+        />
+        <couple
+            stat="CON"
+            value="5"
+        />
+        <couple
+            stat="INT"
+            value="3"
+        />
+        <couple
+            stat="WIS"
+            value="7"
+        />
+        <couple
+            stat="CHA"
+            value="0"
+        />
+    </stats>
+</NPC>

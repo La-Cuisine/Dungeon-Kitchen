@@ -1,4 +1,5 @@
 from obj.items import *
+from obj.skills import *
 
 class NPC:
     def __init__(self, Name="Unknown", Alignement=0):
@@ -9,6 +10,7 @@ class NPC:
         #modifiers?
         self._desc = ""
         self._inv = []
+        self._skills = []
 
     #getters
     def alignement(self):
@@ -25,6 +27,8 @@ class NPC:
         return self._desc
     def inventory(self):
         return self._inv
+    def skills(self):
+        return self._skills
 
     #setters
     def realign(self, a):
@@ -60,12 +64,25 @@ class NPC:
         res = self._inv[i]
         self._inv.pop(i)
         return res
-    
+
+    def addSkill(self,sk):
+        if not isinstance(sk,Skill):
+            raise Exception("InvalidArgument")
+        self._skills.append(sk)
+    def removeSkill(self,i):
+        if(i> len(self._skills) or i<0):
+            raise Exception("IndexOutOfRange")
+        res = self._skills[i]
+        self._skills.pop(i)
+        return res
+
     def copy(self):
         new = NPC(self._name, self._align)
         new.redescribe(self._desc)
         for e in self._inv:
             new.addItem(e)
+        for s in self._skills:
+            new.addSkill(s)
         for k in self._stats:
             new.add_stat(k, self._stats[k])
         return new
@@ -78,6 +95,8 @@ class PC:
         self._stats = dict() #ex: INT:14 /alt INT:(14,(+2))
         self._desc = ""
         self._inv = []
+        self._skills = []
+
 
     #getters
     def player(self):
@@ -94,6 +113,8 @@ class PC:
         return self._desc
     def inventory(self):
         return self._inv
+    def skills(self):
+        return self._skills
 
     #setters
     def reassign(self, ID):
@@ -128,12 +149,25 @@ class PC:
         self._inv.pop(i)
         return res
 
+    def addSkill(self,sk):
+        if not isinstance(sk,Skill):
+            raise Exception("InvalidArgument")
+        self._skills.append(sk)
+    def removeSkill(self,i):
+        if(i> len(self._skills) or i<0):
+            raise Exception("IndexOutOfRange")
+        res = self._skills[i]
+        self._skills.pop(i)
+        return res
+        
     def copy(self):
         #playerID resets between instances
         new = PC(0, self._name)
         new.redescribe(self._desc)
         for e in self._inv:
             new.addItem(e)
+        for s in self._skills:
+            new.addSkill(s)
         for k in self._stats:
             new.add_stat(k, self._stats[k])
         return new

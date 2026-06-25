@@ -18,10 +18,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QComboBox,
     QFormLayout, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QLayout, QMenu, QMenuBar,
-    QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
-    QStackedWidget, QTabWidget, QTextEdit, QVBoxLayout,
-    QWidget)
+    QLabel, QLayout, QLineEdit, QMenu,
+    QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
+    QSpinBox, QStackedWidget, QTabWidget, QTextEdit,
+    QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQMainWindow import QCustomQMainWindow
 class Ui_CustomMainWindow(object):
@@ -58,13 +58,22 @@ class Ui_CustomMainWindow(object):
         self.actionInfo_menu.setObjectName(u"actionInfo_menu")
         self.actionInfo_menu.setCheckable(True)
         self.actionInfo_menu.setChecked(True)
+        self.actionNew_item = QAction(CustomMainWindow)
+        self.actionNew_item.setObjectName(u"actionNew_item")
+        self.actionOpen_item = QAction(CustomMainWindow)
+        self.actionOpen_item.setObjectName(u"actionOpen_item")
+        self.actionNew_spell = QAction(CustomMainWindow)
+        self.actionNew_spell.setObjectName(u"actionNew_spell")
+        self.actionOpen_spell = QAction(CustomMainWindow)
+        self.actionOpen_spell.setObjectName(u"actionOpen_spell")
         self.central_widget = QWidget(CustomMainWindow)
         self.central_widget.setObjectName(u"central_widget")
         self.horizontalLayout = QHBoxLayout(self.central_widget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.sidebar = QWidget(self.central_widget)
         self.sidebar.setObjectName(u"sidebar")
-        self.sidebar.setMaximumSize(QSize(170, 16777215))
+        self.sidebar.setMinimumSize(QSize(0, 0))
+        self.sidebar.setMaximumSize(QSize(120, 16777215))
         self.verticalLayout = QVBoxLayout(self.sidebar)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.widget_6 = QWidget(self.sidebar)
@@ -102,6 +111,17 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_4.setSpacing(0)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalLayout_4.setContentsMargins(5, 5, 5, 5)
+        self.item_btn = QPushButton(self.widget_3)
+        self.item_btn.setObjectName(u"item_btn")
+        self.item_btn.setMinimumSize(QSize(0, 30))
+
+        self.verticalLayout_4.addWidget(self.item_btn)
+
+        self.spell_btn = QPushButton(self.widget_3)
+        self.spell_btn.setObjectName(u"spell_btn")
+
+        self.verticalLayout_4.addWidget(self.spell_btn)
+
         self.character_btn = QPushButton(self.widget_3)
         self.character_btn.setObjectName(u"character_btn")
         self.character_btn.setMinimumSize(QSize(0, 30))
@@ -162,6 +182,14 @@ class Ui_CustomMainWindow(object):
 
 
         self.horizontalLayout.addWidget(self.sidebar, 0, Qt.AlignmentFlag.AlignLeft)
+
+        self.line_7 = QFrame(self.central_widget)
+        self.line_7.setObjectName(u"line_7")
+        self.line_7.setFrameShadow(QFrame.Shadow.Sunken)
+        self.line_7.setLineWidth(1)
+        self.line_7.setFrameShape(QFrame.Shape.VLine)
+
+        self.horizontalLayout.addWidget(self.line_7)
 
         self.center_menu = QWidget(self.central_widget)
         self.center_menu.setObjectName(u"center_menu")
@@ -433,15 +461,20 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_20 = QVBoxLayout(self.widget_5)
         self.verticalLayout_20.setObjectName(u"verticalLayout_20")
         self.verticalLayout_20.setContentsMargins(0, 0, 0, 0)
+        self.create_new_character_btn = QPushButton(self.widget_5)
+        self.create_new_character_btn.setObjectName(u"create_new_character_btn")
+
+        self.verticalLayout_20.addWidget(self.create_new_character_btn)
+
         self.save_character_btn = QPushButton(self.widget_5)
         self.save_character_btn.setObjectName(u"save_character_btn")
 
         self.verticalLayout_20.addWidget(self.save_character_btn)
 
-        self.load_character_btn_2 = QPushButton(self.widget_5)
-        self.load_character_btn_2.setObjectName(u"load_character_btn_2")
+        self.load_character_btn = QPushButton(self.widget_5)
+        self.load_character_btn.setObjectName(u"load_character_btn")
 
-        self.verticalLayout_20.addWidget(self.load_character_btn_2)
+        self.verticalLayout_20.addWidget(self.load_character_btn)
 
 
         self.verticalLayout_14.addWidget(self.widget_5)
@@ -455,45 +488,88 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_18.setContentsMargins(0, 0, 0, 0)
         self.widget_8 = QWidget(self.inventory)
         self.widget_8.setObjectName(u"widget_8")
-        self.widget_8.setMinimumSize(QSize(0, 60))
-        self.widget_8.setMaximumSize(QSize(16777215, 60))
+        self.widget_8.setMinimumSize(QSize(0, 100))
+        self.widget_8.setMaximumSize(QSize(16777215, 100))
         self.verticalLayout_19 = QVBoxLayout(self.widget_8)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.verticalLayout_19.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
-        self.verticalLayout_19.setContentsMargins(0, -1, 0, 0)
-        self.pushButton_2 = QPushButton(self.widget_8)
-        self.pushButton_2.setObjectName(u"pushButton_2")
-        self.pushButton_2.setMaximumSize(QSize(16777215, 16777215))
+        self.verticalLayout_19.setContentsMargins(0, 6, 0, 0)
+        self.add_item_btn = QPushButton(self.widget_8)
+        self.add_item_btn.setObjectName(u"add_item_btn")
+        self.add_item_btn.setMaximumSize(QSize(16777215, 16777215))
 
-        self.verticalLayout_19.addWidget(self.pushButton_2)
+        self.verticalLayout_19.addWidget(self.add_item_btn)
 
-        self.pushButton_3 = QPushButton(self.widget_8)
-        self.pushButton_3.setObjectName(u"pushButton_3")
-        self.pushButton_3.setMaximumSize(QSize(16777215, 16777215))
+        self.edit_item_btn = QPushButton(self.widget_8)
+        self.edit_item_btn.setObjectName(u"edit_item_btn")
 
-        self.verticalLayout_19.addWidget(self.pushButton_3)
+        self.verticalLayout_19.addWidget(self.edit_item_btn)
+
+        self.remove_item_btn = QPushButton(self.widget_8)
+        self.remove_item_btn.setObjectName(u"remove_item_btn")
+        self.remove_item_btn.setMaximumSize(QSize(16777215, 16777215))
+
+        self.verticalLayout_19.addWidget(self.remove_item_btn)
 
 
         self.verticalLayout_18.addWidget(self.widget_8, 0, Qt.AlignmentFlag.AlignTop)
 
-        self.gridLayout = QGridLayout()
-        self.gridLayout.setObjectName(u"gridLayout")
+        self.line_5 = QFrame(self.inventory)
+        self.line_5.setObjectName(u"line_5")
+        self.line_5.setFrameShape(QFrame.Shape.HLine)
+        self.line_5.setFrameShadow(QFrame.Shadow.Sunken)
 
-        self.verticalLayout_18.addLayout(self.gridLayout)
+        self.verticalLayout_18.addWidget(self.line_5)
+
+        self.item_grid = QGridLayout()
+        self.item_grid.setObjectName(u"item_grid")
+        self.item_grid.setSizeConstraint(QLayout.SizeConstraint.SetMaximumSize)
+
+        self.verticalLayout_18.addLayout(self.item_grid)
 
         self.tabWidget.addTab(self.inventory, "")
         self.spell = QWidget()
         self.spell.setObjectName(u"spell")
         self.verticalLayout_16 = QVBoxLayout(self.spell)
-        self.verticalLayout_16.setSpacing(0)
         self.verticalLayout_16.setObjectName(u"verticalLayout_16")
         self.verticalLayout_16.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         self.verticalLayout_16.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout_2 = QGridLayout()
-        self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.gridLayout_2.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        self.widget_9 = QWidget(self.spell)
+        self.widget_9.setObjectName(u"widget_9")
+        self.widget_9.setMaximumSize(QSize(16777215, 100))
+        self.verticalLayout_17 = QVBoxLayout(self.widget_9)
+        self.verticalLayout_17.setObjectName(u"verticalLayout_17")
+        self.verticalLayout_17.setContentsMargins(0, 6, 0, 0)
+        self.add_spell_btn = QPushButton(self.widget_9)
+        self.add_spell_btn.setObjectName(u"add_spell_btn")
 
-        self.verticalLayout_16.addLayout(self.gridLayout_2)
+        self.verticalLayout_17.addWidget(self.add_spell_btn)
+
+        self.edit_spell_btn = QPushButton(self.widget_9)
+        self.edit_spell_btn.setObjectName(u"edit_spell_btn")
+
+        self.verticalLayout_17.addWidget(self.edit_spell_btn)
+
+        self.remove_spell_btn = QPushButton(self.widget_9)
+        self.remove_spell_btn.setObjectName(u"remove_spell_btn")
+
+        self.verticalLayout_17.addWidget(self.remove_spell_btn)
+
+
+        self.verticalLayout_16.addWidget(self.widget_9, 0, Qt.AlignmentFlag.AlignTop)
+
+        self.line_6 = QFrame(self.spell)
+        self.line_6.setObjectName(u"line_6")
+        self.line_6.setFrameShape(QFrame.Shape.HLine)
+        self.line_6.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_16.addWidget(self.line_6)
+
+        self.spell_grid = QGridLayout()
+        self.spell_grid.setObjectName(u"spell_grid")
+        self.spell_grid.setSizeConstraint(QLayout.SizeConstraint.SetMaximumSize)
+
+        self.verticalLayout_16.addLayout(self.spell_grid)
 
         self.tabWidget.addTab(self.spell, "")
         self.trait = QWidget()
@@ -610,27 +686,124 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_9.addWidget(self.help_menu_label, 0, Qt.AlignmentFlag.AlignVCenter)
 
         self.stacked_widget.addWidget(self.help_menu)
-        self.character_menu_start = QWidget()
-        self.character_menu_start.setObjectName(u"character_menu_start")
-        self.verticalLayout_17 = QVBoxLayout(self.character_menu_start)
-        self.verticalLayout_17.setObjectName(u"verticalLayout_17")
-        self.create_character_btn = QPushButton(self.character_menu_start)
-        self.create_character_btn.setObjectName(u"create_character_btn")
-        self.create_character_btn.setMaximumSize(QSize(16777215, 35))
+        self.item_menu = QWidget()
+        self.item_menu.setObjectName(u"item_menu")
+        self.verticalLayout_22 = QVBoxLayout(self.item_menu)
+        self.verticalLayout_22.setObjectName(u"verticalLayout_22")
+        self.verticalLayout_22.setContentsMargins(0, 0, 0, 0)
+        self.item_name = QLineEdit(self.item_menu)
+        self.item_name.setObjectName(u"item_name")
 
-        self.verticalLayout_17.addWidget(self.create_character_btn)
+        self.verticalLayout_22.addWidget(self.item_name)
 
-        self.load_character_btn = QPushButton(self.character_menu_start)
-        self.load_character_btn.setObjectName(u"load_character_btn")
-        self.load_character_btn.setMaximumSize(QSize(16777215, 35))
+        self.item_type = QComboBox(self.item_menu)
+        self.item_type.addItem("")
+        self.item_type.addItem("")
+        self.item_type.addItem("")
+        self.item_type.addItem("")
+        self.item_type.setObjectName(u"item_type")
 
-        self.verticalLayout_17.addWidget(self.load_character_btn)
+        self.verticalLayout_22.addWidget(self.item_type)
 
-        self.verticalSpacer_6 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.widget_10 = QWidget(self.item_menu)
+        self.widget_10.setObjectName(u"widget_10")
+        self.horizontalLayout_6 = QHBoxLayout(self.widget_10)
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.horizontalLayout_6.setContentsMargins(0, 0, 0, 0)
+        self.item_img = QLabel(self.widget_10)
+        self.item_img.setObjectName(u"item_img")
+        self.item_img.setMaximumSize(QSize(30, 30))
+        self.item_img.setPixmap(QPixmap(u"image/placeholder.png"))
+        self.item_img.setScaledContents(True)
 
-        self.verticalLayout_17.addItem(self.verticalSpacer_6)
+        self.horizontalLayout_6.addWidget(self.item_img)
 
-        self.stacked_widget.addWidget(self.character_menu_start)
+        self.choose_item_img = QPushButton(self.widget_10)
+        self.choose_item_img.setObjectName(u"choose_item_img")
+
+        self.horizontalLayout_6.addWidget(self.choose_item_img)
+
+
+        self.verticalLayout_22.addWidget(self.widget_10)
+
+        self.item_description = QTextEdit(self.item_menu)
+        self.item_description.setObjectName(u"item_description")
+
+        self.verticalLayout_22.addWidget(self.item_description)
+
+        self.line_4 = QFrame(self.item_menu)
+        self.line_4.setObjectName(u"line_4")
+        self.line_4.setFrameShape(QFrame.Shape.HLine)
+        self.line_4.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_22.addWidget(self.line_4)
+
+        self.save_item = QPushButton(self.item_menu)
+        self.save_item.setObjectName(u"save_item")
+
+        self.verticalLayout_22.addWidget(self.save_item)
+
+        self.load_item = QPushButton(self.item_menu)
+        self.load_item.setObjectName(u"load_item")
+
+        self.verticalLayout_22.addWidget(self.load_item)
+
+        self.stacked_widget.addWidget(self.item_menu)
+        self.spell_menu = QWidget()
+        self.spell_menu.setObjectName(u"spell_menu")
+        self.verticalLayout_21 = QVBoxLayout(self.spell_menu)
+        self.verticalLayout_21.setObjectName(u"verticalLayout_21")
+        self.verticalLayout_21.setContentsMargins(0, 0, 0, 0)
+        self.spell_name = QLineEdit(self.spell_menu)
+        self.spell_name.setObjectName(u"spell_name")
+
+        self.verticalLayout_21.addWidget(self.spell_name)
+
+        self.widget_11 = QWidget(self.spell_menu)
+        self.widget_11.setObjectName(u"widget_11")
+        self.widget_11.setMaximumSize(QSize(167775, 50))
+        self.horizontalLayout_8 = QHBoxLayout(self.widget_11)
+        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.horizontalLayout_8.setContentsMargins(0, 0, 0, 0)
+        self.spell_img = QLabel(self.widget_11)
+        self.spell_img.setObjectName(u"spell_img")
+        self.spell_img.setMaximumSize(QSize(30, 30))
+        self.spell_img.setPixmap(QPixmap(u"image/placeholder.png"))
+        self.spell_img.setScaledContents(True)
+
+        self.horizontalLayout_8.addWidget(self.spell_img)
+
+        self.choose_spell_img = QPushButton(self.widget_11)
+        self.choose_spell_img.setObjectName(u"choose_spell_img")
+
+        self.horizontalLayout_8.addWidget(self.choose_spell_img)
+
+
+        self.verticalLayout_21.addWidget(self.widget_11)
+
+        self.spell_description = QTextEdit(self.spell_menu)
+        self.spell_description.setObjectName(u"spell_description")
+
+        self.verticalLayout_21.addWidget(self.spell_description)
+
+        self.line_8 = QFrame(self.spell_menu)
+        self.line_8.setObjectName(u"line_8")
+        self.line_8.setFrameShape(QFrame.Shape.HLine)
+        self.line_8.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_21.addWidget(self.line_8)
+
+        self.save_spell = QPushButton(self.spell_menu)
+        self.save_spell.setObjectName(u"save_spell")
+
+        self.verticalLayout_21.addWidget(self.save_spell)
+
+        self.load_spell = QPushButton(self.spell_menu)
+        self.load_spell.setObjectName(u"load_spell")
+
+        self.verticalLayout_21.addWidget(self.load_spell)
+
+        self.stacked_widget.addWidget(self.spell_menu)
 
         self.verticalLayout_5.addWidget(self.stacked_widget)
 
@@ -716,8 +889,12 @@ class Ui_CustomMainWindow(object):
         self.menuFile.addAction(self.actionClose)
         self.menuNew.addAction(self.actionNew_character)
         self.menuNew.addAction(self.actionNew_map)
+        self.menuNew.addAction(self.actionNew_item)
+        self.menuNew.addAction(self.actionNew_spell)
         self.menuOpen.addAction(self.actionOpen_character)
         self.menuOpen.addAction(self.actionOpen_map)
+        self.menuOpen.addAction(self.actionOpen_item)
+        self.menuOpen.addAction(self.actionOpen_spell)
         self.menuEdit.addAction(self.actionUndo)
         self.menuEdit.addAction(self.actionRedo)
         self.menuDisplay.addAction(self.actionLog_Chat)
@@ -725,8 +902,8 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(3)
-        self.tabWidget.setCurrentIndex(0)
+        self.stacked_widget.setCurrentIndex(7)
+        self.tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
@@ -757,7 +934,13 @@ class Ui_CustomMainWindow(object):
 #endif // QT_CONFIG(shortcut)
         self.actionLog_Chat.setText(QCoreApplication.translate("CustomMainWindow", u"Log/Chat", None))
         self.actionInfo_menu.setText(QCoreApplication.translate("CustomMainWindow", u"Info menu", None))
+        self.actionNew_item.setText(QCoreApplication.translate("CustomMainWindow", u"New item", None))
+        self.actionOpen_item.setText(QCoreApplication.translate("CustomMainWindow", u"Open item", None))
+        self.actionNew_spell.setText(QCoreApplication.translate("CustomMainWindow", u"New spell", None))
+        self.actionOpen_spell.setText(QCoreApplication.translate("CustomMainWindow", u"Open spell", None))
         self.open_info_menu_btn.setText("")
+        self.item_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Item", None))
+        self.spell_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Spell", None))
         self.character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Character", None))
         self.map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Map", None))
         self.server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Server", None))
@@ -789,12 +972,17 @@ class Ui_CustomMainWindow(object):
         self.alignement_NPC.setItemText(1, QCoreApplication.translate("CustomMainWindow", u"Neutral", None))
         self.alignement_NPC.setItemText(2, QCoreApplication.translate("CustomMainWindow", u"Enemy", None))
 
+        self.create_new_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Create new character", None))
         self.save_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Save character", None))
-        self.load_character_btn_2.setText(QCoreApplication.translate("CustomMainWindow", u"Load character", None))
+        self.load_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Load character", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.stat), QCoreApplication.translate("CustomMainWindow", u"Stat", None))
-        self.pushButton_2.setText(QCoreApplication.translate("CustomMainWindow", u"Add item", None))
-        self.pushButton_3.setText(QCoreApplication.translate("CustomMainWindow", u"Remove item", None))
+        self.add_item_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Add item", None))
+        self.edit_item_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Edit item", None))
+        self.remove_item_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Remove item", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.inventory), QCoreApplication.translate("CustomMainWindow", u"Inventory", None))
+        self.add_spell_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Add Spell", None))
+        self.edit_spell_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Edit spell", None))
+        self.remove_spell_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Remove spell", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.spell), QCoreApplication.translate("CustomMainWindow", u"Spell", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools ?", None))
@@ -806,8 +994,23 @@ class Ui_CustomMainWindow(object):
         self.open_game_interface_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open game interface", None))
         self.information_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Information", None))
         self.help_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Help", None))
-        self.create_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Create character", None))
-        self.load_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Load character", None))
+        self.item_name.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Item name", None))
+        self.item_type.setItemText(0, QCoreApplication.translate("CustomMainWindow", u"Weapon", None))
+        self.item_type.setItemText(1, QCoreApplication.translate("CustomMainWindow", u"Armour", None))
+        self.item_type.setItemText(2, QCoreApplication.translate("CustomMainWindow", u"Consumable", None))
+        self.item_type.setItemText(3, QCoreApplication.translate("CustomMainWindow", u"Miscellaneous", None))
+
+        self.item_img.setText("")
+        self.choose_item_img.setText(QCoreApplication.translate("CustomMainWindow", u"Choose item icon", None))
+        self.item_description.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Item description", None))
+        self.save_item.setText(QCoreApplication.translate("CustomMainWindow", u"Save item", None))
+        self.load_item.setText(QCoreApplication.translate("CustomMainWindow", u"Load item", None))
+        self.spell_name.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Spell name", None))
+        self.spell_img.setText("")
+        self.choose_spell_img.setText(QCoreApplication.translate("CustomMainWindow", u"Choose spell icon", None))
+        self.spell_description.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Spell description", None))
+        self.save_spell.setText(QCoreApplication.translate("CustomMainWindow", u"Save spell", None))
+        self.load_spell.setText(QCoreApplication.translate("CustomMainWindow", u"Load spell", None))
         self.log_view_label.setText(QCoreApplication.translate("CustomMainWindow", u"Logs du serveur PHP :", None))
         self.close_log_view_btn.setText(QCoreApplication.translate("CustomMainWindow", u"\u2715", None))
         self.menuFile.setTitle(QCoreApplication.translate("CustomMainWindow", u"File", None))
