@@ -3,6 +3,8 @@ import os
 from obj.items import *
 from obj.blueprint import *
 from obj.pawns import *
+from obj.player import *
+
 
 def generate_FileSystemProject(project_name):
     try:
@@ -109,7 +111,7 @@ class Game:
             raise Exception("InvalidArgument")
         else:
             if m is None:
-                new = Blueprint(self._base_length, self._base_width) 
+                new = blueprint.Blueprint(self._base_length, self._base_width) 
                 if not(X<1 or Y<1):
                     new.resize(X,Y)
             else: 
