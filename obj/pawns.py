@@ -1,4 +1,4 @@
-import items
+from obj.items import *
 
 class NPC:
     def __init__(self, Name="Unknown", Alignement=0):
@@ -51,7 +51,7 @@ class NPC:
         self._stats[s] = v
    
     def addItem(self,it):
-        if not isinstance(it,items.Item):
+        if not isinstance(it,Item):
             raise Exception("InvalidArgument")
         self._inv.append(it)
     def removeItem(self,i):
@@ -118,7 +118,7 @@ class PC:
         self._stats[s] = v
 
     def addItem(self,it):
-        if not isinstance(it,items.Item):
+        if not isinstance(it,Item):
             raise Exception("InvalidArgument")
         self._inv.append(it)
     def removeItem(self,i):

@@ -1,4 +1,4 @@
-import pawns
+from obj.pawns import *
 
 class Player:
     def __init__(self, Name, ID=0):

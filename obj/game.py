@@ -1,9 +1,9 @@
 import os
 
-import items
-import blueprint
-import pawns
-import player
+from obj.items import *
+from obj.blueprint import *
+from obj.pawns import *
+from obj.player import *
 
 
 def generate_FileSystemProject(project_name):
@@ -107,7 +107,7 @@ class Game:
             name = s
         if name in self._layers:
             raise Exception("NameAlreadyInUse")
-        if (not(m is None)) and (not isinstance(m,blueprint.Blueprint)):
+        if (not(m is None)) and (not isinstance(m,Blueprint)):
             raise Exception("InvalidArgument")
         else:
             if m is None:
@@ -126,7 +126,7 @@ class Game:
     def replace_layer(self,s,m):
         if not(s in self._layers):
             raise Exception("LayerDoesNotExist")
-        if (not(m is None)) and (not isinstance(m,blueprint.Blueprint)):
+        if (not(m is None)) and (not isinstance(m,Blueprint)):
             raise Exception("InvalidArgument")
         self._layers[s] = m
     def swap_layers(self,s1,s2):
@@ -148,7 +148,7 @@ class Game:
             print(x,y)
             print("\n")
             raise Exception("IndexOutOfRange")
-        if((not isinstance(p,pawns.NPC)) and (not isinstance(p,pawns.PC))):
+        if((not isinstance(p,NPC)) and (not isinstance(p,PC))):
             raise Exception("InvalidArgument")
         self._pawns[(x,y,l)] = p
     def remove_pawn(self,x,y,l):
@@ -175,7 +175,7 @@ class Game:
 
 
     def add_item(self, it):
-        if(not isinstance(it, items.Item)):
+        if(not isinstance(it, Item)):
             raise Exception("InvalidArgument")
         self._itemList.append(it)
     def remove_item(self, i):
@@ -186,7 +186,7 @@ class Game:
         return res
 
     def add_character(self, c):
-        if((not isinstance(c,pawns.NPC)) and (not isinstance(c,pawns.PC))):
+        if((not isinstance(c,NPC)) and (not isinstance(c,PC))):
             raise Exception("InvalidArgument")
         self._charList.append(c)
     def remove_character(self, i):
@@ -197,7 +197,7 @@ class Game:
         return res
 
     def add_prop(self, p):
-        if(not isinstance(p, blueprint.Prop)):
+        if(not isinstance(p, Prop)):
             raise Exception("InvalidArgument")
         self._propList.append(p)
     def remove_prop(self, i):
@@ -208,7 +208,7 @@ class Game:
         return res
 
     def add_blueprint(self, bp):
-        if(not isinstance(bp, blueprint.Blueprint)):
+        if(not isinstance(bp, Blueprint)):
             raise Exception("InvalidArgument")
         self._bpList.append(bp)
     def remove_blueprint(self, i):

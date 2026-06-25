@@ -1,11 +1,11 @@
 import xml.etree.ElementTree as ET
 import os
 
-import items
-import pawns
-import player
-import blueprint
-import game
+from obj.items import *
+from obj.pawns import *
+from obj.player import *
+from obj.blueprint import *
+from obj.game import *
 
 TARGET_DIRECTORY = "./projects/"
 
@@ -22,7 +22,7 @@ def toXML(o,indent=0):
     res = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     if (o is None):
         res += ntab(indent) + "<Empty></Empty>\n" 
-    elif isinstance(o,items.Item):
+    elif isinstance(o,Item):
         res = ntab(indent) + "<Item\n"
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n" 
         res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
@@ -30,7 +30,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "/>\n"
    
 
-    elif isinstance(o,pawns.NPC):
+    elif isinstance(o,NPC):
         res = ntab(indent) + "<NPC\n"
         res += ntab(indent+1) + "alignement=\"" + str(o.alignement()) + "\"\n" 
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n"
@@ -51,7 +51,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "</NPC>\n"
 
 
-    elif isinstance(o,pawns.PC):
+    elif isinstance(o,PC):
         res = ntab(indent) + "<PC\n"
         res += ntab(indent+1) + "ID=\"" + str(o.player()) + "\"\n" 
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n"
@@ -71,11 +71,11 @@ def toXML(o,indent=0):
         res += ntab(indent) + "</PC>\n"
 
 
-    elif isinstance(o,player.Player):
+    elif isinstance(o,Player):
         raise Exception("NotHandled?")
         #TODO
 
-    elif isinstance(o,blueprint.Prop):
+    elif isinstance(o,Prop):
         res = ntab(indent) + "<Prop\n"
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n" 
         res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
@@ -83,7 +83,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "/>\n"
 
 
-    elif isinstance(o,blueprint.Cell):
+    elif isinstance(o,Cell):
         res = ntab(indent) + "<Cell\n"
         #note: retrieve bin from string with bin(int(x,2)) 
         res += ntab(indent+1) + "ground=\"" + str(o.ground()) + "\"\n"
@@ -97,7 +97,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "</Cell>\n"
 
 
-    elif isinstance(o,blueprint.Blueprint):
+    elif isinstance(o,Blueprint):
         res = ntab(indent) + "<Blueprint\n"
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n"
         res += ntab(indent+1) + "length=\"" + str(o.length()) + "\"\n"
@@ -113,7 +113,7 @@ def toXML(o,indent=0):
         res += ntab(indent) + "</Blueprint>\n"
 
 
-    elif isinstance(o,game.Game):
+    elif isinstance(o,Game):
         #BE CAREFUL - WILL CREATE FILES
         res = ntab(indent) + "<Game\n"
         res += ntab(indent +1) + "name=\"" + o.name() + "\"\n"
@@ -135,11 +135,11 @@ def toXML(o,indent=0):
         i=1
         for e in o.characters():
             try:
-                if(isinstance(e,pawns.PC)):
+                if(isinstance(e,PC)):
                     f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","x")
                 f = open(local_path + "Sheets/"+"Sheet#"+str(i)+"-"+e.name()+".xml","x")
             except FileExistsError:
-                if(isinstance(e,pawns.PC)):
+                if(isinstance(e,PC)):
                     f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","w")
                 f = open(local_path + "Sheets/"+"Sheet#"+str(i)+"-"+e.name()+".xml","w")
             finally:
@@ -231,7 +231,7 @@ def fromXMLTree(root):
             if i==2:
                 d = root.attrib[att]
             i+=1
-        new = items.Item(s,t,d)
+        new = Item(s,t,d)
     
 
     elif(observe == "NPC"):
@@ -246,7 +246,7 @@ def fromXMLTree(root):
             if i==2:
                 d = root.attrib[att]
             i+=1
-        new = pawns.NPC(n,a)
+        new = NPC(n,a)
         new.redescribe(d)
         for child in root:
             if(child.tag == "inventory"):
@@ -278,7 +278,7 @@ def fromXMLTree(root):
             if i==2:
                 d = root.attrib[att]
             i+=1
-        new = pawns.PC(ID,n)
+        new = PC(ID,n)
         new.redescribe(d)
         for child in root:
             if(child.tag == "inventory"):
@@ -317,7 +317,7 @@ def fromXMLTree(root):
             if i==3:
                 s = int(root.attrib[att])
             i+=1
-        new = blueprint.Prop(n,t,d,s)
+        new = Prop(n,t,d,s)
 
 
     elif(observe == "Cell"):
@@ -333,7 +333,7 @@ def fromXMLTree(root):
             if i==2:
                 d = (int(root.attrib[att],2))
             i+=1
-        new = blueprint.Cell([],g,w,d)
+        new = Cell([],g,w,d)
         for child in root:
             for cont in child:
                 new.add_content(fromXMLTree(cont))
@@ -350,7 +350,7 @@ def fromXMLTree(root):
             if i==2:
                 w = int(root.attrib[att])
             i+=1
-        new = blueprint.Blueprint(l,w,n)
+        new = Blueprint(l,w,n)
         for grid in root:
             y = 0
             for row in grid:
@@ -364,7 +364,7 @@ def fromXMLTree(root):
     elif(observe == "Game"):
         for att in root.attrib:
             n = root.attrib[att]
-        new = game.Game(n,False)
+        new = Game(n,False)
         for tab in root:
             if (tab.tag == "layers"):
                 for l in tab:
@@ -423,37 +423,13 @@ def fromXML(path):
     tree = ET.parse(path)
     root = tree.getroot()
     return fromXMLTree(root)
-   
-###################TEST##########################
 
-"""
-bp = blueprint.Blueprint(10,10)
-bp.set_cell(9,9, (blueprint.Cell( {blueprint.Prop("Levier",1,"ça tire")} )) )
-#print(toXML(bp)) # >> test2.xml
-#print(fromXML("test2.xml"))
-"""
-
-"""
-new1 = items.Item("Balle",1,"Rigolo")
-new = pawns.NPC()
-new.addItem(new1)
-new.add_stat("INT",14)
-new.redescribe("BLABLA BLA")
-#print(toXML(new)) # >> test1.xml
-#print(toXML(fromXML("test1.xml")))
-"""
-
-"""
-#need the previous two
-#TO BE EXECUTED AT : ../Dungeon-Kitchen/
-g = game.Game("HEYITSME") # add False if exists
-g.new_layer("1st",10,10,bp)
-g.add_blueprint(bp)
-g.add_pawn(new,2,2,"1st")
-g.add_character(new)
-g.add_item(new1)
-#toXML(g)
-#g1 = fromXML("./projects/HEYITSME/HEYITSME.xml")
-#g2 = g1.copy()
-#toXML(g2)
-"""
+def toXML_saveto(o,path):
+    res = toXML(o)
+    try:
+        f = open(path + o.name()+".xml","x")
+    except FileExistsError:
+        f = open(path + o.name()+".xml","w")
+    finally:
+        f.write(res)
+        f.close()
