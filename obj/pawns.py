@@ -1,8 +1,9 @@
-import items
+from obj.items import *
 
 class NPC:
     def __init__(self, Name="Unknown", Alignement=0):
         #TODO
+        self.items = Item()
         self._align = Alignement # 0:Neutral; 1:Ally; 2:Hostile
         self._name = Name
         self._stats = dict() #ex: INT:14 /alt INT:(14,(+2))
@@ -51,7 +52,7 @@ class NPC:
         self._stats[s] = v
    
     def addItem(self,it):
-        if not isinstance(it,items.Item):
+        if not isinstance(it,self.items):
             raise Exception("InvalidArgument")
         self._inv.append(it)
     def removeItem(self,i):
@@ -73,6 +74,7 @@ class NPC:
 class PC:
     def __init__(self, ID=0, Name="Unknown"):
         #TODO
+        self.items = Item()
         self._playerID = ID #Unassigned
         self._name = Name
         self._stats = dict() #ex: INT:14 /alt INT:(14,(+2))
@@ -118,7 +120,7 @@ class PC:
         self._stats[s] = v
 
     def addItem(self,it):
-        if not isinstance(it,items.Item):
+        if not isinstance(it,self.items):
             raise Exception("InvalidArgument")
         self._inv.append(it)
     def removeItem(self,i):
