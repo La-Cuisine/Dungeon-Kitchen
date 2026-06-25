@@ -1,6 +1,7 @@
 import os
 
 from obj.items import *
+from obj.skills import *
 from obj.blueprint import *
 from obj.pawns import *
 from obj.player import *
@@ -15,6 +16,7 @@ def generate_FileSystemProject(project_name):
     
     os.mkdir("./projects/"+project_name+"/Assets")
     os.mkdir("./projects/"+project_name+"/Items")
+    os.mkdir("./projects/"+project_name+"/Skills")
     os.makedirs("./projects/"+project_name+"/Sheets/PC")
     os.makedirs("./projects/"+project_name+"/Blueprints/Props")
     #os.mkdir("./projects/"+project_name+"/Players")
@@ -32,6 +34,7 @@ class Game:
         self._layers = dict() #(layer_name:Blueprint)
         self._pawns = dict() #((x,y,layer_name):Pawn)
         self._itemList = [] #(Item)
+        self._skillList = [] #(Skill)
         self._charList = [] #(PC/NPC)
         self._propList = [] #(Prop)
         self._bpList = [] #(Blueprint)
@@ -64,6 +67,12 @@ class Game:
         if not(i in self._itemList):
             raise Exception("ItemDoesNotExist")
         return self._itemList[i]
+    def skills(self):
+        return self._skillList
+    def get_skill(self,s):
+        if not(s in self._skillList):
+            raise Exception("SkillDoesNotExist")
+        return self._itemList[s]
     def characters(self):
         return self._charList
     def get_character(self,c):
@@ -185,6 +194,17 @@ class Game:
         del self._itemList[i]
         return res
 
+    def add_skill(self, sk):
+        if(not isinstance(sk, Skill)):
+            raise Exception("InvalidArgument")
+        self._skillList.append(sk)
+    def remove_skill(self, i):
+        if(0>i or i> len(self._skillList)):
+            raise Exception("IndexOutOfRange")
+        res = self._skillList[i]
+        del self._skillList[i]
+        return res
+
     def add_character(self, c):
         if((not isinstance(c,NPC)) and (not isinstance(c,PC))):
             raise Exception("InvalidArgument")
@@ -235,6 +255,8 @@ class Game:
             res.add_pawn(self._pawns[p],p[0],p[1],p[2])
         for it in self._itemList:
             res.add_item(it)
+        for sk in self._skillList:
+            res.add_skill(sk)
         for c in self._charList:
             res.add_character(c)
         for p in self._propList:
