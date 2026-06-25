@@ -181,17 +181,27 @@ class GuiFunctions():
         self.ui.graphicsView = self._view_grid
     
     def init_action_menubar(self):
+        """
+        Initialise les signaux pour les actions de la menubar
+        """
         self.ui.actionLog_Chat.toggled.connect(self.switch_log_display_state)
         self.ui.actionInfo_menu.toggled.connect(self.switch_center_menu_display_state)
         self.ui.actionClose.triggered.connect(self.closeEvent)
 
     def init_info_menu(self):
+        """
+        Ouvre la dernière page consulté de information menu au 
+        lancement de l'application. 
+        Ouvre la page du serveur si il n'y pas d'information sur
+        la dernière page consulté.
+        """
         self.last_menu = self.settings.value("MENU INFO")
 
         if(self.last_menu == None):
             self.switch_to_server_menu()
         else:
             self.ui.stacked_widget.setCurrentIndex(self.last_menu)
+
     # ----------------------------------------------------------------
     # Slots – méthodes connectées aux signaux des boutons et du thread
     # ----------------------------------------------------------------
@@ -283,8 +293,7 @@ class GuiFunctions():
     def switch_to_settings_menu(self):
         self.ui.stacked_widget.setCurrentIndex(0)
         self.settings.setValue("MENU INFO",0)
-        if self.ui.center_menu.isVisible() == False:
-            self._open_center_menu()
+        self._open_center_menu()
 
     def switch_to_character_menu_selection(self):
         if(self.loaded_character == False):
@@ -292,8 +301,7 @@ class GuiFunctions():
             self.settings.setValue("MENU INFO",6)
         else:
             self.ui.stacked_widget.setCurrentIndex(1)
-        if(self.ui.center_menu.isVisible() == False):
-            self._open_center_menu()
+        self._open_center_menu()
 
     def switch_to_character_menu_info(self):
         self.loaded_character = True
@@ -302,42 +310,44 @@ class GuiFunctions():
     def switch_to_map_menu(self):
         self.ui.stacked_widget.setCurrentIndex(2)
         self.settings.setValue("MENU INFO",2)
-        if self.ui.center_menu.isVisible() == False:
-            self._open_center_menu()
+        self._open_center_menu()
     
     def switch_to_server_menu(self):
         self.ui.stacked_widget.setCurrentIndex(3)
         self.settings.setValue("MENU INFO",3)
-        if self.ui.center_menu.isVisible() == False:
-            self._open_center_menu()
+        self._open_center_menu()
 
     def switch_to_information_menu(self):
         self.ui.stacked_widget.setCurrentIndex(4)
         self.settings.setValue("MENU INFO",4)
-        if self.ui.center_menu.isVisible() == False:
-            self._open_center_menu()
+        self._open_center_menu()
 
     def switch_to_help_menu(self):
         self.ui.stacked_widget.setCurrentIndex(5)
         self.settings.setValue("MENU INFO",5)
-        if self.ui.center_menu.isVisible() == False:
-            self._open_center_menu()
+        self._open_center_menu()
 
     def _open_center_menu(self):
         """
         Affiche le menu d'information
         """
-        self.ui.center_menu.setVisible(True)
-        self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Undo.png"))
-        self.ui.actionInfo_menu.setChecked(True)
+        if(self.ui.center_menu.isVisible() == True):
+            pass
+        else:
+            self.ui.center_menu.setVisible(True)
+            self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Undo.png"))
+            self.ui.actionInfo_menu.setChecked(True)
 
     def _close_center_menu(self):
         """
         Cache le menu d'information
         """
-        self.ui.center_menu.setVisible(False)
-        self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Redo.png"))
-        self.ui.actionInfo_menu.setChecked(False)
+        if(self.ui.center_menu.isVisible() == False):
+            pass
+        else:
+            self.ui.center_menu.setVisible(False)
+            self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Redo.png"))
+            self.ui.actionInfo_menu.setChecked(False)
 
     def switch_center_menu_display_state(self):
         """

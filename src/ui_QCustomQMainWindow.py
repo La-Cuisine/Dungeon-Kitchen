@@ -80,7 +80,7 @@ class Ui_CustomMainWindow(object):
         self.open_info_menu_btn.setMinimumSize(QSize(30, 30))
         self.open_info_menu_btn.setMaximumSize(QSize(30, 30))
         icon = QIcon()
-        icon.addFile(u":/image/Undo.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(u"image/Undo.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.open_info_menu_btn.setIcon(icon)
 
         self.horizontalLayout_7.addWidget(self.open_info_menu_btn)
@@ -449,14 +449,37 @@ class Ui_CustomMainWindow(object):
         self.tabWidget.addTab(self.stat, "")
         self.inventory = QWidget()
         self.inventory.setObjectName(u"inventory")
-        self.horizontalLayout_6 = QHBoxLayout(self.inventory)
-        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.horizontalLayout_6.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
-        self.horizontalLayout_6.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_18 = QVBoxLayout(self.inventory)
+        self.verticalLayout_18.setObjectName(u"verticalLayout_18")
+        self.verticalLayout_18.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        self.verticalLayout_18.setContentsMargins(0, 0, 0, 0)
+        self.widget_8 = QWidget(self.inventory)
+        self.widget_8.setObjectName(u"widget_8")
+        self.widget_8.setMinimumSize(QSize(0, 60))
+        self.widget_8.setMaximumSize(QSize(16777215, 60))
+        self.verticalLayout_19 = QVBoxLayout(self.widget_8)
+        self.verticalLayout_19.setObjectName(u"verticalLayout_19")
+        self.verticalLayout_19.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
+        self.verticalLayout_19.setContentsMargins(0, -1, 0, 0)
+        self.pushButton_2 = QPushButton(self.widget_8)
+        self.pushButton_2.setObjectName(u"pushButton_2")
+        self.pushButton_2.setMaximumSize(QSize(16777215, 16777215))
+
+        self.verticalLayout_19.addWidget(self.pushButton_2)
+
+        self.pushButton_3 = QPushButton(self.widget_8)
+        self.pushButton_3.setObjectName(u"pushButton_3")
+        self.pushButton_3.setMaximumSize(QSize(16777215, 16777215))
+
+        self.verticalLayout_19.addWidget(self.pushButton_3)
+
+
+        self.verticalLayout_18.addWidget(self.widget_8, 0, Qt.AlignmentFlag.AlignTop)
+
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
 
-        self.horizontalLayout_6.addLayout(self.gridLayout)
+        self.verticalLayout_18.addLayout(self.gridLayout)
 
         self.tabWidget.addTab(self.inventory, "")
         self.spell = QWidget()
@@ -702,8 +725,8 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(6)
-        self.tabWidget.setCurrentIndex(0)
+        self.stacked_widget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
@@ -769,6 +792,8 @@ class Ui_CustomMainWindow(object):
         self.save_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Save", None))
         self.load_character_btn_2.setText(QCoreApplication.translate("CustomMainWindow", u"Load", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.stat), QCoreApplication.translate("CustomMainWindow", u"Stat", None))
+        self.pushButton_2.setText(QCoreApplication.translate("CustomMainWindow", u"Add item", None))
+        self.pushButton_3.setText(QCoreApplication.translate("CustomMainWindow", u"Remove item", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.inventory), QCoreApplication.translate("CustomMainWindow", u"Inventory", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.spell), QCoreApplication.translate("CustomMainWindow", u"Spell", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))

@@ -1,7 +1,7 @@
 {
     "ShowLogs": false,
     "QtBinding": "PySide6",
-    "CheckForMissingicons": true,
+    "CheckForMissingicons": false,
     "LiveCompileQss": true,
     "QMainWindow": {
         "title": "Dungeon Kitchen"
