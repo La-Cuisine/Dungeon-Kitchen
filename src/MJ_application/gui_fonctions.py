@@ -1,11 +1,10 @@
-from PySide6.QtWidgets import QGraphicsDropShadowEffect
-from PySide6.QtCore import QSettings, QTimer
+from PySide6.QtCore import QSettings, QTimer, Qt
 from PySide6.QtGui import QColor, QPalette, QPainter, QBrush
 from PySide6.QtWidgets import QGraphicsScene
-from PySide6.QtCore import Qt
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 from Custom_Widgets.QCustomTheme import QCustomTheme
+
 import webbrowser
 # Import interne
 from src.MJ_application.server import SERVER_URL, ServerController
@@ -71,9 +70,14 @@ class GuiFunctions():
         self.ui.open_website_btn.setStyleSheet(
             self._btn_style("#3498db", "#2980b9")
         )
+        self.ui.open_game_interface_btn.setStyleSheet(
+            self._btn_style("#db8534", "#be732c")
+        )
 
-        # Connect le signal pour changer de thème
-        self.ui.theme_list.currentTextChanged.connect(self.changeAppTheme)
+        # Affiche le lien de l'URL correctement
+        link = "URL : <a href='",SERVER_URL,"'>",SERVER_URL,"</a>"
+        link_string = ''.join(link)
+        self.ui.url_link_label.setText(link_string)
 
     def init_app_btn_connect(self):
         """
@@ -87,7 +91,6 @@ class GuiFunctions():
         self.ui.information_btn.clicked.connect(self.switch_to_information_menu)
         self.ui.help_btn.clicked.connect(self.switch_to_help_menu)
         self.ui.create_character_btn.clicked.connect(self.switch_to_character_menu_info)
-
 
         # Ouvre ou ferme le menu d'information
         self.ui.open_info_menu_btn.clicked.connect(self.switch_center_menu_display_state)
@@ -109,6 +112,9 @@ class GuiFunctions():
         self.ui.open_server_btn.clicked.connect(self._start_server)
         self.ui.close_server_btn.clicked.connect(self._stop_server)
         self.ui.open_website_btn.clicked.connect(self._open_browser)
+
+        # Settings
+        self.ui.theme_list.currentTextChanged.connect(self.changeAppTheme)
     
     def init_grid(self, n: int = 100, s_cell: int = 64):
         """
@@ -331,30 +337,37 @@ class GuiFunctions():
         """
         Affiche le menu d'information
         """
-        if(self.ui.center_menu.isVisible() == True):
-            pass
-        else:
-            self.ui.center_menu.setVisible(True)
-            self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Undo.png"))
-            self.ui.actionInfo_menu.setChecked(True)
+        # Déconnecte actionInfo_menu du signal
+        self.ui.actionInfo_menu.blockSignals(True)
+        
+        self.ui.center_menu.setVisible(True)
+        self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Undo.png"))
+        self.ui.actionInfo_menu.setChecked(True)
+
+        # Reconnecte actionInfo_menu du signal
+        self.ui.actionInfo_menu.blockSignals(False)
 
     def _close_center_menu(self):
         """
         Cache le menu d'information
-        """
-        if(self.ui.center_menu.isVisible() == False):
-            pass
-        else:
-            self.ui.center_menu.setVisible(False)
-            self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Redo.png"))
-            self.ui.actionInfo_menu.setChecked(False)
+        """       
+        # Déconnecte actionInfo_menu du signal
+        self.ui.actionInfo_menu.blockSignals(True)
+
+        self.ui.center_menu.setVisible(False)
+        self.ui.open_info_menu_btn.setIcon(QIcon("ui/image/Redo.png"))
+        self.ui.actionInfo_menu.setChecked(False)
+
+        # Reconnecte actionInfo_menu du signal
+        self.ui.actionInfo_menu.blockSignals(False)
 
     def switch_center_menu_display_state(self):
         """
         Affiche ou cache le menu d'information selon
         l'état de visibilité du menu
         """
-        self.ui.actionInfo_menu.toggled.disconnect(self.switch_center_menu_display_state)
+        # Déconnecte actionInfo_menu du signal
+        self.ui.actionInfo_menu.blockSignals(True)
         
         # Cacher la fenêtre
         if(self.ui.center_menu.isVisible() == True):
@@ -367,7 +380,8 @@ class GuiFunctions():
         else:
             print("Erreur switch center menu display")
 
-        self.ui.actionInfo_menu.toggled.connect(self.switch_center_menu_display_state)
+        # Reconnecte actionInfo_menu du signal
+        self.ui.actionInfo_menu.blockSignals(False)
             
     # ----------------------------------------------------------------
     # Stat/Inv
@@ -714,6 +728,7 @@ class GuiFunctions():
     def save_character(self):
         name = self.ui.character_name.toMarkdown()
         self.pc_sheet = PC(Name=name)
+
         # Add stats to the save file
         hp = self.ui.hp_nb.value()
         str = self.ui.str_nb.value()
@@ -722,6 +737,7 @@ class GuiFunctions():
         int = self.ui.int_nb.value()
         wis = self.ui.wis_nb.value()
         cha = self.ui.cha_nb.value()
+        
         self.pc_sheet.add_stat("HP",hp)
         self.pc_sheet.add_stat("STR",str)
         self.pc_sheet.add_stat("DEX",dex)

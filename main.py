@@ -25,9 +25,6 @@ from Custom_Widgets.QAppSettings import QAppSettings
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self)
-        # Thread de lecture des logs du processus PHP.
-        # Vaut None quand le serveur est arrêté (pas de processus à surveiller).
-        self._log_thread: LogReaderThread | None = None
 
         self.ui = Ui_CustomMainWindow()
         self.ui.setupUi(self)

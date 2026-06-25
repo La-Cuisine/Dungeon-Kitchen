@@ -67,32 +67,28 @@
     ],
     "QCustomQStackedWidget": [
         {
-            "name": "stacked_widget",
-            "navigation": [
-                {
-                    "navigationButtons": [
-                        {
-                            "character_btn": "character_menu",
-                            "map_btn": "map_menu",
-                            "server_btn": "server_menu",
-                            "settings_btn": "settings_menu",
-                            "information_btn": "information_menu",
-                            "help_btn": "help_menu"
-                        }
-                    ]
+            "name": "mainStack",
+            "transitionAnimation": {
+                "fade": {
+                    "active": true,
+                    "duration": 300,
+                    "easingCurve": "Linear"
+                },
+                "slide": {
+                    "active": true,
+                    "duration": 500,
+                    "direction": "horizontal",
+                    "easingCurve": "OutBack"
                 }
-            ],
-            "transitionAnimation": [
-                {
-                    "fade": [
-                        {
-                            "active": true,
-                            "duration": 500,
-                            "easingCurve": "InSine"
-                        }
-                    ]
+            },
+            "navigation": {
+                "nextPage": "nextBtn",
+                "previousPage": "prevBtn",
+                "navigationButtons": {
+                    "homeBtn": "homePage",
+                    "settingsBtn": "settingsPage"
                 }
-            ]
+            }
         }
     ]
 }

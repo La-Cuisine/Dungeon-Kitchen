@@ -430,18 +430,18 @@ class Ui_CustomMainWindow(object):
 
         self.widget_5 = QWidget(self.stat)
         self.widget_5.setObjectName(u"widget_5")
-        self.horizontalLayout_8 = QHBoxLayout(self.widget_5)
-        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
-        self.horizontalLayout_8.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_20 = QVBoxLayout(self.widget_5)
+        self.verticalLayout_20.setObjectName(u"verticalLayout_20")
+        self.verticalLayout_20.setContentsMargins(0, 0, 0, 0)
         self.save_character_btn = QPushButton(self.widget_5)
         self.save_character_btn.setObjectName(u"save_character_btn")
 
-        self.horizontalLayout_8.addWidget(self.save_character_btn)
+        self.verticalLayout_20.addWidget(self.save_character_btn)
 
         self.load_character_btn_2 = QPushButton(self.widget_5)
         self.load_character_btn_2.setObjectName(u"load_character_btn_2")
 
-        self.horizontalLayout_8.addWidget(self.load_character_btn_2)
+        self.verticalLayout_20.addWidget(self.load_character_btn_2)
 
 
         self.verticalLayout_14.addWidget(self.widget_5)
@@ -576,12 +576,12 @@ class Ui_CustomMainWindow(object):
 
         self.verticalLayout_11.addWidget(self.open_website_btn)
 
-        self.pushButton = QPushButton(self.server_menu)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setMinimumSize(QSize(0, 38))
-        self.pushButton.setMaximumSize(QSize(16777215, 38))
+        self.open_game_interface_btn = QPushButton(self.server_menu)
+        self.open_game_interface_btn.setObjectName(u"open_game_interface_btn")
+        self.open_game_interface_btn.setMinimumSize(QSize(0, 38))
+        self.open_game_interface_btn.setMaximumSize(QSize(16777215, 38))
 
-        self.verticalLayout_11.addWidget(self.pushButton)
+        self.verticalLayout_11.addWidget(self.open_game_interface_btn)
 
         self.verticalSpacer_4 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -725,8 +725,8 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(1)
-        self.tabWidget.setCurrentIndex(1)
+        self.stacked_widget.setCurrentIndex(3)
+        self.tabWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
@@ -789,8 +789,8 @@ class Ui_CustomMainWindow(object):
         self.alignement_NPC.setItemText(1, QCoreApplication.translate("CustomMainWindow", u"Neutral", None))
         self.alignement_NPC.setItemText(2, QCoreApplication.translate("CustomMainWindow", u"Enemy", None))
 
-        self.save_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Save", None))
-        self.load_character_btn_2.setText(QCoreApplication.translate("CustomMainWindow", u"Load", None))
+        self.save_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Save character", None))
+        self.load_character_btn_2.setText(QCoreApplication.translate("CustomMainWindow", u"Load character", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.stat), QCoreApplication.translate("CustomMainWindow", u"Stat", None))
         self.pushButton_2.setText(QCoreApplication.translate("CustomMainWindow", u"Add item", None))
         self.pushButton_3.setText(QCoreApplication.translate("CustomMainWindow", u"Remove item", None))
@@ -799,11 +799,11 @@ class Ui_CustomMainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools ?", None))
         self.server_state_label.setText(QCoreApplication.translate("CustomMainWindow", u"Server: closed", None))
-        self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"URL : <a href='{SERVER_URL}'>{SERVER_URL}</a>", None))
+        self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"URL : <a href=\"{SERVER_URL}\">{SERVER_URL}</a>", None))
         self.open_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open server", None))
         self.close_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Close server", None))
         self.open_website_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open website", None))
-        self.pushButton.setText(QCoreApplication.translate("CustomMainWindow", u"Open game interface", None))
+        self.open_game_interface_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open game interface", None))
         self.information_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Information", None))
         self.help_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Help", None))
         self.create_character_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Create character", None))
