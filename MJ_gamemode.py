@@ -183,15 +183,6 @@ class MainWindow(QMainWindow):
 
         
 
-        layer1 = layerwindow(50,80,200,500,3,"Black")
-        layer2 = layerwindow(300,80,200,500,2,"Black")
-        layer3 = layerwindow(300,80,200,500,4,"Black")
-        z_dic[layer1] = layer1.zValue()
-        z_dic[layer2] = layer2.zValue()
-        z_dic[layer3] = layer2.zValue()         
-        self.univers.addItem(layer1)
-        self.univers.addItem(layer2)
-        self.univers.addItem(layer3)
         
         
         
@@ -430,13 +421,19 @@ class ProfileBox(QLabel):
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents,False)
         self.raise_()
         self._reposition()
-        self.profile(4)
+        
+        #add 4 profil
+        self.add_profile()
+        self.add_profile()
+        self.add_profile()
+        self.add_profile()
+        
+        
 
 
     def _reposition(self):
         parent = self.parent()
         if parent is not None:
-            print(parent.height())
             self.move(4, (parent.height()-self.H)/2)
 
 
@@ -448,19 +445,46 @@ class ProfileBox(QLabel):
             self.profs.append(Profile(self,n,i,i))
         self.nbprofs = n
 
+    def add_profile(self):
+        n = self.nbprofs
+        if n>0:
+            for i in range(n):
+                self.profs[i].setNbjoueur(n+1)    
+                self.profs[i].Inter_Place()
+            self.profs.append(Profile(self,n+1,self.profs[n-1].get_place()+1,self.profs[n-1].get_place()+1))
+            self.nbprofs = self.nbprofs + 1
+        else : 
+            self.profs.append(Profile(self,n+1,0,0))
+            self.nbprofs = self.nbprofs + 1
+
+    """
+     prof_remove qui utilise profs_replace peuvent etre utiliser si un joeur ce deconnecte
+    """    
+    #Supprime le profile graphiquement
     def prof_remove(self,id):
 
         for i in self.profs:
             if isinstance(i,Profile):
                 if i.get_id() == id:
-                    self.profs.remove(i)
+                    m = i.place
                     i.deleteLater()
+                    self.profs_replace(m,self.nbprofs)
+                    self.nbprofs = self.nbprofs - 1 
+                    self.profs.remove(i)
+                    break
 
         
-                    
+    #Ecrase le p profile et replace le tout          
+    def profs_replace(self,p,n):
+        if p != n :
+            for i in range(p+1,n):
+                self.profs[i].setPlace_Overwrite(i-1)
+        
+        for i in range(n):
+                if i <p :
+                    self.profs[i].setNbjoueur(n-1)    
+                self.profs[i].Inter_Place()
 
-
-    #def profs_replace(self,i,id):
         
                 
 
@@ -473,36 +497,37 @@ class Profile(QPushButton):
         self.ficheIsOpen=False
         self.place = n
         self.scene = parent.scene
-        pos_h = (parent.height()-self.WH)/2/nb_joueurs
-        gap = 0
-        if n > 0 :
-            gap = 52
-        for _ in range(n):
-            
-            pos_h = pos_h + (parent.height()-self.WH)/2/nb_joueurs + gap
-
-        self.setGeometry((parent.width()-self.WH)/2,pos_h,self.WH,self.WH)
+        self.nb_joueurs = nb_joueurs
+        
+        self.Inter_Place()
+        
         self.setStyleSheet("border-radius : 40px;"       
                            "border : 2px solid black;"
                            "background-color: black;")
+        
+        
+        
+
         
         self.clicked.connect(self.openFiche)
         
 
     def get_id(self):
-        return self._idplayer    
+        return self._idplayer  
+
+    def get_place(self):
+        return self.place 
     
     def openFiche(self):
         global layerwindow_dic
         global z_dic
         scale = self.parent().parent().transform().m11()
-        layerwindow_dic["profile"+str(self.place)] = layerwindow(50,80,200,500,self.place,"Black")
+        layerwindow_dic["profile"+str(self.place)] = layerwindow(50+self.place*35,80-self.place*15,200,500,self.place,"Black")
         layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
         z_dic[layerwindow_dic["profile"+str(self.place)]] = layerwindow_dic["profile"+str(self.place)].zValue()
         self.scene.addItem(layerwindow_dic["profile"+str(self.place)])
-
-    def setPlace(self,new_place:int):
         
+    def setPlace_Overwrite(self,new_place:int):
         global layerwindow_dic
         global z_dic
         tmp = "profile"+str(self.place)
@@ -513,8 +538,23 @@ class Profile(QPushButton):
         z_dic.pop(layerwindow_dic[tmp],None)
         layerwindow_dic.pop(tmp,None)
         self.place = new_place
+        self.nb_joueurs = self.nb_joueurs - 1
+        
+        
 
+    def Inter_Place(self):
+        pos_h = (self.parent().height()-self.WH)/2/self.nb_joueurs
+        gap = 0
+        if self.place > 0 :
+            gap = 52
+        for _ in range(self.place):
+            pos_h = pos_h + (self.parent().height()-self.WH)/2/self.nb_joueurs + gap
+        
+        self.setGeometry((self.parent().width()-self.WH)/2,pos_h,self.WH,self.WH)
+        
 
+    def setNbjoueur(self,n : int):
+        self.nb_joueurs = n
 
         
 if __name__ == "__main__":
