@@ -261,7 +261,7 @@ def fromXMLTree(root):
                         if(j==0):
                             s = c.attrib[e]
                         else:
-                            v = c.attrib[e]
+                            v = int(c.attrib[e]) #Maybe not int depends on rules
                         j += 1
                     new.add_stat(s,v)
 
