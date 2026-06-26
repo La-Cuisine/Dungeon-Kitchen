@@ -1,6 +1,8 @@
+import os
+from pathlib import Path
 from PySide6.QtCore import QSettings, QTimer, Qt
-from PySide6.QtGui import QColor, QPalette, QPainter, QBrush
-from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy
+from PySide6.QtGui import QColor, QPalette, QPainter, QBrush, QPixmap, QIcon
+from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy, QListWidgetItem
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 from Custom_Widgets.QCustomTheme import QCustomTheme
@@ -41,6 +43,7 @@ class GuiFunctions():
         self.init_info_menu()
         self.init_grid()
         self._init_inventory_scroll_areas()
+        self._init_map_image_list()
 
     # ----------------------------------------------------------------
     # Initialisation de l'application 
@@ -193,6 +196,50 @@ class GuiFunctions():
         self._spell_scroll_area.setFrameShape(self._spell_scroll_area.Shape.NoFrame)
 
         spell_parent_layout.insertWidget(index_spell, self._spell_scroll_area, 1)
+
+    # Assets image folder (relative to the project root)
+    ASSETS_IMAGES_DIR = Path("assets/images")
+    # Image extensions to show in the list
+    IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"}
+
+    def _init_map_image_list(self):
+        """
+        Peuple la QListWidget ``map_image_list`` (définie dans le fichier .ui)
+        avec les images trouvées dans assets/images/.
+
+        Chaque entrée affiche une miniature (32 × 32 px) et le nom du fichier.
+        Si le répertoire est absent ou vide le widget reste vide sans crasher.
+        """
+        if not hasattr(self.ui, "map_image_list"):
+            # Le widget n'existe pas encore dans le .ui – rien à faire
+            return
+
+        list_widget = self.ui.map_image_list
+        list_widget.clear()
+
+        images_dir = self.ASSETS_IMAGES_DIR
+        if not images_dir.is_dir():
+            return
+
+        for file in sorted(images_dir.iterdir()):
+            if file.suffix.lower() not in self.IMAGE_EXTENSIONS:
+                continue
+
+            item = QListWidgetItem(file.name)
+
+            # Miniature 32 × 32 px
+            pixmap = QPixmap(str(file))
+            if not pixmap.isNull():
+                icon = QIcon(pixmap.scaled(
+                    32, 32,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                ))
+                item.setIcon(icon)
+
+            # Stocke le chemin complet dans les données de l'item
+            item.setData(Qt.ItemDataRole.UserRole, str(file))
+            list_widget.addItem(item)
 
     def init_grid(self, n: int = 100, s_cell: int = 64):
         """

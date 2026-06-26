@@ -1104,6 +1104,42 @@ li.checked::marker { content: &quot;\2612&quot;; }
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="Line" name="line_map_1">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="map_image_list_label">
+             <property name="text">
+              <string>Images</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignLeft</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="map_image_list">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="uniformItemSizes">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="server_menu">

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'new_QCustomQMainWindow.ui'
+## Form generated from reading UI file 'QCustomQMainWindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.11.1
 ##
@@ -18,10 +18,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QComboBox,
     QFormLayout, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QLayout, QLineEdit, QMenu,
-    QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
-    QSpinBox, QStackedWidget, QTabWidget, QTextEdit,
-    QVBoxLayout, QWidget)
+    QLabel, QLayout, QLineEdit, QListWidget,
+    QListWidgetItem, QMenu, QMenuBar, QPushButton,
+    QSizePolicy, QSpacerItem, QSpinBox, QStackedWidget,
+    QTabWidget, QTextEdit, QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQMainWindow import QCustomQMainWindow
 class Ui_CustomMainWindow(object):
@@ -621,6 +621,31 @@ class Ui_CustomMainWindow(object):
 
         self.verticalLayout_13.addWidget(self.map_menu_label, 0, Qt.AlignmentFlag.AlignTop)
 
+        self.line_map_1 = QFrame(self.map_menu)
+        self.line_map_1.setObjectName(u"line_map_1")
+        self.line_map_1.setFrameShape(QFrame.Shape.HLine)
+        self.line_map_1.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_13.addWidget(self.line_map_1)
+
+        self.map_image_list_label = QLabel(self.map_menu)
+        self.map_image_list_label.setObjectName(u"map_image_list_label")
+        self.map_image_list_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        self.verticalLayout_13.addWidget(self.map_image_list_label)
+
+        self.map_image_list = QListWidget(self.map_menu)
+        self.map_image_list.setObjectName(u"map_image_list")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(1)
+        sizePolicy1.setHeightForWidth(self.map_image_list.sizePolicy().hasHeightForWidth())
+        self.map_image_list.setSizePolicy(sizePolicy1)
+        self.map_image_list.setIconSize(QSize(32, 32))
+        self.map_image_list.setUniformItemSizes(True)
+
+        self.verticalLayout_13.addWidget(self.map_image_list)
+
         self.stacked_widget.addWidget(self.map_menu)
         self.server_menu = QWidget()
         self.server_menu.setObjectName(u"server_menu")
@@ -842,11 +867,11 @@ class Ui_CustomMainWindow(object):
 
         self.main_body = QWidget(self.central_widget)
         self.main_body.setObjectName(u"main_body")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.main_body.sizePolicy().hasHeightForWidth())
-        self.main_body.setSizePolicy(sizePolicy1)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.main_body.sizePolicy().hasHeightForWidth())
+        self.main_body.setSizePolicy(sizePolicy2)
         self.verticalLayout_10 = QVBoxLayout(self.main_body)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.log_view_top = QWidget(self.main_body)
@@ -872,11 +897,11 @@ class Ui_CustomMainWindow(object):
 
         self.log_view = QTextEdit(self.main_body)
         self.log_view.setObjectName(u"log_view")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.log_view.sizePolicy().hasHeightForWidth())
-        self.log_view.setSizePolicy(sizePolicy2)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.log_view.sizePolicy().hasHeightForWidth())
+        self.log_view.setSizePolicy(sizePolicy3)
         self.log_view.setMinimumSize(QSize(0, 130))
         self.log_view.setMaximumSize(QSize(166666, 130))
         self.log_view.setReadOnly(True)
@@ -1019,6 +1044,7 @@ class Ui_CustomMainWindow(object):
         self.clear_trait_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Clear trait", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools", None))
+        self.map_image_list_label.setText(QCoreApplication.translate("CustomMainWindow", u"Images", None))
         self.server_state_label.setText(QCoreApplication.translate("CustomMainWindow", u"Server: closed", None))
         self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"URL : <a href=\"{SERVER_URL}\">{SERVER_URL}</a>", None))
         self.open_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open server", None))

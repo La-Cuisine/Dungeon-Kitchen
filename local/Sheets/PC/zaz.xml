@@ -41,18 +41,6 @@
             description="stick"
             image=""
         />
-        <Item
-            name="stick"
-            type="Weapon"
-            description="stick"
-            image=""
-        />
-        <Item
-            name="stick"
-            type="Weapon"
-            description="stick"
-            image=""
-        />
     </inventory>
     <skills>
         <Skill
