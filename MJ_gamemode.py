@@ -80,6 +80,7 @@ class View_GameMode(QGraphicsView):
 
         self.dices_box = DicesBox(self,self.scene())
         self.profile_rect = ProfileBox(self,self.scene())
+        self.Dice_result = Dice_result(self)
 
         self._Mxy = None
 
@@ -100,8 +101,10 @@ class View_GameMode(QGraphicsView):
         self.setAlignment(Qt.AlignmentFlag.AlignLeft) # force l'espace à ce coller gauche (permet par exemple un meilleur rendu du rectangle "profile_rect")
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate)
 
+    def getDiceResult(self):
+        return self.Dice_result
     
-    def setButtonDices(self, button : Lauch_Dices_Buttons):
+    def setButtonDices(self, button : Launch_Dices_Buttons):
         self.launch_dices = button
 
     def _update_world_bounds(self):
@@ -135,6 +138,7 @@ class View_GameMode(QGraphicsView):
         self._update_world_bounds()
         self.profile_rect.Align()
         self.dices_box.Align()
+        self.Dice_result.Align()
         if self.launch_dices is not None :
             self.launch_dices.Align()
         scale = self.transform().m11()
@@ -152,6 +156,12 @@ class View_GameMode(QGraphicsView):
         
         super().resizeEvent(event)
    
+    def mousePressEvent(self, event):
+        if self.Dice_result.isVisible():
+            if not self.Dice_result.geometry().contains(event.position().toPoint()):
+                self.Dice_result.hide()
+
+        return super().mousePressEvent(event)
 
 
 
@@ -564,7 +574,7 @@ class Interface_Profile(QPushButton):
         self.nb_joueurs = n
 
 
-
+#Maitre D'Orchestres des Dés du DESTIN
 class DicesBox(QLabel):
 
     W = 500
@@ -625,7 +635,7 @@ class DicesBox(QLabel):
                     break
         if self.DiceLauchable == True : 
             if  self.dice_laucher is None:
-                self.dice_laucher = Lauch_Dices_Buttons(self.parent(),self)
+                self.dice_laucher = Launch_Dices_Buttons(self.parent(),self)
                 self.dice_laucher.hide()
                 self.parent().setButtonDices(self.dice_laucher)
             j = 0    
@@ -643,6 +653,11 @@ class DicesBox(QLabel):
             print("GO")
             self.CheckLaucheable()
             self.CheckFinish = True
+        
+        if self.parent().getDiceResult().isVisible():
+            if not self.parent().getDiceResult().geometry().contains(ev.position().toPoint()):
+                self.parent().getDiceResult().hide()
+    
         return super().mousePressEvent(ev)
 
     def Reset(self):
@@ -651,8 +666,6 @@ class DicesBox(QLabel):
             self.dice_laucher.reset()
             self.DiceLauchable = False
 
-
-    
 
 
 class DiceBox(QLabel):
@@ -833,9 +846,11 @@ class Dices_Buttons(QLabel):
     def EmptyText(self):
         self.setText("")
 
+    
 
 
-class Lauch_Dices_Buttons(QPushButton):
+
+class Launch_Dices_Buttons(QPushButton):
 
     W = 80
     H = 40
@@ -844,7 +859,7 @@ class Lauch_Dices_Buttons(QPushButton):
 
     def __init__(self, parent_view : View_GameMode, Coworker : DiceBox):
         
-        #self._parent = Lauch_Dices_Buttons(parent_view)
+        #self._parent = Launch_Dices_Buttons(parent_view)
         
         super().__init__(parent_view)
         
@@ -929,6 +944,8 @@ class Lauch_Dices_Buttons(QPushButton):
             j=j+1
         self.Result =  self.resultToString(hasard)
         self.coworker.Reset()
+        self.parent().getDiceResult().setProperties(self.Result)
+
 
     
     def _convert(self,i:int):
@@ -948,7 +965,7 @@ class Lauch_Dices_Buttons(QPushButton):
             return 100
 
     def resultToString(self,val: dict[int,list]):
-        t = "Resultat:\n"
+        t = ""
         s = 0
         for i in val.keys():
             if i != -1 :
@@ -973,16 +990,71 @@ class Lauch_Dices_Buttons(QPushButton):
         self.disconnectLauch()
         self.hide()
 
-    #def mouseMoveEvent(self, arg__1):
-    #    
-    #    self.setStyleSheet(                   
-    #        "border : 2px solid black;"
-    #        "background-color: black;"
-    #        "color: #ffffff;"
-    #        "font-size: 18px;"
-    #        "border-radius: 12px;")
-    #    
-    #    return super().mouseMoveEvent(arg__1)
+    
+class Dice_result(QWidget):
+    
+    W = 80*2.5
+    H = 40*2.5
+    MARGIN = 8
+
+    def __init__(self, parent_view):
+        super().__init__(parent_view)
+        self.setFixedSize(self.W, self.H)
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        
+        E = QGraphicsOpacityEffect(self)
+        E.setOpacity(0.8)
+        self.setGraphicsEffect(E)
+
+        self.text = ""
+        self.round = 5
+
+        self._reposition()
+        self.hide()
+
+    def _reposition(self):
+        self.move((self.parent().width()-self.W)/2,(self.parent().height()-self.H)/2+80)
+
+    # Repositionne au resize de la vue (appele depuis View_Grid.resizeEvent,
+    # comme pour Interface_MouseCoord)
+    def Align(self):
+        self._reposition()
+
+    # Met a jour le texte affiche et (re)affiche le panneau en bas a droite
+    def setProperties(self, text: str):
+        self.text = text
+        self._reposition()
+        self.raise_()
+        self.show()
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        rect = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
+
+        painter.setPen(QPen(Qt.black, 1.5))
+        painter.setBrush(QBrush(QColor("#000000")))
+        painter.drawRoundedRect(rect, self.round, self.round)
+
+        header_rect = rect.adjusted(0, 8, 0, 0)
+        font = painter.font()
+        font.setBold(True)
+        font.setPixelSize(15)
+        painter.setFont(font)
+        painter.setPen(QPen(QColor("#e1dfdf")))
+        painter.drawText(header_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, "Resultat")
+
+        body_rect = rect.adjusted(10, 32, -10, -10)
+        font.setBold(True)
+        font.setPixelSize(13)
+        painter.setFont(font)
+        painter.drawText(
+            body_rect,
+            Qt.AlignmentFlag.AlignHCenter | Qt.TextFlag.TextWordWrap,
+            self.text,
+        )
 
 if __name__ == "__main__":
     
