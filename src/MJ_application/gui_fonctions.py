@@ -1,6 +1,6 @@
 from PySide6.QtCore import QSettings, QTimer, Qt
 from PySide6.QtGui import QColor, QPalette, QPainter, QBrush
-from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton
+from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 from Custom_Widgets.QCustomTheme import QCustomTheme
@@ -38,6 +38,7 @@ class GuiFunctions():
         self.init_app_btn_connect()
         self.init_info_menu()
         self.init_grid()
+        self._init_inventory_scroll_areas()
 
     # ----------------------------------------------------------------
     # Initialisation de l'application 
@@ -116,8 +117,10 @@ class GuiFunctions():
         self.ui.create_new_character_btn.clicked.connect(self.create_new_character)
         self.ui.save_character_btn.clicked.connect(self.save_character_stat)
         self.ui.load_character_btn.clicked.connect(self.load_character)
+        self.ui.create_new_item_btn.clicked.connect(self.create_new_item)
         self.ui.save_item.clicked.connect(self.save_item)
         self.ui.load_item.clicked.connect(self.load_item)
+        self.ui.create_new_spell_btn.clicked.connect(self.create_new_spell)
         self.ui.save_spell.clicked.connect(self.save_spell)
         self.ui.load_spell.clicked.connect(self.load_spell)
         
@@ -134,6 +137,60 @@ class GuiFunctions():
         # Settings
         self.ui.theme_list.currentTextChanged.connect(self.changeAppTheme)
     
+    def _init_inventory_scroll_areas(self):
+        """
+        Remplace les QGridLayout item_grid et spell_grid (définis dans le fichier
+        UI auto-généré) par des QScrollArea contenant un QVBoxLayout dédié.
+        Cela permet d'afficher un ascenseur vertical dès que la liste dépasse
+        la hauteur disponible, sans modifier le fichier UI.
+        """
+        # --- Inventory (items) ---
+        # Retire le QGridLayout nu de son parent et le remplace par un QScrollArea
+        inventory_parent_layout = self.ui.verticalLayout_18  # layout du tab "inventory"
+
+        # Supprime l'ancien item_grid du parent layout
+        index = inventory_parent_layout.indexOf(self.ui.item_grid)
+        inventory_parent_layout.removeItem(self.ui.item_grid)
+
+        # Crée le conteneur interne (QWidget + QVBoxLayout) pour les boutons
+        self._item_list_widget = QWidget()
+        self._item_list_layout = QVBoxLayout(self._item_list_widget)
+        self._item_list_layout.setContentsMargins(0, 0, 0, 0)
+        self._item_list_layout.setSpacing(2)
+        self._item_list_layout.addStretch()  # pousse les boutons vers le haut
+
+        # Crée le QScrollArea
+        self._item_scroll_area = QScrollArea()
+        self._item_scroll_area.setWidgetResizable(True)
+        self._item_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._item_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._item_scroll_area.setWidget(self._item_list_widget)
+        self._item_scroll_area.setFrameShape(self._item_scroll_area.Shape.NoFrame)
+
+        # Insère le QScrollArea exactement là où était item_grid
+        inventory_parent_layout.insertWidget(index, self._item_scroll_area, 1)
+
+        # --- Spell list ---
+        spell_parent_layout = self.ui.verticalLayout_16  # layout du tab "spell"
+
+        index_spell = spell_parent_layout.indexOf(self.ui.spell_grid)
+        spell_parent_layout.removeItem(self.ui.spell_grid)
+
+        self._spell_list_widget = QWidget()
+        self._spell_list_layout = QVBoxLayout(self._spell_list_widget)
+        self._spell_list_layout.setContentsMargins(0, 0, 0, 0)
+        self._spell_list_layout.setSpacing(2)
+        self._spell_list_layout.addStretch()
+
+        self._spell_scroll_area = QScrollArea()
+        self._spell_scroll_area.setWidgetResizable(True)
+        self._spell_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._spell_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._spell_scroll_area.setWidget(self._spell_list_widget)
+        self._spell_scroll_area.setFrameShape(self._spell_scroll_area.Shape.NoFrame)
+
+        spell_parent_layout.insertWidget(index_spell, self._spell_scroll_area, 1)
+
     def init_grid(self, n: int = 100, s_cell: int = 64):
         """
         Remplace le QGraphicsView généré par Qt Designer par un View_Grid,
@@ -465,6 +522,33 @@ class GuiFunctions():
         # Affiche le panneau Character pour la saisie
         self.switch_to_character_menu_selection()
 
+    def create_new_item(self):
+        """
+        Slot connecté au signal clicked du bouton \"Create new item\".
+        Vide le panneau Item pour permettre la saisie d'un
+        nouvel objet, et bascule sur le menu Item.
+        """
+        # Réinitialise les champs de l'objet
+        self.ui.item_name.setText("")
+        self.ui.item_type.setCurrentIndex(0)
+        self.ui.item_description.clear()
+
+        # Affiche le panneau Item pour la saisie
+        self.switch_to_item_menu()
+
+    def create_new_spell(self):
+        """
+        Slot connecté au signal clicked du bouton \"Create new spell\".
+        Vide le panneau Spell pour permettre la saisie d'un
+        nouveau sort, et bascule sur le menu Spell.
+        """
+        # Réinitialise les champs du sort
+        self.ui.spell_name.setText("")
+        self.ui.spell_description.clear()
+
+        # Affiche le panneau Spell pour la saisie
+        self.switch_to_spell_menu()
+
     def add_item_to_character(self):
         """
         Slot connecté au signal clicked du bouton "Add item".
@@ -512,13 +596,16 @@ class GuiFunctions():
 
     def _refresh_inventory_grid(self):
         """
-        Reconstruit entièrement l'affichage de self.ui.item_grid : une
-        liste verticale (du haut vers le bas, une seule colonne) d'objets
-        sélectionnables. Le bouton "Remove item" retire l'objet sélectionné.
+        Reconstruit entièrement l'affichage de la liste d'objets dans la
+        QScrollArea de l'inventaire : une liste verticale (du haut vers le bas,
+        une seule colonne) d'objets sélectionnables.
+        Le bouton "Remove item" retire l'objet sélectionné.
         """
-        # Vide la grille existante
-        while self.ui.item_grid.count():
-            child = self.ui.item_grid.takeAt(0)
+        layout = self._item_list_layout
+
+        # Vide le layout (en conservant le stretch final)
+        while layout.count() > 1:  # garde le stretch en dernière position
+            child = layout.takeAt(0)
             widget = child.widget()
             if widget is not None:
                 widget.deleteLater()
@@ -545,7 +632,7 @@ class GuiFunctions():
                 "}"
             )
             btn.toggled.connect(lambda checked, r=row: self._select_inventory_row(r) if checked else None)
-            self.ui.item_grid.addWidget(btn, row, 0)
+            layout.insertWidget(row, btn)  # insère avant le stretch
 
             # Restaure la sélection si elle est encore valide après le rafraîchissement
             if row == self._selected_inventory_row:
@@ -598,13 +685,16 @@ class GuiFunctions():
 
     def _refresh_skill_grid(self):
         """
-        Reconstruit entièrement l'affichage de self.ui.spell_grid : une
-        liste verticale (du haut vers le bas, une seule colonne) de sorts
-        sélectionnables. Le bouton "Remove spell" retire le sort sélectionné.
+        Reconstruit entièrement l'affichage de la liste de sorts dans la
+        QScrollArea dédiée : une liste verticale (du haut vers le bas, une
+        seule colonne) de sorts sélectionnables.
+        Le bouton "Remove spell" retire le sort sélectionné.
         """
-        # Vide la grille existante
-        while self.ui.spell_grid.count():
-            child = self.ui.spell_grid.takeAt(0)
+        layout = self._spell_list_layout
+
+        # Vide le layout (en conservant le stretch final)
+        while layout.count() > 1:
+            child = layout.takeAt(0)
             widget = child.widget()
             if widget is not None:
                 widget.deleteLater()
@@ -631,7 +721,7 @@ class GuiFunctions():
                 "}"
             )
             btn.toggled.connect(lambda checked, r=row: self._select_skill_row(r) if checked else None)
-            self.ui.spell_grid.addWidget(btn, row, 0)
+            layout.insertWidget(row, btn)  # insère avant le stretch
 
             # Restaure la sélection si elle est encore valide après le rafraîchissement
             if row == self._selected_skill_row:

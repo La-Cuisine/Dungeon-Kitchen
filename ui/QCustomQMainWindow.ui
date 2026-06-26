@@ -1393,6 +1393,13 @@ li.checked::marker { content: &quot;\2612&quot;; }
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="create_new_item_btn">
+             <property name="text">
+              <string>Create new item</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="save_item">
              <property name="text">
               <string>Save item</string>
@@ -1490,6 +1497,13 @@ li.checked::marker { content: &quot;\2612&quot;; }
             <widget class="Line" name="line_8">
              <property name="orientation">
               <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="create_new_spell_btn">
+             <property name="text">
+              <string>Create new spell</string>
              </property>
             </widget>
            </item>

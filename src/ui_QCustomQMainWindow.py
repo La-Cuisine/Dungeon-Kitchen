@@ -752,6 +752,11 @@ class Ui_CustomMainWindow(object):
 
         self.verticalLayout_22.addWidget(self.line_4)
 
+        self.create_new_item_btn = QPushButton(self.item_menu)
+        self.create_new_item_btn.setObjectName(u"create_new_item_btn")
+
+        self.verticalLayout_22.addWidget(self.create_new_item_btn)
+
         self.save_item = QPushButton(self.item_menu)
         self.save_item.setObjectName(u"save_item")
 
@@ -806,6 +811,11 @@ class Ui_CustomMainWindow(object):
         self.line_8.setFrameShadow(QFrame.Shadow.Sunken)
 
         self.verticalLayout_21.addWidget(self.line_8)
+
+        self.create_new_spell_btn = QPushButton(self.spell_menu)
+        self.create_new_spell_btn.setObjectName(u"create_new_spell_btn")
+
+        self.verticalLayout_21.addWidget(self.create_new_spell_btn)
 
         self.save_spell = QPushButton(self.spell_menu)
         self.save_spell.setObjectName(u"save_spell")
@@ -1019,12 +1029,14 @@ class Ui_CustomMainWindow(object):
         self.item_img.setText("")
         self.choose_item_img.setText(QCoreApplication.translate("CustomMainWindow", u"Choose item icon", None))
         self.item_description.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Item description", None))
+        self.create_new_item_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Create new item", None))
         self.save_item.setText(QCoreApplication.translate("CustomMainWindow", u"Save item", None))
         self.load_item.setText(QCoreApplication.translate("CustomMainWindow", u"Load item", None))
         self.spell_name.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Spell name", None))
         self.spell_img.setText("")
         self.choose_spell_img.setText(QCoreApplication.translate("CustomMainWindow", u"Choose spell icon", None))
         self.spell_description.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Spell description", None))
+        self.create_new_spell_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Create new spell", None))
         self.save_spell.setText(QCoreApplication.translate("CustomMainWindow", u"Save spell", None))
         self.load_spell.setText(QCoreApplication.translate("CustomMainWindow", u"Load spell", None))
         self.log_view_label.setText(QCoreApplication.translate("CustomMainWindow", u"Logs du serveur PHP :", None))
@@ -1036,4 +1048,3 @@ class Ui_CustomMainWindow(object):
         self.menuEdit.setTitle(QCoreApplication.translate("CustomMainWindow", u"Edit", None))
         self.menuDisplay.setTitle(QCoreApplication.translate("CustomMainWindow", u"Display", None))
     # retranslateUi
-
