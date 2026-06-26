@@ -22,6 +22,8 @@ from PySide6.QtWidgets import (
     QGraphicsSceneWheelEvent,
     QGraphicsPixmapItem,
     QMenu,
+    QListWidget,
+    QAbstractItemView,
     
 )
 from PySide6.QtCore import (
@@ -31,7 +33,8 @@ from PySide6.QtCore import (
     QRectF, 
     QSize,
     QPointF,
-    
+    QMimeData,
+    QByteArray,
     
 )
 from PySide6.QtGui import (
@@ -51,6 +54,7 @@ from PySide6.QtGui import (
     QCursor,
     QMouseEvent,
     QKeySequence,
+    QDrag,
     
 ) 
 
@@ -76,6 +80,49 @@ def _get_scaled_pixmap(path: str, w: int, h: int) -> QPixmap:
             Qt.TransformationMode.SmoothTransformation,
         )
     return _pixmap_cache[key]
+
+
+# ---------------------------------------------------------------------------
+# Liste d'images glissable (cells_image_list / props_image_list)
+# ---------------------------------------------------------------------------
+class DraggableImageList(QListWidget):
+    """QListWidget dont les items peuvent etre glisses (drag) vers la
+    grille pour y deposer une image sur une case.
+
+    Le chemin de l'image (stocke dans Qt.ItemDataRole.UserRole par
+    GuiFunctions._populate_image_list) est transporte via un mime type
+    custom MIME_TYPE, lu par View_Grid.dropEvent()."""
+
+    MIME_TYPE = "application/x-grid-image-path"
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setDragEnabled(True)
+        self.setDragDropMode(QAbstractItemView.DragDropMode.DragOnly)
+
+    def startDrag(self, supportedActions):
+        item = self.currentItem()
+        if item is None:
+            return
+
+        path = item.data(Qt.ItemDataRole.UserRole)
+        if not path:
+            return
+
+        mime = QMimeData()
+        mime.setData(self.MIME_TYPE, QByteArray(str(path).encode("utf-8")))
+        mime.setText(str(path))  # repli texte, lisible par d'autres widgets
+
+        drag = QDrag(self)
+        drag.setMimeData(mime)
+
+        icon = item.icon()
+        if not icon.isNull():
+            pixmap = icon.pixmap(self.iconSize())
+            drag.setPixmap(pixmap)
+            drag.setHotSpot(pixmap.rect().center())
+
+        drag.exec(Qt.DropAction.CopyAction)
 
 
 class Interface_Proprieties(QWidget):
@@ -323,6 +370,10 @@ class View_Grid(QGraphicsView):
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
 
+        # Accepte le drop d'images provenant de DraggableImageList
+        # (cells_image_list / props_image_list)
+        self.setAcceptDrops(True)
+
         #  mise à jour viewport limitée à la zone modifiée (pas toute la vue)
         self.setViewportUpdateMode(
             QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate
@@ -540,6 +591,38 @@ class View_Grid(QGraphicsView):
             if hasattr(it, "align"):
                 it.align()
         super().resizeEvent(event)
+
+    # ------------------------------------------------------------------
+    # Drag and drop d'images (depuis cells_image_list / props_image_list)
+    # ------------------------------------------------------------------
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat(DraggableImageList.MIME_TYPE):
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat(DraggableImageList.MIME_TYPE):
+            cell = self._cell_at_view_pos(event.position().toPoint())
+            if cell is not None:
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        if event.mimeData().hasFormat(DraggableImageList.MIME_TYPE):
+            raw = event.mimeData().data(DraggableImageList.MIME_TYPE)
+            path = bytes(raw).decode("utf-8")
+            cell = self._cell_at_view_pos(event.position().toPoint())
+            if cell is not None and path:
+                cell.setImage(path)
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        else:
+            super().dropEvent(event)
 
     def contextMenuEvent(self, event):
         # résolution mathématique pour le menu contextuel aussi

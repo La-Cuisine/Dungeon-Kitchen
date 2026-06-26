@@ -10,7 +10,7 @@ import webbrowser
 # Import interne
 from src.MJ_application.server import SERVER_URL, ServerController
 from src.MJ_application.LogReaderThread import LogReaderThread
-from src.MJ_application.grid import View_Grid, Grid, InvisibleWallLimit
+from src.MJ_application.grid import View_Grid, Grid, InvisibleWallLimit, DraggableImageList
 from src.MJ_gamemode.MJ_gamemode import MainWindow as GameModeWindow
 from obj.blueprint import *
 from obj.game import *
@@ -119,6 +119,16 @@ class GuiFunctions():
 
         # Ouvre ou ferme le log/chat
         self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
+        
+        # Add images
+        # Add images
+        self.ui.add_cells_image_btn.clicked.connect(
+            lambda: self.load_image(self.CELL_DIRECTORIES, self.ui.cells_image_list)
+        )
+
+        self.ui.add_props_image_btn.clicked.connect(
+            lambda: self.load_image(self.PROP_DIRECTORIES, self.ui.props_image_list)
+        ) 
 
         # Save/Load
         self.ui.create_new_character_btn.clicked.connect(self.create_new_character)
@@ -198,48 +208,107 @@ class GuiFunctions():
         spell_parent_layout.insertWidget(index_spell, self._spell_scroll_area, 1)
 
     # Assets image folder (relative to the project root)
-    ASSETS_IMAGES_DIR = Path("assets/images")
+    CELL_DIRECTORIES = [
+        Path("Assets/Images/Cells"),
+        Path("local/Assets/Images/Cells"),
+    ]
+    PROP_DIRECTORIES = [
+        Path("Assets/Images/Props"),
+        Path("local/Assets/Images/Props"),
+    ]
+
     # Image extensions to show in the list
     IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"}
 
-    def _init_map_image_list(self):
+    def _populate_image_list(self, list_widget, directories):
         """
-        Peuple la QListWidget ``map_image_list`` (définie dans le fichier .ui)
-        avec les images trouvées dans assets/images/.
-
-        Chaque entrée affiche une miniature (32 × 32 px) et le nom du fichier.
-        Si le répertoire est absent ou vide le widget reste vide sans crasher.
+        Populate a QListWidget with images found in several folders.
         """
-        if not hasattr(self.ui, "map_image_list"):
-            # Le widget n'existe pas encore dans le .ui – rien à faire
-            return
-
-        list_widget = self.ui.map_image_list
         list_widget.clear()
 
-        images_dir = self.ASSETS_IMAGES_DIR
-        if not images_dir.is_dir():
-            return
+        images = {}
 
-        for file in sorted(images_dir.iterdir()):
-            if file.suffix.lower() not in self.IMAGE_EXTENSIONS:
+        for directory in directories:
+            if not directory.is_dir():
                 continue
 
+            for file in directory.iterdir():
+                if file.suffix.lower() not in self.IMAGE_EXTENSIONS:
+                    continue
+
+                # local folder overrides base folder
+                images[file.name] = file
+
+        for file in sorted(images.values(), key=lambda p: p.name.lower()):
             item = QListWidgetItem(file.name)
 
-            # Miniature 32 × 32 px
             pixmap = QPixmap(str(file))
             if not pixmap.isNull():
-                icon = QIcon(pixmap.scaled(
-                    32, 32,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation
-                ))
-                item.setIcon(icon)
+                item.setIcon(
+                    QIcon(
+                        pixmap.scaled(
+                            32,
+                            32,
+                            Qt.AspectRatioMode.KeepAspectRatio,
+                            Qt.TransformationMode.SmoothTransformation,
+                        )
+                    )
+                )
 
-            # Stocke le chemin complet dans les données de l'item
             item.setData(Qt.ItemDataRole.UserRole, str(file))
             list_widget.addItem(item)
+
+    def _init_map_image_list(self):
+        """
+        Remplace les QListWidget generes par Qt Designer (cells_image_list,
+        props_image_list) par des DraggableImageList : meme apparence et
+        meme comportement, mais leurs items peuvent desormais etre glisses
+        (drag and drop) vers une case de la grille pour y deposer l'image.
+
+        Remplit ensuite les panneaux Cells et Props.
+        """
+
+        if hasattr(self.ui, "cells_image_list") and hasattr(self.ui, "verticalLayout_cells"):
+            self.ui.cells_image_list = self._make_draggable_image_list(
+                self.ui.cells_image_list, self.ui.verticalLayout_cells
+            )
+            self._populate_image_list(
+                self.ui.cells_image_list,
+                self.CELL_DIRECTORIES
+            )
+
+        if hasattr(self.ui, "props_image_list") and hasattr(self.ui, "verticalLayout_props"):
+            self.ui.props_image_list = self._make_draggable_image_list(
+                self.ui.props_image_list, self.ui.verticalLayout_props
+            )
+            self._populate_image_list(
+                self.ui.props_image_list,
+                self.PROP_DIRECTORIES
+            )
+
+    def _make_draggable_image_list(self, old_list, layout):
+        """
+        Remplace old_list (QListWidget cree par Qt Designer) par un
+        DraggableImageList insere au meme endroit dans layout, en
+        conservant son nom d'objet et la taille de ses icones.
+
+        Renvoie la nouvelle instance (a reassigner sur self.ui.<nom>).
+        """
+        index = layout.indexOf(old_list)
+        name = old_list.objectName()
+        icon_size = old_list.iconSize()
+        parent = old_list.parentWidget()
+
+        layout.removeWidget(old_list)
+        old_list.deleteLater()
+
+        new_list = DraggableImageList(parent)
+        new_list.setObjectName(name)
+        new_list.setIconSize(icon_size)
+        new_list.setUniformItemSizes(True)
+
+        layout.insertWidget(index, new_list)
+        return new_list
 
     def init_grid(self, n: int = 100, s_cell: int = 64):
         """
@@ -1463,3 +1532,56 @@ class GuiFunctions():
         """
         #fileName = QFileDialog.getSaveFileName(None, "Save File", "", "(*.xml)")
         #print(fileName)
+    
+    def load_image(self, directories, target_list):
+        """
+        Import an image into the local assets folder and refresh the list.
+
+        directories:
+            [Assets/..., local/Assets/...]
+        target_list:
+            cells_image_list or props_image_list
+        """
+
+        filename, _ = QFileDialog.getOpenFileName(
+            self.main,
+            "Select image",
+            "",
+            "Images (*.png *.jpg *.jpeg *.gif *.bmp *.svg *.webp)"
+        )
+
+        if not filename:
+            return
+
+        source = Path(filename)
+
+        # Always save in local folder
+        local_dir = directories[-1]
+        local_dir.mkdir(parents=True, exist_ok=True)
+
+        destination = local_dir / source.name
+
+        try:
+            import shutil
+
+            shutil.copy2(source, destination)
+
+            self._append_log(
+                f"[INFO] Image '{source.name}' copied to '{local_dir}'."
+            )
+
+            # Refresh list
+            self._populate_image_list(target_list, directories)
+
+            matches = target_list.findItems(
+                source.name,
+                Qt.MatchFlag.MatchExactly
+            )
+            
+            if matches:
+                target_list.setCurrentItem(matches[0])
+            
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible d'ajouter l'image : {exc}"
+            )

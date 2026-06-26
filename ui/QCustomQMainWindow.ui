@@ -388,7 +388,7 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="settings_menu">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1117,27 +1117,69 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <string>Images</string>
              </property>
              <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignLeft</set>
+              <set>Qt::AlignmentFlag::AlignLeading</set>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QListWidget" name="map_image_list">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>1</verstretch>
-              </sizepolicy>
+            <widget class="QTabWidget" name="map_tab_widget">
+             <property name="currentIndex">
+              <number>1</number>
              </property>
-             <property name="iconSize">
-              <size>
-               <width>32</width>
-               <height>32</height>
-              </size>
-             </property>
-             <property name="uniformItemSizes">
-              <bool>true</bool>
-             </property>
+             <widget class="QWidget" name="cells_tab">
+              <attribute name="title">
+               <string>Cells</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_cells">
+               <item>
+                <widget class="QPushButton" name="add_cells_image_btn">
+                 <property name="text">
+                  <string>Add Image</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="cells_image_list">
+                 <property name="iconSize">
+                  <size>
+                   <width>32</width>
+                   <height>32</height>
+                  </size>
+                 </property>
+                 <property name="uniformItemSizes">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="props_tab">
+              <attribute name="title">
+               <string>Props</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_props">
+               <item>
+                <widget class="QPushButton" name="add_props_image_btn">
+                 <property name="text">
+                  <string>Add Image</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="props_image_list">
+                 <property name="iconSize">
+                  <size>
+                   <width>32</width>
+                   <height>32</height>
+                  </size>
+                 </property>
+                 <property name="uniformItemSizes">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
             </widget>
            </item>
           </layout>

@@ -630,21 +630,48 @@ class Ui_CustomMainWindow(object):
 
         self.map_image_list_label = QLabel(self.map_menu)
         self.map_image_list_label.setObjectName(u"map_image_list_label")
-        self.map_image_list_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.map_image_list_label.setAlignment(Qt.AlignmentFlag.AlignLeading)
 
         self.verticalLayout_13.addWidget(self.map_image_list_label)
 
-        self.map_image_list = QListWidget(self.map_menu)
-        self.map_image_list.setObjectName(u"map_image_list")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(1)
-        sizePolicy1.setHeightForWidth(self.map_image_list.sizePolicy().hasHeightForWidth())
-        self.map_image_list.setSizePolicy(sizePolicy1)
-        self.map_image_list.setIconSize(QSize(32, 32))
-        self.map_image_list.setUniformItemSizes(True)
+        self.map_tab_widget = QTabWidget(self.map_menu)
+        self.map_tab_widget.setObjectName(u"map_tab_widget")
+        self.cells_tab = QWidget()
+        self.cells_tab.setObjectName(u"cells_tab")
+        self.verticalLayout_cells = QVBoxLayout(self.cells_tab)
+        self.verticalLayout_cells.setObjectName(u"verticalLayout_cells")
+        self.add_cells_image_btn = QPushButton(self.cells_tab)
+        self.add_cells_image_btn.setObjectName(u"add_cells_image_btn")
 
-        self.verticalLayout_13.addWidget(self.map_image_list)
+        self.verticalLayout_cells.addWidget(self.add_cells_image_btn)
+
+        self.cells_image_list = QListWidget(self.cells_tab)
+        self.cells_image_list.setObjectName(u"cells_image_list")
+        self.cells_image_list.setIconSize(QSize(32, 32))
+        self.cells_image_list.setUniformItemSizes(True)
+
+        self.verticalLayout_cells.addWidget(self.cells_image_list)
+
+        self.map_tab_widget.addTab(self.cells_tab, "")
+        self.props_tab = QWidget()
+        self.props_tab.setObjectName(u"props_tab")
+        self.verticalLayout_props = QVBoxLayout(self.props_tab)
+        self.verticalLayout_props.setObjectName(u"verticalLayout_props")
+        self.add_props_image_btn = QPushButton(self.props_tab)
+        self.add_props_image_btn.setObjectName(u"add_props_image_btn")
+
+        self.verticalLayout_props.addWidget(self.add_props_image_btn)
+
+        self.props_image_list = QListWidget(self.props_tab)
+        self.props_image_list.setObjectName(u"props_image_list")
+        self.props_image_list.setIconSize(QSize(32, 32))
+        self.props_image_list.setUniformItemSizes(True)
+
+        self.verticalLayout_props.addWidget(self.props_image_list)
+
+        self.map_tab_widget.addTab(self.props_tab, "")
+
+        self.verticalLayout_13.addWidget(self.map_tab_widget)
 
         self.stacked_widget.addWidget(self.map_menu)
         self.server_menu = QWidget()
@@ -867,11 +894,11 @@ class Ui_CustomMainWindow(object):
 
         self.main_body = QWidget(self.central_widget)
         self.main_body.setObjectName(u"main_body")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.main_body.sizePolicy().hasHeightForWidth())
-        self.main_body.setSizePolicy(sizePolicy2)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.main_body.sizePolicy().hasHeightForWidth())
+        self.main_body.setSizePolicy(sizePolicy1)
         self.verticalLayout_10 = QVBoxLayout(self.main_body)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.log_view_top = QWidget(self.main_body)
@@ -897,11 +924,11 @@ class Ui_CustomMainWindow(object):
 
         self.log_view = QTextEdit(self.main_body)
         self.log_view.setObjectName(u"log_view")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.log_view.sizePolicy().hasHeightForWidth())
-        self.log_view.setSizePolicy(sizePolicy3)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.log_view.sizePolicy().hasHeightForWidth())
+        self.log_view.setSizePolicy(sizePolicy2)
         self.log_view.setMinimumSize(QSize(0, 130))
         self.log_view.setMaximumSize(QSize(166666, 130))
         self.log_view.setReadOnly(True)
@@ -957,8 +984,9 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(1)
+        self.stacked_widget.setCurrentIndex(2)
         self.tabWidget.setCurrentIndex(3)
+        self.map_tab_widget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
@@ -1045,6 +1073,10 @@ class Ui_CustomMainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools", None))
         self.map_image_list_label.setText(QCoreApplication.translate("CustomMainWindow", u"Images", None))
+        self.add_cells_image_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Add Image", None))
+        self.map_tab_widget.setTabText(self.map_tab_widget.indexOf(self.cells_tab), QCoreApplication.translate("CustomMainWindow", u"Cells", None))
+        self.add_props_image_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Add Image", None))
+        self.map_tab_widget.setTabText(self.map_tab_widget.indexOf(self.props_tab), QCoreApplication.translate("CustomMainWindow", u"Props", None))
         self.server_state_label.setText(QCoreApplication.translate("CustomMainWindow", u"Server: closed", None))
         self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"URL : <a href=\"{SERVER_URL}\">{SERVER_URL}</a>", None))
         self.open_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open server", None))
