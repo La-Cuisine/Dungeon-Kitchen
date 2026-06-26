@@ -259,7 +259,7 @@ def fromXMLTree(root):
             if (att=="name"):
                 s = root.attrib[att]
             if (att=="type"):
-                t = int(root.attrib[att])
+                t = root.attrib[att]
             if (att=="description"):
                 d = root.attrib[att]
             if (att=="image"):
@@ -273,7 +273,7 @@ def fromXMLTree(root):
             if (att == "name"):
                 s = root.attrib[att]
             if (att == "type"):
-                t = int(root.attrib[att])
+                t = root.attrib[att]
             if (att == "description"):
                 d = root.attrib[att]
             if (att == "image"):
