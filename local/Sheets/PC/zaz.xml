@@ -5,9 +5,9 @@
 >
     <inventory>
         <Item
-            name="stick"
+            name="stick AAAAAAAAAA"
             type="Weapon"
-            description="stick"
+            description="stick AAAAAAAAAA"
         />
         <Item
             name="stickwithlongname"
@@ -52,9 +52,9 @@
     </inventory>
     <skills>
         <Skill
-            name="fireball"
+            name="fireball AAAAAAAA"
             type="0"
-            description="fireball"
+            description="aaaaaaaaaaaa fireball"
         />
         <Skill
             name="fireballwithlongname"

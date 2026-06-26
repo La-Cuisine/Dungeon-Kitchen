@@ -26,8 +26,10 @@ class GuiFunctions():
         self._game_window = None
         self._inventory_items = []  # Item(s) du personnage en cours d'édition
         self._selected_inventory_row = None  # Ligne actuellement sélectionnée dans la liste
+        self._editing_item_index = None  # Index de l'objet en cours d'édition (None = création)
         self._character_skills = []  # Skill(s)/sort(s) du personnage en cours d'édition
         self._selected_skill_row = None  # Ligne actuellement sélectionnée dans la liste de sorts
+        self._editing_spell_index = None  # Index du sort en cours d'édition (None = création)
         self._controller = ServerController()
         self.settings =  QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
         self.last_menu = self.settings.value("Menu")
@@ -106,8 +108,10 @@ class GuiFunctions():
         # Stat/Inv
         self.ui.isNPC.toggled.connect(self.setNPC)
         self.ui.add_item_btn.clicked.connect(self.add_item_to_character)
+        self.ui.edit_item_btn.clicked.connect(self.edit_selected_item)
         self.ui.remove_item_btn.clicked.connect(self.remove_selected_item_from_character)
         self.ui.add_spell_btn.clicked.connect(self.add_skill_to_character)
+        self.ui.edit_spell_btn.clicked.connect(self.edit_selected_spell)
         self.ui.remove_spell_btn.clicked.connect(self.remove_selected_skill_from_character)
 
         # Ouvre ou ferme le log/chat
@@ -528,6 +532,9 @@ class GuiFunctions():
         Vide le panneau Item pour permettre la saisie d'un
         nouvel objet, et bascule sur le menu Item.
         """
+        # Mode création : aucun objet existant n'est en cours d'édition
+        self._editing_item_index = None
+
         # Réinitialise les champs de l'objet
         self.ui.item_name.setText("")
         self.ui.item_type.setCurrentIndex(0)
@@ -542,6 +549,9 @@ class GuiFunctions():
         Vide le panneau Spell pour permettre la saisie d'un
         nouveau sort, et bascule sur le menu Spell.
         """
+        # Mode création : aucun sort existant n'est en cours d'édition
+        self._editing_spell_index = None
+
         # Réinitialise les champs du sort
         self.ui.spell_name.setText("")
         self.ui.spell_description.clear()
@@ -584,6 +594,31 @@ class GuiFunctions():
         del self._inventory_items[self._selected_inventory_row]
         self._selected_inventory_row = None
         self._refresh_inventory_grid()
+
+    def edit_selected_item(self):
+        """
+        Slot connecté au signal clicked du bouton "Edit item".
+        Pré-remplit le formulaire Item avec les données de l'objet
+        sélectionné dans l'inventaire et bascule vers le menu Item.
+        L'index de l'objet est mémorisé dans _editing_item_index pour que
+        save_item() mette à jour l'entrée existante au lieu d'en créer une.
+        """
+        if self._selected_inventory_row is None:
+            self._append_log("[ERREUR] Aucun objet sélectionné dans l'inventaire.")
+            return
+
+        item = self._inventory_items[self._selected_inventory_row]
+        self._editing_item_index = self._selected_inventory_row
+
+        # Pré-remplit le formulaire avec les données de l'objet
+        self.ui.item_name.setText(item.name())
+        self.ui.item_type.setCurrentText(item.type())
+        self.ui.item_description.setText(item.description())
+
+        # Bascule vers le menu Item
+        self.switch_to_item_menu()
+
+
 
     def _select_inventory_row(self, row):
         """
@@ -673,6 +708,28 @@ class GuiFunctions():
         del self._character_skills[self._selected_skill_row]
         self._selected_skill_row = None
         self._refresh_skill_grid()
+
+    def edit_selected_spell(self):
+        """
+        Slot connecté au signal clicked du bouton "Edit spell".
+        Pré-remplit le formulaire Spell avec les données du sort sélectionné
+        dans la liste et bascule vers le menu Spell.
+        L'index du sort est mémorisé dans _editing_spell_index pour que
+        save_spell() mette à jour l'entrée existante au lieu d'en créer une.
+        """
+        if self._selected_skill_row is None:
+            self._append_log("[ERREUR] Aucun sort sélectionné dans la liste.")
+            return
+
+        skill = self._character_skills[self._selected_skill_row]
+        self._editing_spell_index = self._selected_skill_row
+
+        # Pré-remplit le formulaire avec les données du sort
+        self.ui.spell_name.setText(skill.name())
+        self.ui.spell_description.setText(skill.description())
+
+        # Bascule vers le menu Spell
+        self.switch_to_spell_menu()
 
     def _select_skill_row(self, row):
         """
@@ -1124,8 +1181,12 @@ class GuiFunctions():
     
     def save_item(self):
         """
-        Sauvegarde les informations du personnage 
-        dans un fichier XML
+        Sauvegarde les informations de l'objet.
+        - Mode édition (depuis l'inventaire du personnage) : met à jour
+          uniquement l'entrée en mémoire, sans toucher au fichier XML sur
+          le disque, puis revient au menu Character.
+        - Mode création : sauvegarde l'objet dans un fichier XML comme
+          d'habitude.
         """
         # Récupère les informations de l'objet
         #TODO
@@ -1134,29 +1195,38 @@ class GuiFunctions():
         item_type = self.ui.item_type.currentText()
         item_description = self.ui.item_description.toPlainText().strip()
         item = Item(Name=item_name, Type=item_type, Description=item_description)
-        
-        # Détermine le type de l'objet pour le stocker
-        # dans le bon dossier
-        if(item_type == "Weapon"):
-            save_dir = "./local/Items/Weapon/"
-        elif(item_type == "Armour"):
-            save_dir = "./local/Items/Armour/"
-        elif(item_type == "Consumable"):
-            save_dir = "./local/Items/Consumable/"
+
+        if self._editing_item_index is not None:
+            # Mode édition : mise à jour en mémoire uniquement
+            self._inventory_items[self._editing_item_index] = item
+            self._selected_inventory_row = self._editing_item_index
+            self._editing_item_index = None
+            self._refresh_inventory_grid()
+            self.switch_to_character_menu_selection()
+            self._append_log(f"[INFO] Objet '{item_name}' mis à jour dans l'inventaire du personnage.")
         else:
-            save_dir = "./local/Items/Miscellaneous/"
+            # Mode création : sauvegarde dans le fichier XML
+            if item_type == "Weapon":
+                save_dir = "./local/Items/Weapon/"
+            elif item_type == "Armour":
+                save_dir = "./local/Items/Armour/"
+            elif item_type == "Consumable":
+                save_dir = "./local/Items/Consumable/"
+            else:
+                save_dir = "./local/Items/Miscellaneous/"
 
-        # Création du fichier XML
-        os.makedirs(save_dir, exist_ok=True)
-        toXML_saveto(item, save_dir)
-
-        # Affiche un message dans le chat
-        self._append_log(f"[INFO] Objet '{item_name}' sauvegardé dans {save_dir}")
+            os.makedirs(save_dir, exist_ok=True)
+            toXML_saveto(item, save_dir)
+            self._append_log(f"[INFO] Objet '{item_name}' sauvegardé dans {save_dir}")
 
     def save_spell(self):
         """
-        Sauvegarde les informations du sort
-        dans un fichier XML
+        Sauvegarde les informations du sort.
+        - Mode édition (depuis la liste de sorts du personnage) : met à jour
+          uniquement l'entrée en mémoire, sans toucher au fichier XML sur
+          le disque, puis revient au menu Character.
+        - Mode création : sauvegarde le sort dans un fichier XML comme
+          d'habitude.
         """
         # Récupère les informations du sort
         #TODO
@@ -1165,14 +1235,20 @@ class GuiFunctions():
         spell_description = self.ui.spell_description.toPlainText().strip()
         spell = Skill(Name=spell_name, Description=spell_description)
 
-        save_dir = "./local/Spells/"
-
-        # Création du fichier XML
-        os.makedirs(save_dir, exist_ok=True)
-        toXML_saveto(spell, save_dir)
-
-        # Affiche un message dans le chat
-        self._append_log(f"[INFO] Sort '{spell_name}' sauvegardé dans {save_dir}")
+        if self._editing_spell_index is not None:
+            # Mode édition : mise à jour en mémoire uniquement
+            self._character_skills[self._editing_spell_index] = spell
+            self._selected_skill_row = self._editing_spell_index
+            self._editing_spell_index = None
+            self._refresh_skill_grid()
+            self.switch_to_character_menu_selection()
+            self._append_log(f"[INFO] Sort '{spell_name}' mis à jour dans la liste de sorts du personnage.")
+        else:
+            # Mode création : sauvegarde dans le fichier XML
+            save_dir = "./local/Spells/"
+            os.makedirs(save_dir, exist_ok=True)
+            toXML_saveto(spell, save_dir)
+            self._append_log(f"[INFO] Sort '{spell_name}' sauvegardé dans {save_dir}")
 
     def load_xml(self):
         """
