@@ -1,6 +1,6 @@
 from PySide6.QtCore import QSettings, QTimer, Qt
 from PySide6.QtGui import QColor, QPalette, QPainter, QBrush
-from PySide6.QtWidgets import QGraphicsScene, QFileDialog
+from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 from Custom_Widgets.QCustomTheme import QCustomTheme
@@ -24,6 +24,10 @@ class GuiFunctions():
         self.ui = MainWindow.ui
         self._log_thread = None
         self._game_window = None
+        self._inventory_items = []  # Item(s) du personnage en cours d'édition
+        self._selected_inventory_row = None  # Ligne actuellement sélectionnée dans la liste
+        self._character_skills = []  # Skill(s)/sort(s) du personnage en cours d'édition
+        self._selected_skill_row = None  # Ligne actuellement sélectionnée dans la liste de sorts
         self._controller = ServerController()
         self.settings =  QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
         self.last_menu = self.settings.value("Menu")
@@ -100,6 +104,10 @@ class GuiFunctions():
 
         # Stat/Inv
         self.ui.isNPC.toggled.connect(self.setNPC)
+        self.ui.add_item_btn.clicked.connect(self.add_item_to_character)
+        self.ui.remove_item_btn.clicked.connect(self.remove_selected_item_from_character)
+        self.ui.add_spell_btn.clicked.connect(self.add_skill_to_character)
+        self.ui.remove_spell_btn.clicked.connect(self.remove_selected_skill_from_character)
 
         # Ouvre ou ferme le log/chat
         self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
@@ -441,38 +449,194 @@ class GuiFunctions():
         self.ui.alignement_NPC.setCurrentIndex(0)
         self.setNPC()
 
+        # Réinitilialise l'inventaire
+        self._inventory_items = []
+        self._selected_inventory_row = None
+        self._refresh_inventory_grid()
+
+        # Réinitilialise la liste de sorts
+        self._character_skills = []
+        self._selected_skill_row = None
+        self._refresh_skill_grid()
+
         #TODO
-        # Réinitilialise l'inventaire, les sorts et les traits
+        # Réinitilialise les traits
 
         # Affiche le panneau Character pour la saisie
         self.switch_to_character_menu_selection()
 
     def add_item_to_character(self):
-        item = self.load_xml()
+        """
+        Slot connecté au signal clicked du bouton "Add item".
+        Ouvre un sélecteur de fichier pour choisir un objet (.xml,
+        normalement sous ./local/Items/...) et l'ajoute à l'inventaire
+        du personnage en cours de création/édition.
+        """
+        try:
+            item = self.load_xml()
+        except Exception as exc:
+            # L'utilisateur a annulé la sélection, ou le fichier est invalide
+            self._append_log(f"[ERREUR] {exc}")
+            return
 
-        if not(isinstance(item,Item)):
-            raise Exception("Invalid_object_type")
-        else:
-            # Récupère les attributs
-            item_name = item.name()
-            item_type  = item.type()
-            item_description = item.description()
+        if not isinstance(item, Item):
+            self._append_log("[ERREUR] Le fichier sélectionné n'est pas un objet (Item) valide.")
+            return
 
-            # Ajoute l'objet à la première case
-            # disponible de grille de l'inventaire
-            i = self.ui.item_grid.rowCount()
-            j = self.ui.item_grid.columnCount()
+        # Ajoute l'objet à l'inventaire en mémoire et rafraîchit l'affichage
+        self._inventory_items.append(item)
+        self._refresh_inventory_grid()
 
-            for row in range(i):
-                for col in range(j):
-                    if(self.ui.item_grid.itemAtPosition(row,col).isEmpty()):
-                        pass
-                    else:
-                        #TODO
-                        # Ajouter un objet à l'inventaire
-                        #self.ui.item_grid.addWidget
-                        pass
-    
+    def remove_selected_item_from_character(self):
+        """
+        Slot connecté au signal clicked du bouton "Remove item".
+        Retire de l'inventaire en cours d'édition l'objet actuellement
+        sélectionné dans la liste (aucune action si rien n'est sélectionné).
+        """
+        if self._selected_inventory_row is None:
+            self._append_log("[ERREUR] Aucun objet sélectionné dans l'inventaire.")
+            return
+
+        del self._inventory_items[self._selected_inventory_row]
+        self._selected_inventory_row = None
+        self._refresh_inventory_grid()
+
+    def _select_inventory_row(self, row):
+        """
+        Mémorise la ligne actuellement sélectionnée dans la liste de
+        l'inventaire et affiche sa description (appelé quand l'utilisateur
+        clique sur un objet).
+        """
+        self._selected_inventory_row = row
+        self.ui.item_desc_display.setPlainText(self._inventory_items[row].description())
+
+    def _refresh_inventory_grid(self):
+        """
+        Reconstruit entièrement l'affichage de self.ui.item_grid : une
+        liste verticale (du haut vers le bas, une seule colonne) d'objets
+        sélectionnables. Le bouton "Remove item" retire l'objet sélectionné.
+        """
+        # Vide la grille existante
+        while self.ui.item_grid.count():
+            child = self.ui.item_grid.takeAt(0)
+            widget = child.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        # Vide la description tant qu'aucune sélection n'est restaurée
+        self.ui.item_desc_display.clear()
+
+        # Reconstruit une ligne par objet, du haut vers le bas
+        for row, item in enumerate(self._inventory_items):
+            btn = QPushButton(f"{item.name()} ({item.type()})")
+            btn.setCheckable(True)
+            btn.setAutoExclusive(True)  # Une seule ligne sélectionnable à la fois
+            btn.setStyleSheet(
+                "QPushButton {"
+                "  text-align: left;"
+                "  padding: 4px 8px;"
+                "  border: none;"
+                "  background: transparent;"
+                "}"
+                "QPushButton:checked {"
+                "  background-color: #3498db;"
+                "  color: white;"
+                "  border-radius: 4px;"
+                "}"
+            )
+            btn.toggled.connect(lambda checked, r=row: self._select_inventory_row(r) if checked else None)
+            self.ui.item_grid.addWidget(btn, row, 0)
+
+            # Restaure la sélection si elle est encore valide après le rafraîchissement
+            if row == self._selected_inventory_row:
+                btn.setChecked(True)
+
+    def add_skill_to_character(self):
+        """
+        Slot connecté au signal clicked du bouton "Add Spell" (panneau Spell
+        de la fiche de personnage). Ouvre un sélecteur de fichier pour
+        choisir un sort (.xml, normalement sous ./local/Spells/) et l'ajoute
+        à la liste de sorts du personnage en cours de création/édition.
+        """
+        try:
+            skill = self.load_xml()
+        except Exception as exc:
+            # L'utilisateur a annulé la sélection, ou le fichier est invalide
+            self._append_log(f"[ERREUR] {exc}")
+            return
+
+        if not isinstance(skill, Skill):
+            self._append_log("[ERREUR] Le fichier sélectionné n'est pas un sort (Skill) valide.")
+            return
+
+        # Ajoute le sort à la liste en mémoire et rafraîchit l'affichage
+        self._character_skills.append(skill)
+        self._refresh_skill_grid()
+
+    def remove_selected_skill_from_character(self):
+        """
+        Slot connecté au signal clicked du bouton "Remove spell".
+        Retire de la liste de sorts en cours d'édition le sort actuellement
+        sélectionné (aucune action si rien n'est sélectionné).
+        """
+        if self._selected_skill_row is None:
+            self._append_log("[ERREUR] Aucun sort sélectionné dans la liste.")
+            return
+
+        del self._character_skills[self._selected_skill_row]
+        self._selected_skill_row = None
+        self._refresh_skill_grid()
+
+    def _select_skill_row(self, row):
+        """
+        Mémorise la ligne actuellement sélectionnée dans la liste de
+        sorts et affiche sa description (appelé quand l'utilisateur
+        clique sur un sort).
+        """
+        self._selected_skill_row = row
+        self.ui.spell_desc_display.setPlainText(self._character_skills[row].description())
+
+    def _refresh_skill_grid(self):
+        """
+        Reconstruit entièrement l'affichage de self.ui.spell_grid : une
+        liste verticale (du haut vers le bas, une seule colonne) de sorts
+        sélectionnables. Le bouton "Remove spell" retire le sort sélectionné.
+        """
+        # Vide la grille existante
+        while self.ui.spell_grid.count():
+            child = self.ui.spell_grid.takeAt(0)
+            widget = child.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        # Vide la description tant qu'aucune sélection n'est restaurée
+        self.ui.spell_desc_display.clear()
+
+        # Reconstruit une ligne par sort, du haut vers le bas
+        for row, skill in enumerate(self._character_skills):
+            btn = QPushButton(skill.name())
+            btn.setCheckable(True)
+            btn.setAutoExclusive(True)  # Une seule ligne sélectionnable à la fois
+            btn.setStyleSheet(
+                "QPushButton {"
+                "  text-align: left;"
+                "  padding: 4px 8px;"
+                "  border: none;"
+                "  background: transparent;"
+                "}"
+                "QPushButton:checked {"
+                "  background-color: #3498db;"
+                "  color: white;"
+                "  border-radius: 4px;"
+                "}"
+            )
+            btn.toggled.connect(lambda checked, r=row: self._select_skill_row(r) if checked else None)
+            self.ui.spell_grid.addWidget(btn, row, 0)
+
+            # Restaure la sélection si elle est encore valide après le rafraîchissement
+            if row == self._selected_skill_row:
+                btn.setChecked(True)
+
     # ----------------------------------------------------------------
     # Chat/Log
     # ----------------------------------------------------------------
@@ -853,6 +1017,14 @@ class GuiFunctions():
         sheet.add_stat("WIS", wis)
         sheet.add_stat("CHA", cha)
 
+        # Ajoute les objets de l'inventaire en cours d'édition sur la fiche
+        for item in self._inventory_items:
+            sheet.addItem(item)
+
+        # Ajoute les sorts en cours d'édition sur la fiche
+        for skill in self._character_skills:
+            sheet.addSkill(skill)
+
         # Création du fichier XML
         os.makedirs(save_dir, exist_ok=True)
         toXML_saveto(sheet, save_dir)
@@ -969,6 +1141,17 @@ class GuiFunctions():
             self.ui.isNPC.blockSignals(False)
 
             self.setNPC()
+
+            # Récupère l'inventaire stocké dans la fiche et l'affiche
+            self._inventory_items = list(sheet.inventory())
+            self._selected_inventory_row = None
+            self._refresh_inventory_grid()
+
+            # Récupère les sorts stockés dans la fiche et les affiche
+            self._character_skills = list(sheet.skills())
+            self._selected_skill_row = None
+            self._refresh_skill_grid()
+
             self.switch_to_character_menu_selection()
 
     def load_item(self):

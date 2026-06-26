@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'new_QCustomQMainWindow.ui'
+## Form generated from reading UI file 'QCustomQMainWindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.11.1
 ##
@@ -527,6 +527,13 @@ class Ui_CustomMainWindow(object):
 
         self.verticalLayout_18.addLayout(self.item_grid)
 
+        self.item_desc_display = QTextEdit(self.inventory)
+        self.item_desc_display.setObjectName(u"item_desc_display")
+        self.item_desc_display.setMaximumSize(QSize(16777215, 100))
+        self.item_desc_display.setReadOnly(True)
+
+        self.verticalLayout_18.addWidget(self.item_desc_display)
+
         self.tabWidget.addTab(self.inventory, "")
         self.spell = QWidget()
         self.spell.setObjectName(u"spell")
@@ -570,6 +577,13 @@ class Ui_CustomMainWindow(object):
         self.spell_grid.setSizeConstraint(QLayout.SizeConstraint.SetMaximumSize)
 
         self.verticalLayout_16.addLayout(self.spell_grid)
+
+        self.spell_desc_display = QTextEdit(self.spell)
+        self.spell_desc_display.setObjectName(u"spell_desc_display")
+        self.spell_desc_display.setMaximumSize(QSize(16777215, 100))
+        self.spell_desc_display.setReadOnly(True)
+
+        self.verticalLayout_16.addWidget(self.spell_desc_display)
 
         self.tabWidget.addTab(self.spell, "")
         self.trait = QWidget()
@@ -979,10 +993,12 @@ class Ui_CustomMainWindow(object):
         self.add_item_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Add item", None))
         self.edit_item_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Edit item", None))
         self.remove_item_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Remove item", None))
+        self.item_desc_display.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Select an item to see its description", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.inventory), QCoreApplication.translate("CustomMainWindow", u"Inventory", None))
         self.add_spell_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Add Spell", None))
         self.edit_spell_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Edit spell", None))
         self.remove_spell_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Remove spell", None))
+        self.spell_desc_display.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Select a spell to see its description", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.spell), QCoreApplication.translate("CustomMainWindow", u"Spell", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools ?", None))

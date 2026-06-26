@@ -932,6 +932,22 @@ li.checked::marker { content: &quot;\2612&quot;; }
                     </property>
                    </layout>
                   </item>
+                  <item>
+                   <widget class="QTextEdit" name="item_desc_display">
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>100</height>
+                     </size>
+                    </property>
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                    <property name="placeholderText">
+                     <string>Select an item to see its description</string>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                 <widget class="QWidget" name="spell">
@@ -1012,6 +1028,22 @@ li.checked::marker { content: &quot;\2612&quot;; }
                      <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
                     </property>
                    </layout>
+                  </item>
+                  <item>
+                   <widget class="QTextEdit" name="spell_desc_display">
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>100</height>
+                     </size>
+                    </property>
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                    <property name="placeholderText">
+                     <string>Select a spell to see its description</string>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </widget>
