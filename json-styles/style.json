@@ -44,21 +44,11 @@
                 "information_btn",
                 "help_btn",
                 "item_btn",
-                "spell_btn"
-            ],
-            "ActiveButton": "homeBtn",
-            "Style": [
-                {
-                    "Active": "QPushButton{background-color: THEME.COLOR_BACKGROUND_2; font-weight: bold; border-top: 2px solid $COLOR_BACKGROUND_3; border-left: 5px solid $COLOR_BACKGROUND_3;border-bottom: 6px solid $COLOR_BACKGROUND_3;}",
-                    "NotActive": "QPushButton{background-color: transparent; font-weight: normal; border-top: 2px solid transparent; border-left: 5px solid transparent;border-bottom: 6px solid transparent;}"
-                }
-            ]
-        },
-        {
-            "Buttons": [
+                "spell_btn",
                 "open_info_menu_btn",
                 "close_info_menu_btn"
             ],
+            "ActiveButton": "homeBtn",
             "Style": [
                 {
                     "Active": "QPushButton::hover{background-color: THEME.COLOR_ACCENT_1}",
