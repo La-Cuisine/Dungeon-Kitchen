@@ -299,6 +299,9 @@ class Game:
             res.new_layer(l,0,0,self._layers[l])
         for p in self._pawns:
             res.add_pawn(self._pawns[p],p[0],p[1],p[2])
+        for folder in self._assets["Images"]:
+            for img in self._assets["Images"][folder]:
+                res.add_image(folder,img)
         for it in self._itemList:
             res.add_item(it)
         for sk in self._skillList:
