@@ -22,9 +22,15 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item alignment="Qt::AlignmentFlag::AlignLeft">
      <widget class="QWidget" name="sidebar" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="maximumSize">
        <size>
-        <width>170</width>
+        <width>120</width>
         <height>16777215</height>
        </size>
       </property>
@@ -118,6 +124,26 @@
           <property name="bottomMargin">
            <number>5</number>
           </property>
+          <item>
+           <widget class="QPushButton" name="item_btn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Item</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="spell_btn">
+            <property name="text">
+             <string>Spell</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QPushButton" name="character_btn">
             <property name="minimumSize">
@@ -255,6 +281,19 @@
      </widget>
     </item>
     <item>
+     <widget class="Line" name="line_7">
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Sunken</enum>
+      </property>
+      <property name="lineWidth">
+       <number>1</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Orientation::Vertical</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QWidget" name="center_menu" native="true">
       <property name="enabled">
        <bool>true</bool>
@@ -343,7 +382,7 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
-          <number>3</number>
+          <number>7</number>
          </property>
          <widget class="QWidget" name="settings_menu">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -468,7 +507,7 @@ li.checked::marker { content: "\2612"; }
                  <enum>QTabWidget::TabShape::Rounded</enum>
                 </property>
                 <property name="currentIndex">
-                 <number>0</number>
+                 <number>1</number>
                 </property>
                 <property name="elideMode">
                  <enum>Qt::TextElideMode::ElideNone</enum>
@@ -768,6 +807,13 @@ li.checked::marker { content: "\2612"; }
                       <number>0</number>
                      </property>
                      <item>
+                      <widget class="QPushButton" name="create_new_character_btn">
+                       <property name="text">
+                        <string>Create new character</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
                       <widget class="QPushButton" name="save_character_btn">
                        <property name="text">
                         <string>Save character</string>
@@ -775,7 +821,7 @@ li.checked::marker { content: "\2612"; }
                       </widget>
                      </item>
                      <item>
-                      <widget class="QPushButton" name="load_character_btn_2">
+                      <widget class="QPushButton" name="load_character_btn">
                        <property name="text">
                         <string>Load character</string>
                        </property>
@@ -811,13 +857,13 @@ li.checked::marker { content: "\2612"; }
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
-                      <height>60</height>
+                      <height>100</height>
                      </size>
                     </property>
                     <property name="maximumSize">
                      <size>
                       <width>16777215</width>
-                      <height>60</height>
+                      <height>100</height>
                      </size>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -827,6 +873,9 @@ li.checked::marker { content: "\2612"; }
                      <property name="leftMargin">
                       <number>0</number>
                      </property>
+                     <property name="topMargin">
+                      <number>6</number>
+                     </property>
                      <property name="rightMargin">
                       <number>0</number>
                      </property>
@@ -834,7 +883,7 @@ li.checked::marker { content: "\2612"; }
                       <number>0</number>
                      </property>
                      <item>
-                      <widget class="QPushButton" name="pushButton_2">
+                      <widget class="QPushButton" name="add_item_btn">
                        <property name="maximumSize">
                         <size>
                          <width>16777215</width>
@@ -847,7 +896,14 @@ li.checked::marker { content: "\2612"; }
                       </widget>
                      </item>
                      <item>
-                      <widget class="QPushButton" name="pushButton_3">
+                      <widget class="QPushButton" name="edit_item_btn">
+                       <property name="text">
+                        <string>Edit item</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="remove_item_btn">
                        <property name="maximumSize">
                         <size>
                          <width>16777215</width>
@@ -863,7 +919,18 @@ li.checked::marker { content: "\2612"; }
                    </widget>
                   </item>
                   <item>
-                   <layout class="QGridLayout" name="gridLayout" />
+                   <widget class="Line" name="line_5">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QGridLayout" name="item_grid">
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
+                    </property>
+                   </layout>
                   </item>
                  </layout>
                 </widget>
@@ -872,9 +939,6 @@ li.checked::marker { content: "\2612"; }
                   <string>Spell</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_16">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
                   <property name="sizeConstraint">
                    <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
                   </property>
@@ -890,10 +954,62 @@ li.checked::marker { content: "\2612"; }
                   <property name="bottomMargin">
                    <number>0</number>
                   </property>
+                  <item alignment="Qt::AlignmentFlag::AlignTop">
+                   <widget class="QWidget" name="widget_9" native="true">
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>100</height>
+                     </size>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_17">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>6</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QPushButton" name="add_spell_btn">
+                       <property name="text">
+                        <string>Add Spell</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="edit_spell_btn">
+                       <property name="text">
+                        <string>Edit spell</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="remove_spell_btn">
+                       <property name="text">
+                        <string>Remove spell</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
                   <item>
-                   <layout class="QGridLayout" name="gridLayout_2" rowminimumheight="0">
+                   <widget class="Line" name="line_6">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QGridLayout" name="spell_grid" rowminimumheight="0">
                     <property name="sizeConstraint">
-                     <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
+                     <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
                     </property>
                    </layout>
                   </item>
@@ -1141,46 +1257,223 @@ li.checked::marker { content: "\2612"; }
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="character_menu_start">
-          <layout class="QVBoxLayout" name="verticalLayout_17">
+         <widget class="QWidget" name="item_menu">
+          <layout class="QVBoxLayout" name="verticalLayout_22">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
-            <widget class="QPushButton" name="create_character_btn">
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>35</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Create character</string>
+            <widget class="QLineEdit" name="item_name">
+             <property name="placeholderText">
+              <string>Item name</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="load_character_btn">
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>35</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Load character</string>
+            <widget class="QComboBox" name="item_type">
+             <item>
+              <property name="text">
+               <string>Weapon</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Armour</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Consumable</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Miscellaneous</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="widget_10" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="item_img">
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string />
+                </property>
+                <property name="pixmap">
+                 <pixmap>image/placeholder.png</pixmap>
+                </property>
+                <property name="scaledContents">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="choose_item_img">
+                <property name="text">
+                 <string>Choose item icon</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTextEdit" name="item_description">
+             <property name="placeholderText">
+              <string>Item description</string>
              </property>
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_6">
+            <widget class="Line" name="line_4">
              <property name="orientation">
-              <enum>Qt::Orientation::Vertical</enum>
+              <enum>Qt::Orientation::Horizontal</enum>
              </property>
-             <property name="sizeHint" stdset="0">
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="save_item">
+             <property name="text">
+              <string>Save item</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="load_item">
+             <property name="text">
+              <string>Load item</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="spell_menu">
+          <layout class="QVBoxLayout" name="verticalLayout_21">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLineEdit" name="spell_name">
+             <property name="placeholderText">
+              <string>Spell name</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="widget_11" native="true">
+             <property name="maximumSize">
               <size>
-               <width>20</width>
-               <height>40</height>
+               <width>167775</width>
+               <height>50</height>
               </size>
              </property>
-            </spacer>
+             <layout class="QHBoxLayout" name="horizontalLayout_8">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="spell_img">
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string />
+                </property>
+                <property name="pixmap">
+                 <pixmap>image/placeholder.png</pixmap>
+                </property>
+                <property name="scaledContents">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="choose_spell_img">
+                <property name="text">
+                 <string>Choose spell icon</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTextEdit" name="spell_description">
+             <property name="placeholderText">
+              <string>Spell description</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_8">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="save_spell">
+             <property name="text">
+              <string>Save spell</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="load_spell">
+             <property name="text">
+              <string>Load spell</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -1303,6 +1596,8 @@ li.checked::marker { content: "\2612"; }
      </property>
      <addaction name="actionNew_character" />
      <addaction name="actionNew_map" />
+     <addaction name="actionNew_item" />
+     <addaction name="actionNew_spell" />
     </widget>
     <widget class="QMenu" name="menuOpen">
      <property name="title">
@@ -1310,6 +1605,8 @@ li.checked::marker { content: "\2612"; }
      </property>
      <addaction name="actionOpen_character" />
      <addaction name="actionOpen_map" />
+     <addaction name="actionOpen_item" />
+     <addaction name="actionOpen_spell" />
     </widget>
     <addaction name="menuNew" />
     <addaction name="menuOpen" />
@@ -1420,6 +1717,26 @@ li.checked::marker { content: "\2612"; }
    </property>
    <property name="text">
     <string>Info menu</string>
+   </property>
+  </action>
+  <action name="actionNew_item">
+   <property name="text">
+    <string>New item</string>
+   </property>
+  </action>
+  <action name="actionOpen_item">
+   <property name="text">
+    <string>Open item</string>
+   </property>
+  </action>
+  <action name="actionNew_spell">
+   <property name="text">
+    <string>New spell</string>
+   </property>
+  </action>
+  <action name="actionOpen_spell">
+   <property name="text">
+    <string>Open spell</string>
    </property>
   </action>
  </widget>

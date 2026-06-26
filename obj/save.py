@@ -248,13 +248,13 @@ def fromXMLTree(root):
     new = None
     if(observe == "Item"):
         i = 0
-        t = 0
+        t = ""
         d = ""
         for att in root.attrib:
             if i==0:
                 s = root.attrib[att]
             if i==1:
-                t = int(root.attrib[att])
+                t = str(root.attrib[att])
             if i==2:
                 d = root.attrib[att]
             i+=1

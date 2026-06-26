@@ -1,10 +1,9 @@
 from PySide6.QtCore import QSettings, QTimer, Qt
 from PySide6.QtGui import QColor, QPalette, QPainter, QBrush
-from PySide6.QtWidgets import QGraphicsScene
+from PySide6.QtWidgets import QGraphicsScene, QFileDialog
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 from Custom_Widgets.QCustomTheme import QCustomTheme
-
 import webbrowser
 # Import interne
 from src.MJ_application.server import SERVER_URL, ServerController
@@ -25,7 +24,6 @@ class GuiFunctions():
         self._controller = ServerController()
         self.settings =  QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
         self.last_menu = self.settings.value("Menu")
-        self.loaded_character = False
 
 
         self.init_app_theme()
@@ -90,7 +88,8 @@ class GuiFunctions():
         self.ui.settings_btn.clicked.connect(self.switch_to_settings_menu)
         self.ui.information_btn.clicked.connect(self.switch_to_information_menu)
         self.ui.help_btn.clicked.connect(self.switch_to_help_menu)
-        self.ui.create_character_btn.clicked.connect(self.switch_to_character_menu_info)
+        self.ui.item_btn.clicked.connect(self.switch_to_item_menu)
+        self.ui.spell_btn.clicked.connect(self.switch_to_spell_menu)
 
         # Ouvre ou ferme le menu d'information
         self.ui.open_info_menu_btn.clicked.connect(self.switch_center_menu_display_state)
@@ -103,7 +102,11 @@ class GuiFunctions():
         self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
 
         # Save/Load
-        self.ui.save_character_btn.clicked.connect(self.save_character)
+        self.ui.save_character_btn.clicked.connect(self.save_character_stat)
+        self.ui.load_character_btn.clicked.connect(self.load_character)
+        self.ui.save_item.clicked.connect(self.save_item)
+        self.ui.load_item.clicked.connect(self.load_item)
+        
 
         # Démarre ou ferme le serveur
         self.ui.open_server_btn.clicked.connect(self._update_server_label_open)
@@ -302,16 +305,9 @@ class GuiFunctions():
         self._open_center_menu()
 
     def switch_to_character_menu_selection(self):
-        if(self.loaded_character == False):
-            self.ui.stacked_widget.setCurrentIndex(6)
-            self.settings.setValue("MENU INFO",6)
-        else:
-            self.ui.stacked_widget.setCurrentIndex(1)
-        self._open_center_menu()
-
-    def switch_to_character_menu_info(self):
-        self.loaded_character = True
         self.ui.stacked_widget.setCurrentIndex(1)
+        self.settings.setValue("MENU INFO",1)
+        self._open_center_menu()    
 
     def switch_to_map_menu(self):
         self.ui.stacked_widget.setCurrentIndex(2)
@@ -331,6 +327,16 @@ class GuiFunctions():
     def switch_to_help_menu(self):
         self.ui.stacked_widget.setCurrentIndex(5)
         self.settings.setValue("MENU INFO",5)
+        self._open_center_menu()
+
+    def switch_to_item_menu(self):
+        self.ui.stacked_widget.setCurrentIndex(6)
+        self.settings.setValue("MENU INFO",6)
+        self._open_center_menu()
+
+    def switch_to_spell_menu(self):
+        self.ui.stacked_widget.setCurrentIndex(7)
+        self.settings.setValue("MENU INFO",7)
         self._open_center_menu()
 
     def _open_center_menu(self):
@@ -384,10 +390,13 @@ class GuiFunctions():
         self.ui.actionInfo_menu.blockSignals(False)
             
     # ----------------------------------------------------------------
-    # Stat/Inv
+    # Stat/Inv/Spell/Trait
     # ----------------------------------------------------------------
 
     def setNPC(self):
+        """
+        Affiche ou cache les options liées au NPC
+        """
         # Active le choix de l'alignement d'un npc
         if(self.ui.isNPC.isChecked() == True):
             self.ui.alignement_NPC.setVisible(True)
@@ -399,6 +408,51 @@ class GuiFunctions():
         else:
             print("Erreur setNPC")
 
+    def create_new_character(self):
+        # Réinitilialise les widgets
+        self.ui.character_name.setText(None)
+        self.ui.hp_nb.setValue(0)
+        self.ui.str_nb.setValue(0)
+        self.ui.dex_nb.setValue(0)
+        self.ui.con_nb.setValue(0)
+        self.ui.int_nb.setValue(0)
+        self.ui.wis_nb.setValue(0)
+        self.ui.cha_nb.setValue(0)
+
+        # Décoche la case isNPC
+        self.ui.isNPC.blockSignals(True)
+        self.ui.isNPC.setChecked(False)
+        self.ui.isNPC.blockSignals(False)
+
+        #TODO
+        # Réinitilialise l'inventaire, les sorts et les traits
+
+    def add_item_to_character(self):
+        item = self.load_xml()
+
+        if not(isinstance(item,Item)):
+            raise Exception("Invalid_object_type")
+        else:
+            # Récupère les attributs
+            item_name = item.name()
+            item_type  = item.type()
+            item_description = item.description()
+
+            # Ajoute l'objet à la première case
+            # disponible de grille de l'inventaire
+            i = self.ui.item_grid.rowCount()
+            j = self.ui.item_grid.columnCount()
+
+            for row in range(i):
+                for col in range(j):
+                    if(self.ui.item_grid.itemAtPosition(row,col).isEmpty()):
+                        pass
+                    else:
+                        #TODO
+                        # Ajouter un objet à l'inventaire
+                        #self.ui.item_grid.addWidget
+                        pass
+    
     # ----------------------------------------------------------------
     # Chat/Log
     # ----------------------------------------------------------------
@@ -725,25 +779,162 @@ class GuiFunctions():
     # Gestion de save/load
     # ----------------------------------------------------------------
 
-    def save_character(self):
-        name = self.ui.character_name.toMarkdown()
-        self.pc_sheet = PC(Name=name)
+    def save_character_stat(self):
+        """
+        Sauvegarde les informations du personnage 
+        dans un fichier XML
+        """
+        # Récolte du nom du personnage
+        name = self.ui.character_name.toPlainText().strip()
+        if not name:
+            name = "Unnamed"
 
-        # Add stats to the save file
-        hp = self.ui.hp_nb.value()
+        # Récolte des attributs
+        is_npc = self.ui.isNPC.isChecked()
+
+        hp  = self.ui.hp_nb.value()
         str = self.ui.str_nb.value()
         dex = self.ui.dex_nb.value()
         con = self.ui.con_nb.value()
         int = self.ui.int_nb.value()
         wis = self.ui.wis_nb.value()
         cha = self.ui.cha_nb.value()
+
+        # Vérifie si l'entité est un NPC ou un PC
+        if is_npc:
+            alignement = self.ui.alignement_NPC.currentIndex()
+            sheet = NPC(Name=name, Alignement=alignement)
+            save_dir = "./local/Sheets/NPC/"
+        else:
+            sheet = PC(Name=name)
+            save_dir = "./local/Sheets/PC/"
+
+        # Ajoute les attibuts sur la fiche de personnage
+        sheet.add_stat("HP",  hp)
+        sheet.add_stat("STR", str)
+        sheet.add_stat("DEX", dex)
+        sheet.add_stat("CON", con)
+        sheet.add_stat("INT", int)
+        sheet.add_stat("WIS", wis)
+        sheet.add_stat("CHA", cha)
+
+        # Création du fichier XML
+        os.makedirs(save_dir, exist_ok=True)
+        toXML_saveto(sheet, save_dir)
+
+        self.pc_sheet = sheet  # keep reference if needed elsewhere
+        self._append_log(f"[INFO] Personnage '{name}' sauvegardé dans {save_dir}")
+    
+    def save_item(self):
+        """
+        Sauvegarde les informations du personnage 
+        dans un fichier XML
+        """
+        # Récupère les informations de l'objet
+        #TODO
+        # Récup image et stocke image
+        item_name = self.ui.item_name.text().strip()
+        item_type = self.ui.item_type.currentText()
+        item_description = self.ui.item_description.toPlainText().strip()
+        item = Item(Name=item_name, Type=item_type, Description=item_description)
         
-        self.pc_sheet.add_stat("HP",hp)
-        self.pc_sheet.add_stat("STR",str)
-        self.pc_sheet.add_stat("DEX",dex)
-        self.pc_sheet.add_stat("CON",con)
-        self.pc_sheet.add_stat("INT",int)
-        self.pc_sheet.add_stat("WIS",wis)
-        self.pc_sheet.add_stat("CHA",cha)
+        # Détermine le type de l'objet pour le stocker
+        # dans le bon dossier
+        if(item_type == "Weapon"):
+            save_dir = "./local/Items/Weapon/"
+        elif(item_type == "Armour"):
+            save_dir = "./local/Items/Armour/"
+        elif(item_type == "Consumable"):
+            save_dir = "./local/Items/Consumable/"
+        else:
+            save_dir = "./local/Items/Miscellaneous/"
 
+        # Création du fichier XML
+        os.makedirs(save_dir, exist_ok=True)
+        toXML_saveto(item, save_dir)
 
+        # Affiche un message dans le chat
+        self._append_log(f"[INFO] Objet '{item_name}' sauvegardé dans {save_dir}")
+
+    def load_xml(self):
+        """
+        Charge un fichier XML et renvoie le chemin absolue du fichier
+        """
+        # Ouvre l'explorateur de fichier et 
+        # récupère le chemin absolue du fichier
+        fileName = QFileDialog.getOpenFileName( None, "Select File", "", "(*.xml)")
+        object = fromXML(fileName[0])
+
+        if(object == None):
+            raise Exception("Erreur_file_selection")
+        else:
+            return object
+    
+    def load_character(self):
+        """
+        Charge la feuille d'un personnage et associe 
+        les attributs, inventaire, sorts et traits
+        """
+        sheet = self.load_xml()
+        if not(isinstance(sheet,PC) or isinstance(sheet,NPC)):
+            raise Exception("Invalid_object_type (Expecting character)")
+        else:
+            # Récupère les attributs
+            name = sheet.name()
+            hp  = sheet.get_stat("HP")
+            str = sheet.get_stat("STR")
+            dex = sheet.get_stat("DEX")
+            con = sheet.get_stat("CON")
+            int = sheet.get_stat("INT")
+            wis = sheet.get_stat("WIS")
+            cha = sheet.get_stat("CHA")
+
+            # Assigne les attributs aux bons widgets
+            self.ui.character_name.setText(name)
+            self.ui.hp_nb.setValue(hp)
+            self.ui.str_nb.setValue(str)
+            self.ui.dex_nb.setValue(dex)
+            self.ui.con_nb.setValue(con)
+            self.ui.int_nb.setValue(int)
+            self.ui.wis_nb.setValue(wis)
+            self.ui.cha_nb.setValue(cha)
+
+            # Déconnecte isNPC du signal
+            self.ui.isNPC.blockSignals(True)
+            
+            # Vérifie si le personnage est un NPC ou un PC
+            if(isinstance(sheet,NPC)):
+                self.ui.isNPC.setChecked(True)
+                self.ui.alignement_NPC.setCurrentIndex(sheet.alignement())
+            else:
+                self.ui.isNPC.setChecked(False)
+
+            # Reconnecte isNPC du signal
+            self.ui.isNPC.blockSignals(False)
+
+            self.setNPC()
+            self.switch_to_character_menu_selection()
+
+    def load_item(self):
+        """
+        Charge un objet et affiche le nom,
+        le titre et la description de l'objet
+        dans le menu Item
+        """
+        item = self.load_xml()
+        if not(isinstance(item,Item)):
+            raise Exception("Invalid_object_type (Expecting item)")
+        else:
+            # Récupère les informations de l'objet
+            #TODO
+            # Charge image
+            item_name = item.name()
+            item_type = item.type()
+            item_description = item.description()
+            
+            # Assigne les attributs aux bons widgets
+            self.ui.item_name.setText(item_name)
+            self.ui.item_type.setCurrentText(item_type)
+            self.ui.item_description.setText(item_description)
+
+                        

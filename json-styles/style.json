@@ -42,7 +42,9 @@
                 "server_btn",
                 "settings_btn",
                 "information_btn",
-                "help_btn"
+                "help_btn",
+                "item_btn",
+                "spell_btn"
             ],
             "ActiveButton": "homeBtn",
             "Style": [
@@ -63,32 +65,6 @@
                     "NotActive": "QPushButton{background-color: transparent; font-weight: normal; border-radius: 5px} QPushButton::hover{background-color: THEME.COLOR_ACCENT_1}"
                 }
             ]
-        }
-    ],
-    "QCustomQStackedWidget": [
-        {
-            "name": "mainStack",
-            "transitionAnimation": {
-                "fade": {
-                    "active": true,
-                    "duration": 300,
-                    "easingCurve": "Linear"
-                },
-                "slide": {
-                    "active": true,
-                    "duration": 500,
-                    "direction": "horizontal",
-                    "easingCurve": "OutBack"
-                }
-            },
-            "navigation": {
-                "nextPage": "nextBtn",
-                "previousPage": "prevBtn",
-                "navigationButtons": {
-                    "homeBtn": "homePage",
-                    "settingsBtn": "settingsPage"
-                }
-            }
         }
     ]
 }
