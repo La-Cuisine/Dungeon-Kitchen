@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import os
 
 from obj.items import *
+from obj.skills import *
 from obj.pawns import *
 from obj.player import *
 from obj.blueprint import *
