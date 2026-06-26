@@ -672,6 +672,7 @@ class DicesBox(QLabel):
                 self.parent().getDiceResult().hide()
                 self.Adventage_dice.disconnectLauch()
                 self.Adventage_dice.hide()
+                
     
         return super().mousePressEvent(ev)
 
@@ -1022,6 +1023,7 @@ class Adventage_Dice(QPushButton):
 
     Result = ""
     pre_res = -1
+    min = 1601
 
     def __init__(self, parent_view : View_GameMode):
         
@@ -1093,6 +1095,7 @@ class Adventage_Dice(QPushButton):
     
     def disconnectLauch(self):
         self.setVisible(False)
+        self.min = 1601
         self.clicked.disconnect(self.lauch)
 
     def getResult(self):
@@ -1147,10 +1150,20 @@ class Adventage_Dice(QPushButton):
         t = t + "= "+str(s) + "\nBest Result : "
         if self.pre_res  > s :
             t = t+ str(self.pre_res)
-            
+            if self.min > s : 
+                self.min = s
+
         else:
             t = t+ str(s)
+            tmp = self.pre_res 
             self.pre_res = s
+            if self.min > tmp : 
+                self.min = tmp
+        if self.min == 1601:
+            self.min = self.pre_res
+        t = t + "\nMin Result : " + str(self.min)
+
+            
         print(t)
         return t
 
