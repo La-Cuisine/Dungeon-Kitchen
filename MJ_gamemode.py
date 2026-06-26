@@ -78,9 +78,11 @@ class View_GameMode(QGraphicsView):
         self.zoom = 1.0
         self._fitted_once = False
 
+        self.adventage_dice = Adventage_Dice(self)
         self.dices_box = DicesBox(self,self.scene())
         self.profile_rect = ProfileBox(self,self.scene())
         self.Dice_result = Dice_result(self)
+        
 
         self._Mxy = None
 
@@ -104,6 +106,9 @@ class View_GameMode(QGraphicsView):
     def getDiceResult(self):
         return self.Dice_result
     
+    def getAdvantageDice(self):
+        return self.adventage_dice
+
     def setButtonDices(self, button : Launch_Dices_Buttons):
         self.launch_dices = button
 
@@ -136,9 +141,12 @@ class View_GameMode(QGraphicsView):
         self.setSceneRect(self.mapToScene(self.viewport().rect()).boundingRect())
         
         self._update_world_bounds()
+        
         self.profile_rect.Align()
         self.dices_box.Align()
         self.Dice_result.Align()
+        self.adventage_dice.Align()
+
         if self.launch_dices is not None :
             self.launch_dices.Align()
         scale = self.transform().m11()
@@ -160,6 +168,8 @@ class View_GameMode(QGraphicsView):
         if self.Dice_result.isVisible():
             if not self.Dice_result.geometry().contains(event.position().toPoint()):
                 self.Dice_result.hide()
+                self.adventage_dice.disconnectLauch()
+                self.adventage_dice.hide()
 
         return super().mousePressEvent(event)
 
@@ -613,6 +623,8 @@ class DicesBox(QLabel):
         self.dicebox.append(DiceBox(self,20,5))
         self.dicebox.append(DiceBox(self,100,6))
 
+        self.Adventage_dice = self.parent().getAdvantageDice()
+
         
     def _reposition(self):
         parent = self.parent()
@@ -646,6 +658,7 @@ class DicesBox(QLabel):
                 j = j +1
             self.dice_laucher.connectLauch()
             self.dice_laucher.setVisible(True)
+
     
     def mousePressEvent(self, ev):
         if self.CheckFinish == True :
@@ -657,6 +670,8 @@ class DicesBox(QLabel):
         if self.parent().getDiceResult().isVisible():
             if not self.parent().getDiceResult().geometry().contains(ev.position().toPoint()):
                 self.parent().getDiceResult().hide()
+                self.Adventage_dice.disconnectLauch()
+                self.Adventage_dice.hide()
     
         return super().mousePressEvent(ev)
 
@@ -904,6 +919,10 @@ class Launch_Dices_Buttons(QPushButton):
         self._reposition()
 
         self.setText("LANCER")
+        
+        
+    def getData(self):
+        return self.Dices
 
     
     def _reposition(self):
@@ -943,8 +962,11 @@ class Launch_Dices_Buttons(QPushButton):
                     hasard[m].append(random.randint(1,m))
             j=j+1
         self.Result =  self.resultToString(hasard)
+        self.parent().getAdvantageDice().setData(self.Dices)  
+        self.parent().getAdvantageDice().connectLauch() 
         self.coworker.Reset()
         self.parent().getDiceResult().setProperties(self.Result)
+        
 
 
     
@@ -978,6 +1000,7 @@ class Launch_Dices_Buttons(QPushButton):
                         t = t + str(j) + "(d"+str(i)+") "
     
         t = t + "= "+str(s)
+        self.parent().getAdvantageDice().setpred(s)
         print(t)
         return t
 
@@ -989,6 +1012,157 @@ class Launch_Dices_Buttons(QPushButton):
         self.reset_data()
         self.disconnectLauch()
         self.hide()
+
+
+
+class Adventage_Dice(QPushButton):
+
+    W = 80
+    H = 25
+
+    Result = ""
+    pre_res = -1
+
+    def __init__(self, parent_view : View_GameMode):
+        
+        super().__init__(parent_view)
+        
+        
+
+        self.setFixedSize(self.W, self.H)
+        
+        self.Dices = []
+        for _ in range(7):
+            self.Dices.append(0)
+
+        self.hide()
+
+        self.setStyleSheet("""
+        QPushButton {
+            border : 1px solid black;
+            background-color: black;
+            color: #ffffff;
+            font-size: 15px;
+            border-radius: 5px;
+        }
+        QPushButton:hover {
+            
+            font-size: 15.5px;
+        }
+        """)
+
+
+        
+        E = QGraphicsOpacityEffect(self)
+        E.setOpacity(0.8)
+        self.setGraphicsEffect(E)
+              
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents,False)
+        
+        self.raise_()
+        self._reposition()
+
+        self.setText("RELANCER")
+
+    
+    def _reposition(self):
+        self.move((self.parent().width()-self.W)/2-((80*2.5)/1.4),(self.parent().height()-self.H)/2+115)
+        
+
+    def Align(self):
+        self._reposition()
+
+    def setpred(self,pred : int):
+        self.pre_res = pred
+    
+    def setData(self,d : list):
+        for i in range(7):
+            self.Dices[i] = d[i]
+        print("ADVENTAGE : ",self.Dices)
+
+    def updateDicesData(self,i,n):
+        
+        self.Dices[i] = n
+        print(self.Dices)
+        if self._dataSet == False: #A voir si on le conserve
+            self._dataSet = True
+    
+    def connectLauch(self):
+        self.setVisible(True)
+        self.clicked.connect(self.lauch)
+    
+    def disconnectLauch(self):
+        self.setVisible(False)
+        self.clicked.disconnect(self.lauch)
+
+    def getResult(self):
+        return self.Result
+
+    def lauch(self):
+        hasard = {}
+        j=0
+        for i in self.Dices:
+            print(self.Dices)
+            if i != 0:
+                m = self._convert(j)
+                if m not in hasard:
+                     hasard[m] = []
+                for _ in range(i):
+                    hasard[m].append(random.randint(1,m))
+            j=j+1
+        self.Result =  self.resultToString(hasard)
+        self.parent().getDiceResult().setProperties(self.Result)
+
+
+    
+    def _convert(self,i:int):
+        if i == 0 :
+            return 4
+        elif i == 1 :
+            return 6
+        elif i == 2 :
+            return 8
+        elif i == 3 :
+            return 10
+        elif i == 4 :
+            return 12
+        elif i == 5 :
+            return 20
+        elif i == 6 :
+            return 100
+
+    def resultToString(self,val: dict[int,list]):
+        t = ""
+        s = 0
+        for i in val.keys():
+            if i != -1 :
+                
+                for j in val[i] :
+                    s = s + j
+                    if i == 100:
+                        t = t + str(j) + "(d00) "
+                    else :
+                        t = t + str(j) + "(d"+str(i)+") "
+    
+        t = t + "= "+str(s) + "\nBest Result : "
+        if self.pre_res  > s :
+            t = t+ str(self.pre_res)
+            
+        else:
+            t = t+ str(s)
+            self.pre_res = s
+        print(t)
+        return t
+
+    def reset_data(self):
+        for i in range(7):
+            self.Dices[i]=0
+    
+    def reset(self):
+        self.reset_data()
+        self.disconnectLauch()
+        self.hide()
+
 
     
 class Dice_result(QWidget):
