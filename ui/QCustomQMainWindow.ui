@@ -24,13 +24,13 @@
      <widget class="QWidget" name="sidebar" native="true">
       <property name="minimumSize">
        <size>
-        <width>0</width>
+        <width>110</width>
         <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>120</width>
+        <width>110</width>
         <height>16777215</height>
        </size>
       </property>
@@ -54,7 +54,7 @@
            <number>0</number>
           </property>
           <property name="rightMargin">
-           <number>0</number>
+           <number>5</number>
           </property>
           <property name="bottomMargin">
            <number>0</number>
@@ -106,7 +106,7 @@
          </layout>
         </widget>
        </item>
-       <item alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTop">
+       <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop">
         <widget class="QWidget" name="widget_3" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <property name="spacing">
@@ -139,6 +139,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="spell_btn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="text">
              <string>Spell</string>
             </property>
@@ -208,14 +214,14 @@
          </property>
         </spacer>
        </item>
-       <item alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignBottom">
+       <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignBottom">
         <widget class="QWidget" name="widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
            <number>0</number>
           </property>
           <property name="leftMargin">
-           <number>5</number>
+           <number>0</number>
           </property>
           <property name="topMargin">
            <number>5</number>
@@ -382,7 +388,7 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
-          <number>7</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="settings_menu">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -507,7 +513,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  <enum>QTabWidget::TabShape::Rounded</enum>
                 </property>
                 <property name="currentIndex">
-                 <number>1</number>
+                 <number>3</number>
                 </property>
                 <property name="elideMode">
                  <enum>Qt::TextElideMode::ElideNone</enum>
@@ -1051,7 +1057,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  <attribute name="title">
                   <string>Trait</string>
                  </attribute>
-                 <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <layout class="QVBoxLayout" name="verticalLayout_23">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -1068,7 +1074,14 @@ li.checked::marker { content: &quot;\2612&quot;; }
                    <number>0</number>
                   </property>
                   <item>
-                   <widget class="QTextEdit" name="textEdit"/>
+                   <widget class="QPushButton" name="clear_trait_btn">
+                    <property name="text">
+                     <string>Clear trait</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QTextEdit" name="trait_editbox"/>
                   </item>
                  </layout>
                 </widget>
@@ -1084,7 +1097,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
            <item alignment="Qt::AlignmentFlag::AlignTop">
             <widget class="QLabel" name="map_menu_label">
              <property name="text">
-              <string>Map tools ?</string>
+              <string>Map tools</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignmentFlag::AlignCenter</set>

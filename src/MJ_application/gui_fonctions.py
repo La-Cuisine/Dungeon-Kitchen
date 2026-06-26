@@ -92,7 +92,7 @@ class GuiFunctions():
         Initialise les signaux pour les boutons de l'application
         """
         # Change le menu d'information
-        self.ui.character_btn.clicked.connect(self.switch_to_character_menu_selection)
+        self.ui.character_btn.clicked.connect(self.switch_to_character_menu)
         self.ui.map_btn.clicked.connect(self.switch_to_map_menu)
         self.ui.server_btn.clicked.connect(self.switch_to_server_menu)
         self.ui.settings_btn.clicked.connect(self.switch_to_settings_menu)
@@ -113,6 +113,7 @@ class GuiFunctions():
         self.ui.add_spell_btn.clicked.connect(self.add_skill_to_character)
         self.ui.edit_spell_btn.clicked.connect(self.edit_selected_spell)
         self.ui.remove_spell_btn.clicked.connect(self.remove_selected_skill_from_character)
+        self.ui.clear_trait_btn.clicked.connect(self.clear_trait)
 
         # Ouvre ou ferme le log/chat
         self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
@@ -128,7 +129,6 @@ class GuiFunctions():
         self.ui.save_spell.clicked.connect(self.save_spell)
         self.ui.load_spell.clicked.connect(self.load_spell)
         
-
         # Démarre ou ferme le serveur
         self.ui.open_server_btn.clicked.connect(self._update_server_label_open)
         self.ui.close_server_btn.clicked.connect(self._update_server_label_close)
@@ -269,9 +269,28 @@ class GuiFunctions():
         """
         Initialise les signaux pour les actions de la menubar
         """
+        # Display menu
         self.ui.actionLog_Chat.toggled.connect(self.switch_log_display_state)
         self.ui.actionInfo_menu.toggled.connect(self.switch_center_menu_display_state)
+        
+        # Close application
         self.ui.actionClose.triggered.connect(self.closeEvent)
+
+        # New object
+        self.ui.actionNew_character.triggered.connect(self.create_new_character)
+        self.ui.actionNew_item.triggered.connect(self.create_new_item)
+        self.ui.actionNew_spell.triggered.connect(self.create_new_spell)
+        #self.ui.actionNew_map.triggered.connect(self.create_new_map)
+        
+        # Load object
+        self.ui.actionOpen_character.triggered.connect(self.load_character)
+        self.ui.actionOpen_item.triggered.connect(self.load_item)
+        self.ui.actionOpen_spell.triggered.connect(self.load_spell)
+        #self.ui.actionOpen_map.triggered.connect(self.load_map)
+        
+        # Save/Save as
+        self.ui.actionSave.triggered.connect(self.save_actionmenu)
+        #self.ui.actionSave_as.triggered.connect(self.save_as_actionmenu)
 
     def init_info_menu(self):
         """
@@ -380,7 +399,7 @@ class GuiFunctions():
         self.settings.setValue("MENU INFO",0)
         self._open_center_menu()
 
-    def switch_to_character_menu_selection(self):
+    def switch_to_character_menu(self):
         self.ui.stacked_widget.setCurrentIndex(1)
         self.settings.setValue("MENU INFO",1)
         self._open_center_menu()    
@@ -484,6 +503,8 @@ class GuiFunctions():
         else:
             print("Erreur setNPC")
 
+    #--------Création d'objet----------#
+
     def create_new_character(self):
         """
         Slot connecté au signal clicked du bouton "Create new character".
@@ -520,11 +541,11 @@ class GuiFunctions():
         self._selected_skill_row = None
         self._refresh_skill_grid()
 
-        #TODO
         # Réinitilialise les traits
+        self.clear_trait()
 
         # Affiche le panneau Character pour la saisie
-        self.switch_to_character_menu_selection()
+        self.switch_to_character_menu()
 
     def create_new_item(self):
         """
@@ -559,6 +580,8 @@ class GuiFunctions():
         # Affiche le panneau Spell pour la saisie
         self.switch_to_spell_menu()
 
+    #---------Ajout d'objet----------#
+
     def add_item_to_character(self):
         """
         Slot connecté au signal clicked du bouton "Add item".
@@ -581,6 +604,30 @@ class GuiFunctions():
         self._inventory_items.append(item)
         self._refresh_inventory_grid()
 
+    def add_skill_to_character(self):
+        """
+        Slot connecté au signal clicked du bouton "Add Spell" (panneau Spell
+        de la fiche de personnage). Ouvre un sélecteur de fichier pour
+        choisir un sort (.xml, normalement sous ./local/Spells/) et l'ajoute
+        à la liste de sorts du personnage en cours de création/édition.
+        """
+        try:
+            skill = self.load_xml()
+        except Exception as exc:
+            # L'utilisateur a annulé la sélection, ou le fichier est invalide
+            self._append_log(f"[ERREUR] {exc}")
+            return
+
+        if not isinstance(skill, Skill):
+            self._append_log("[ERREUR] Le fichier sélectionné n'est pas un sort (Skill) valide.")
+            return
+
+        # Ajoute le sort à la liste en mémoire et rafraîchit l'affichage
+        self._character_skills.append(skill)
+        self._refresh_skill_grid()
+
+    #---------Retire d'objet----------#
+
     def remove_selected_item_from_character(self):
         """
         Slot connecté au signal clicked du bouton "Remove item".
@@ -594,6 +641,22 @@ class GuiFunctions():
         del self._inventory_items[self._selected_inventory_row]
         self._selected_inventory_row = None
         self._refresh_inventory_grid()
+
+    def remove_selected_skill_from_character(self):
+        """
+        Slot connecté au signal clicked du bouton "Remove spell".
+        Retire de la liste de sorts en cours d'édition le sort actuellement
+        sélectionné (aucune action si rien n'est sélectionné).
+        """
+        if self._selected_skill_row is None:
+            self._append_log("[ERREUR] Aucun sort sélectionné dans la liste.")
+            return
+
+        del self._character_skills[self._selected_skill_row]
+        self._selected_skill_row = None
+        self._refresh_skill_grid()
+
+    #---------Edition d'objet----------#
 
     def edit_selected_item(self):
         """
@@ -618,7 +681,29 @@ class GuiFunctions():
         # Bascule vers le menu Item
         self.switch_to_item_menu()
 
+    def edit_selected_spell(self):
+        """
+        Slot connecté au signal clicked du bouton "Edit spell".
+        Pré-remplit le formulaire Spell avec les données du sort sélectionné
+        dans la liste et bascule vers le menu Spell.
+        L'index du sort est mémorisé dans _editing_spell_index pour que
+        save_spell() mette à jour l'entrée existante au lieu d'en créer une.
+        """
+        if self._selected_skill_row is None:
+            self._append_log("[ERREUR] Aucun sort sélectionné dans la liste.")
+            return
 
+        skill = self._character_skills[self._selected_skill_row]
+        self._editing_spell_index = self._selected_skill_row
+
+        # Pré-remplit le formulaire avec les données du sort
+        self.ui.spell_name.setText(skill.name())
+        self.ui.spell_description.setText(skill.description())
+
+        # Bascule vers le menu Spell
+        self.switch_to_spell_menu()
+
+    #---------Sélection d'objet----------#
 
     def _select_inventory_row(self, row):
         """
@@ -628,6 +713,17 @@ class GuiFunctions():
         """
         self._selected_inventory_row = row
         self.ui.item_desc_display.setPlainText(self._inventory_items[row].description())
+
+    def _select_skill_row(self, row):
+        """
+        Mémorise la ligne actuellement sélectionnée dans la liste de
+        sorts et affiche sa description (appelé quand l'utilisateur
+        clique sur un sort).
+        """
+        self._selected_skill_row = row
+        self.ui.spell_desc_display.setPlainText(self._character_skills[row].description())
+
+    #---------Rafraichisement des objets----------#
 
     def _refresh_inventory_grid(self):
         """
@@ -673,73 +769,6 @@ class GuiFunctions():
             if row == self._selected_inventory_row:
                 btn.setChecked(True)
 
-    def add_skill_to_character(self):
-        """
-        Slot connecté au signal clicked du bouton "Add Spell" (panneau Spell
-        de la fiche de personnage). Ouvre un sélecteur de fichier pour
-        choisir un sort (.xml, normalement sous ./local/Spells/) et l'ajoute
-        à la liste de sorts du personnage en cours de création/édition.
-        """
-        try:
-            skill = self.load_xml()
-        except Exception as exc:
-            # L'utilisateur a annulé la sélection, ou le fichier est invalide
-            self._append_log(f"[ERREUR] {exc}")
-            return
-
-        if not isinstance(skill, Skill):
-            self._append_log("[ERREUR] Le fichier sélectionné n'est pas un sort (Skill) valide.")
-            return
-
-        # Ajoute le sort à la liste en mémoire et rafraîchit l'affichage
-        self._character_skills.append(skill)
-        self._refresh_skill_grid()
-
-    def remove_selected_skill_from_character(self):
-        """
-        Slot connecté au signal clicked du bouton "Remove spell".
-        Retire de la liste de sorts en cours d'édition le sort actuellement
-        sélectionné (aucune action si rien n'est sélectionné).
-        """
-        if self._selected_skill_row is None:
-            self._append_log("[ERREUR] Aucun sort sélectionné dans la liste.")
-            return
-
-        del self._character_skills[self._selected_skill_row]
-        self._selected_skill_row = None
-        self._refresh_skill_grid()
-
-    def edit_selected_spell(self):
-        """
-        Slot connecté au signal clicked du bouton "Edit spell".
-        Pré-remplit le formulaire Spell avec les données du sort sélectionné
-        dans la liste et bascule vers le menu Spell.
-        L'index du sort est mémorisé dans _editing_spell_index pour que
-        save_spell() mette à jour l'entrée existante au lieu d'en créer une.
-        """
-        if self._selected_skill_row is None:
-            self._append_log("[ERREUR] Aucun sort sélectionné dans la liste.")
-            return
-
-        skill = self._character_skills[self._selected_skill_row]
-        self._editing_spell_index = self._selected_skill_row
-
-        # Pré-remplit le formulaire avec les données du sort
-        self.ui.spell_name.setText(skill.name())
-        self.ui.spell_description.setText(skill.description())
-
-        # Bascule vers le menu Spell
-        self.switch_to_spell_menu()
-
-    def _select_skill_row(self, row):
-        """
-        Mémorise la ligne actuellement sélectionnée dans la liste de
-        sorts et affiche sa description (appelé quand l'utilisateur
-        clique sur un sort).
-        """
-        self._selected_skill_row = row
-        self.ui.spell_desc_display.setPlainText(self._character_skills[row].description())
-
     def _refresh_skill_grid(self):
         """
         Reconstruit entièrement l'affichage de la liste de sorts dans la
@@ -783,6 +812,14 @@ class GuiFunctions():
             # Restaure la sélection si elle est encore valide après le rafraîchissement
             if row == self._selected_skill_row:
                 btn.setChecked(True)
+
+    #---------Réinitialisation d'objet----------#
+
+    def clear_trait(self):
+        """
+        Réinitialise la page des traits
+        """
+        self.ui.trait_editbox.clear()
 
     # ----------------------------------------------------------------
     # Chat/Log
@@ -1172,6 +1209,10 @@ class GuiFunctions():
         for skill in self._character_skills:
             sheet.addSkill(skill)
 
+        # Ajoute les traits à la fiche de personnage
+        # trait = self.ui.trait_editbox.currentText()
+        # sheet.addTrait(trait)
+
         # Création du fichier XML
         os.makedirs(save_dir, exist_ok=True)
         toXML_saveto(sheet, save_dir)
@@ -1202,7 +1243,7 @@ class GuiFunctions():
             self._selected_inventory_row = self._editing_item_index
             self._editing_item_index = None
             self._refresh_inventory_grid()
-            self.switch_to_character_menu_selection()
+            self.switch_to_character_menu()
             self._append_log(f"[INFO] Objet '{item_name}' mis à jour dans l'inventaire du personnage.")
         else:
             # Mode création : sauvegarde dans le fichier XML
@@ -1241,7 +1282,7 @@ class GuiFunctions():
             self._selected_skill_row = self._editing_spell_index
             self._editing_spell_index = None
             self._refresh_skill_grid()
-            self.switch_to_character_menu_selection()
+            self.switch_to_character_menu()
             self._append_log(f"[INFO] Sort '{spell_name}' mis à jour dans la liste de sorts du personnage.")
         else:
             # Mode création : sauvegarde dans le fichier XML
@@ -1318,7 +1359,7 @@ class GuiFunctions():
             self._selected_skill_row = None
             self._refresh_skill_grid()
 
-            self.switch_to_character_menu_selection()
+            self.switch_to_character_menu()
 
     def load_item(self):
         """
@@ -1341,6 +1382,7 @@ class GuiFunctions():
             self.ui.item_name.setText(item_name)
             self.ui.item_type.setCurrentText(item_type)
             self.ui.item_description.setText(item_description)
+            self.switch_to_item_menu()
 
     def load_spell(self):
         """
@@ -1361,3 +1403,29 @@ class GuiFunctions():
             # Assigne les attributs aux bons widgets
             self.ui.spell_name.setText(spell_name)
             self.ui.spell_description.setText(spell_description)
+
+            self.switch_to_spell_menu()
+
+    def save_actionmenu(self):
+        """
+        Action de sauvegarde pour l'action save dans le menubar
+        """
+        index = self.ui.stacked_widget.currentIndex()
+
+        match index:
+            case 1: # Character
+                self.save_character_stat()
+            case 6: # Item
+                self.save_item()
+            case 7: # Spell
+                self.save_spell()
+            case _: # Default case
+                self._append_log("Ne peut pas sauvegarder ces informations")
+
+    # TODO
+    def save_as_actionmenu(self):
+        """
+        Action de sauvegarde pour l'action save_as dans le menubar
+        """
+        #fileName = QFileDialog.getSaveFileName(None, "Save File", "", "(*.xml)")
+        #print(fileName)

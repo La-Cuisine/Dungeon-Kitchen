@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'QCustomQMainWindow.ui'
+## Form generated from reading UI file 'new_QCustomQMainWindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.11.1
 ##
@@ -72,8 +72,8 @@ class Ui_CustomMainWindow(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.sidebar = QWidget(self.central_widget)
         self.sidebar.setObjectName(u"sidebar")
-        self.sidebar.setMinimumSize(QSize(0, 0))
-        self.sidebar.setMaximumSize(QSize(120, 16777215))
+        self.sidebar.setMinimumSize(QSize(110, 0))
+        self.sidebar.setMaximumSize(QSize(110, 16777215))
         self.verticalLayout = QVBoxLayout(self.sidebar)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.widget_6 = QWidget(self.sidebar)
@@ -82,7 +82,7 @@ class Ui_CustomMainWindow(object):
         self.horizontalLayout_7 = QHBoxLayout(self.widget_6)
         self.horizontalLayout_7.setSpacing(0)
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.horizontalLayout_7.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_7.setContentsMargins(0, 0, 5, 0)
         self.open_info_menu_btn = QPushButton(self.widget_6)
         self.open_info_menu_btn.setObjectName(u"open_info_menu_btn")
         self.open_info_menu_btn.setEnabled(True)
@@ -119,6 +119,7 @@ class Ui_CustomMainWindow(object):
 
         self.spell_btn = QPushButton(self.widget_3)
         self.spell_btn.setObjectName(u"spell_btn")
+        self.spell_btn.setMinimumSize(QSize(0, 30))
 
         self.verticalLayout_4.addWidget(self.spell_btn)
 
@@ -144,7 +145,7 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_4.addWidget(self.server_btn)
 
 
-        self.verticalLayout.addWidget(self.widget_3, 0, Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTop)
+        self.verticalLayout.addWidget(self.widget_3, 0, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignTop)
 
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -155,7 +156,7 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_3 = QVBoxLayout(self.widget)
         self.verticalLayout_3.setSpacing(0)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.verticalLayout_3.setContentsMargins(5, 5, 5, 5)
+        self.verticalLayout_3.setContentsMargins(0, 5, 5, 5)
         self.settings_btn = QPushButton(self.widget)
         self.settings_btn.setObjectName(u"settings_btn")
         self.settings_btn.setMinimumSize(QSize(0, 30))
@@ -178,7 +179,7 @@ class Ui_CustomMainWindow(object):
         self.verticalLayout_3.addWidget(self.help_btn)
 
 
-        self.verticalLayout.addWidget(self.widget, 0, Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignBottom)
+        self.verticalLayout.addWidget(self.widget, 0, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignBottom)
 
 
         self.horizontalLayout.addWidget(self.sidebar, 0, Qt.AlignmentFlag.AlignLeft)
@@ -588,14 +589,19 @@ class Ui_CustomMainWindow(object):
         self.tabWidget.addTab(self.spell, "")
         self.trait = QWidget()
         self.trait.setObjectName(u"trait")
-        self.horizontalLayout_9 = QHBoxLayout(self.trait)
-        self.horizontalLayout_9.setSpacing(0)
-        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
-        self.horizontalLayout_9.setContentsMargins(0, 0, 0, 0)
-        self.textEdit = QTextEdit(self.trait)
-        self.textEdit.setObjectName(u"textEdit")
+        self.verticalLayout_23 = QVBoxLayout(self.trait)
+        self.verticalLayout_23.setSpacing(0)
+        self.verticalLayout_23.setObjectName(u"verticalLayout_23")
+        self.verticalLayout_23.setContentsMargins(0, 0, 0, 0)
+        self.clear_trait_btn = QPushButton(self.trait)
+        self.clear_trait_btn.setObjectName(u"clear_trait_btn")
 
-        self.horizontalLayout_9.addWidget(self.textEdit)
+        self.verticalLayout_23.addWidget(self.clear_trait_btn)
+
+        self.trait_editbox = QTextEdit(self.trait)
+        self.trait_editbox.setObjectName(u"trait_editbox")
+
+        self.verticalLayout_23.addWidget(self.trait_editbox)
 
         self.tabWidget.addTab(self.trait, "")
 
@@ -926,8 +932,8 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(7)
-        self.tabWidget.setCurrentIndex(1)
+        self.stacked_widget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
@@ -1010,8 +1016,9 @@ class Ui_CustomMainWindow(object):
         self.remove_spell_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Remove spell", None))
         self.spell_desc_display.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Select a spell to see its description", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.spell), QCoreApplication.translate("CustomMainWindow", u"Spell", None))
+        self.clear_trait_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Clear trait", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
-        self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools ?", None))
+        self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools", None))
         self.server_state_label.setText(QCoreApplication.translate("CustomMainWindow", u"Server: closed", None))
         self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"URL : <a href=\"{SERVER_URL}\">{SERVER_URL}</a>", None))
         self.open_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open server", None))
@@ -1048,3 +1055,4 @@ class Ui_CustomMainWindow(object):
         self.menuEdit.setTitle(QCoreApplication.translate("CustomMainWindow", u"Edit", None))
         self.menuDisplay.setTitle(QCoreApplication.translate("CustomMainWindow", u"Display", None))
     # retranslateUi
+
