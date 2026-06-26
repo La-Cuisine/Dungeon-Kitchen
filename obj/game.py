@@ -84,11 +84,11 @@ class Game:
     def images(self):
         return self._assets["Images"]
     def get_imageFolderList(self,Folder):
-        if not(t in self._assets["Images"]):
+        if not(Folder in self._assets["Images"]):
             raise Exception("ImageTypeDoesNotExist")
-        return self._assets["Images"][t]
+        return self._assets["Images"][Folder]
     def get_imagePath(self,Folder,i):
-        if not(t in self._assets["Images"]):
+        if not(Folder in self._assets["Images"]):
             raise Exception("ImageTypeDoesNotExist")
         if not(i in self._assets["Images"][Folder]):
             raise Exception("IndexOutOfRange")
@@ -222,7 +222,7 @@ class Game:
     def remove_image(self,Folder,i):
         if not(Folder in self._assets["Images"]):
             raise Exception("ImageTypeDoesNotExist")
-        if not(i in self._assets["Images"][t]):
+        if not(i in self._assets["Images"][Folder]):
             raise Exception("IndexOutOfRange")
         res = self._assets["Images"][Folder][i]        
         del self._assets["Images"][Folder][i]

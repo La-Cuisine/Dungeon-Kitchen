@@ -6,7 +6,6 @@ from obj.pawns import *
 from obj.player import *
 from obj.blueprint import *
 from obj.game import *
-from obj.skills import *
 
 TARGET_DIRECTORY = "./projects/"
 
