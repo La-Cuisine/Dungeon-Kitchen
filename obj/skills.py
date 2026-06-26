@@ -1,5 +1,5 @@
 class Skill:
-    def __init__(self, Name, Type=0, Description=""):
+    def __init__(self, Name, Type="Ability", Description=""):
         self._name = Name 
         self._type = Type #TODO
         self._desc = Description
