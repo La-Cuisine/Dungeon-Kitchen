@@ -6,6 +6,7 @@ from obj.pawns import *
 from obj.player import *
 from obj.blueprint import *
 from obj.game import *
+from obj.skills import *
 
 TARGET_DIRECTORY = "./projects/"
 
@@ -27,6 +28,7 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n" 
         res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
         res += ntab(indent+1) + "description=\"" + o.description() + "\"\n"
+        res += ntab(indent+1) + "image=\"" + o.image_reference() + "\"\n"
         res += ntab(indent) + "/>\n"
 
 
@@ -35,6 +37,7 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n" 
         res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
         res += ntab(indent+1) + "description=\"" + o.description() + "\"\n"
+        res += ntab(indent+1) + "image=\"" + o.image_reference() + "\"\n"        
         res += ntab(indent) + "/>\n"
  
 
@@ -42,8 +45,8 @@ def toXML(o,indent=0):
         res = ntab(indent) + "<NPC\n"
         res += ntab(indent+1) + "alignement=\"" + str(o.alignement()) + "\"\n" 
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n"
-        
         res += ntab(indent+1) + "description=\"" + o.description() + "\"\n"
+        res += ntab(indent+1) + "image=\"" + o.image_reference() + "\"\n"        
         res += ntab(indent) + ">\n"
         res += ntab(indent+1) + "<inventory>\n"
         for i in o.inventory():
@@ -68,6 +71,7 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "ID=\"" + str(o.player()) + "\"\n" 
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n"
         res += ntab(indent+1) + "description=\"" + o.description() + "\"\n"
+        res += ntab(indent+1) + "image=\"" + o.image_reference() + "\"\n"        
         res += ntab(indent) + ">\n"
         res += ntab(indent+1) + "<inventory>\n"
         for i in o.inventory():
@@ -96,6 +100,8 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "name=\"" + o.name() + "\"\n" 
         res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
         res += ntab(indent+1) + "description=\"" + o.description() + "\"\n"
+        res += ntab(indent+1) + "state=\"" + str(o.state()) + "\"\n"
+        res += ntab(indent+1) + "image=\"" + o.image_reference() + "\"\n"
         res += ntab(indent) + "/>\n"
 
 
@@ -105,6 +111,7 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "ground=\"" + str(o.ground()) + "\"\n"
         res += ntab(indent+1) + "walls=\"" + str(bin(o.walls())) + "\"\n"
         res += ntab(indent+1) + "doors=\"" + str(bin(o.doors())) + "\"\n"
+        res += ntab(indent+1) + "image=\"" + o.image_reference() + "\"\n"        
         res += ntab(indent) + ">\n"
         res += ntab(indent+1) + "<contents>\n" 
         for p in o.contents():
@@ -137,6 +144,7 @@ def toXML(o,indent=0):
 
         #All [thing]List attributes are implicit in their directories
         local_path = TARGET_DIRECTORY + o.name() + "/"
+              
         i=1
         for e in o.items():
             try:
@@ -243,53 +251,49 @@ def toXML(o,indent=0):
 
 
 def fromXMLTree(root):
-    #TODO Player Instance ? + Cleanup
+    #TODO Player Instance 
     observe = root.tag
     new = None
     if(observe == "Item"):
-        i = 0
-        t = ""
-        d = ""
         for att in root.attrib:
-            if i==0:
+            if (att=="name"):
                 s = root.attrib[att]
-            if i==1:
-                t = str(root.attrib[att])
-            if i==2:
+            if (att=="type"):
+                t = int(root.attrib[att])
+            if (att=="description"):
                 d = root.attrib[att]
-            i+=1
+            if (att=="image"):
+                img = root.attrib[att]
         new = Item(s,t,d)
+        new.new_reference(img)
    
 
     elif(observe == "Skill"):
-        i = 0
-        t = 0
-        d = ""
         for att in root.attrib:
-            if i==0:
+            if (att == "name"):
                 s = root.attrib[att]
-            if i==1:
+            if (att == "type"):
                 t = int(root.attrib[att])
-            if i==2:
+            if (att == "description"):
                 d = root.attrib[att]
-            i+=1
+            if (att == "image"):
+                img = root.attrib[att]
         new = Skill(s,t,d)
- 
+        new.new_reference(img)
 
     elif(observe == "NPC"):
-        i = 0
-        a = 0
-        n = "Unknown"
         for att in root.attrib:
-            if i==0:
+            if (att == "alignement"):
                 a = int(root.attrib[att])
-            if i==1:
+            if (att == "name"):
                 n = root.attrib[att]
-            if i==2:
+            if (att == "description"):
                 d = root.attrib[att]
-            i+=1
+            if (att == "image"):
+                img = root.attrib[att]
         new = NPC(n,a)
         new.redescribe(d)
+        new.new_reference(img)
         for child in root:
             if(child.tag == "inventory"):
                 for it in child:
@@ -299,32 +303,27 @@ def fromXMLTree(root):
                     new.addSkill(fromXMLTree(sk))
             if(child.tag == "stats"):
                 for c in child:
-                    s=""
-                    v=None
-                    j=0
                     for e in c.attrib:
-                        if(j==0):
+                        if(e == "stat"):
                             s = c.attrib[e]
                         else:
                             v = int(c.attrib[e]) #Maybe not int depends on rules
-                        j += 1
                     new.add_stat(s,v)
 
 
     elif(observe == "PC"):
-        i = 0
-        ID = 0
-        n = "Unknown"
         for att in root.attrib:
-            if i==0:
+            if (att == "ID"):
                 ID = int(root.attrib[att])
-            if i==1:
+            if (att == "name"):
                 n = root.attrib[att]
-            if i==2:
+            if (att == "description"):
                 d = root.attrib[att]
-            i+=1
+            if (att == "image"):
+                img = root.attrib[att]
         new = PC(ID,n)
         new.redescribe(d)
+        new.new_reference(img)
         for child in root:
             if(child.tag == "inventory"):
                 for it in child:
@@ -334,15 +333,11 @@ def fromXMLTree(root):
                     new.addSkill(fromXMLTree(sk))           
             if(child.tag == "stats"):
                 for c in child:
-                    s=""
-                    v=None
-                    j=0
                     for e in c.attrib:
-                        if(j==0):
+                        if(e == "stat"):
                             s = c.attrib[e]
                         else:
                             v = int(c.attrib[e]) #Maybe not int depends on rules
-                        j += 1
                     new.add_stat(s,v)
 
 
@@ -351,53 +346,45 @@ def fromXMLTree(root):
         #TODO
 
     elif(observe == "Prop"):
-        i = 0
-        t = 0
-        d = ""
-        s = 0
         for att in root.attrib:
-            if i==0:
+            if (att == "name"):
                 n = root.attrib[att]
-            if i==1:
+            if (att == "type"):
                 t = int(root.attrib[att])
-            if i==2:
+            if (att == "description"):
                 d = root.attrib[att]
-            if i==3:
+            if (att == "state"):
                 s = int(root.attrib[att])
-            i+=1
+            if (att == "image"):
+                img = root.attrib[att]
         new = Prop(n,t,d,s)
-
+        new.new_reference(img)
 
     elif(observe == "Cell"):
-        i = 0
-        g = 0
-        w = 0b0
-        d = 0b0
         for att in root.attrib:
-            if i==0:
+            if (att == "ground"):
                 g = int(root.attrib[att])
-            if i==1:
+            if (att == "walls"):
                 w = (int(root.attrib[att],2))
-            if i==2:
+            if (att == "doors"):
                 d = (int(root.attrib[att],2))
-            i+=1
+            if (att == "image"):
+                img = root.attrib[att]
         new = Cell([],g,w,d)
+        new.new_reference(img)
         for child in root:
             for cont in child:
                 new.add_content(fromXMLTree(cont))
 
 
     elif(observe == "Blueprint"):
-        i = 0
-        n="Unlabeled"
         for att in root.attrib:
-            if i==0:
+            if (att == "name"):
                 n = root.attrib[att]
-            if i==1:
+            if (att == "length"):
                 l = int(root.attrib[att])
-            if i==2:
+            if (att == "width"):
                 w = int(root.attrib[att])
-            i+=1
         new = Blueprint(l,w,n)
         for grid in root:
             y = 0
@@ -446,6 +433,9 @@ def fromXMLTree(root):
                     new.add_note(text,name)
        
         local_path = TARGET_DIRECTORY + n + "/"
+        for folder in os.listdir(local_path+"Assets/Images/"):
+            for img in os.listdir(local_path + "Assets/Images/" + folder +"/"):
+                new.add_image(t, local_path+"Assets/Images/"+folder+"/"+img)
         for it in os.listdir(local_path+"Items/"):
             new.add_item(fromXML(local_path+"Items/"+it))
         for sk in os.listdir(local_path+"Skills/"):

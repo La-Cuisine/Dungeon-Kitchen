@@ -3,6 +3,7 @@ class Skill:
         self._name = Name 
         self._type = Type #TODO
         self._desc = Description
+        self._img =  "" # FilePath
 
     #getters
     def name(self):
@@ -11,7 +12,9 @@ class Skill:
         return self._type
     def description(self):
         return self._desc
-
+    def image_reference(self):
+        return self._img
+        
     #setters
     def rename(self,n):
         self._name = n
@@ -19,7 +22,11 @@ class Skill:
         self._type = t
     def redescribe(self,d):
         self._desc = d
+    def new_reference(self,path):
+        self._img = path
 
     #methods
     def copy(self):
-        return Skill(self._name, self._type, self._desc)
+        res = Skill(self._name, self._type, self._desc)
+        res.new_reference(self._img)
+        return res

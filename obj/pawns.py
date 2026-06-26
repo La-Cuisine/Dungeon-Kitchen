@@ -11,6 +11,7 @@ class NPC:
         self._desc = ""
         self._inv = []
         self._skills = []
+        self._img =  "" # FilePath
 
     #getters
     def alignement(self):
@@ -29,6 +30,8 @@ class NPC:
         return self._inv
     def skills(self):
         return self._skills
+    def image_reference(self):
+        return self._img
 
     #setters
     def realign(self, a):
@@ -39,6 +42,8 @@ class NPC:
         self._name = n
     def redescribe(self, d):
         self._desc = d
+    def new_reference(self,path):
+        self._img = path
 
     #methods
     def add_stat(self,s,v=None):
@@ -79,6 +84,7 @@ class NPC:
     def copy(self):
         new = NPC(self._name, self._align)
         new.redescribe(self._desc)
+        new.new_reference(self._img)
         for e in self._inv:
             new.addItem(e)
         for s in self._skills:
@@ -96,6 +102,7 @@ class PC:
         self._desc = ""
         self._inv = []
         self._skills = []
+        self._img =  "" # FilePath
 
 
     #getters
@@ -115,6 +122,8 @@ class PC:
         return self._inv
     def skills(self):
         return self._skills
+    def image_reference(self):
+        return self._img
 
     #setters
     def reassign(self, ID):
@@ -123,6 +132,8 @@ class PC:
         self._name = n
     def redescribe(self, d):
         self._desc = d
+    def new_reference(self,path):
+        self._img = path
 
     #methods
     def add_stat(self,s,v=None):
@@ -164,6 +175,7 @@ class PC:
         #playerID resets between instances
         new = PC(0, self._name)
         new.redescribe(self._desc)
+        new.new_reference(self._img)
         for e in self._inv:
             new.addItem(e)
         for s in self._skills:
