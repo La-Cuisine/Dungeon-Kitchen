@@ -9,18 +9,21 @@ import webbrowser
 from src.MJ_application.server import SERVER_URL, ServerController
 from src.MJ_application.LogReaderThread import LogReaderThread
 from src.MJ_application.grid import View_Grid, Grid, InvisibleWallLimit
+from src.MJ_gamemode.MJ_gamemode import MainWindow as GameModeWindow
 from obj.blueprint import *
 from obj.game import *
 from obj.items import *
 from obj.pawns import *
 from obj.player import *
 from obj.save import *
+from obj.skills import *
 
 class GuiFunctions():
     def __init__(self,MainWindow):
         self.main = MainWindow
         self.ui = MainWindow.ui
         self._log_thread = None
+        self._game_window = None
         self._controller = ServerController()
         self.settings =  QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
         self.last_menu = self.settings.value("Menu")
@@ -102,10 +105,13 @@ class GuiFunctions():
         self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
 
         # Save/Load
+        self.ui.create_new_character_btn.clicked.connect(self.create_new_character)
         self.ui.save_character_btn.clicked.connect(self.save_character_stat)
         self.ui.load_character_btn.clicked.connect(self.load_character)
         self.ui.save_item.clicked.connect(self.save_item)
         self.ui.load_item.clicked.connect(self.load_item)
+        self.ui.save_spell.clicked.connect(self.save_spell)
+        self.ui.load_spell.clicked.connect(self.load_spell)
         
 
         # Démarre ou ferme le serveur
@@ -115,6 +121,7 @@ class GuiFunctions():
         self.ui.open_server_btn.clicked.connect(self._start_server)
         self.ui.close_server_btn.clicked.connect(self._stop_server)
         self.ui.open_website_btn.clicked.connect(self._open_browser)
+        self.ui.open_game_interface_btn.clicked.connect(self._open_game_interface)
 
         # Settings
         self.ui.theme_list.currentTextChanged.connect(self.changeAppTheme)
@@ -409,6 +416,11 @@ class GuiFunctions():
             print("Erreur setNPC")
 
     def create_new_character(self):
+        """
+        Slot connecté au signal clicked du bouton "Create new character".
+        Vide le panneau de personnage pour permettre la saisie d'une
+        nouvelle fiche, et bascule sur le menu Character.
+        """
         # Réinitilialise les widgets
         self.ui.character_name.setText(None)
         self.ui.hp_nb.setValue(0)
@@ -424,8 +436,16 @@ class GuiFunctions():
         self.ui.isNPC.setChecked(False)
         self.ui.isNPC.blockSignals(False)
 
+        # setNPC() n'est pas déclenché automatiquement (signal bloqué
+        # ci-dessus), donc on cache/réinitialise l'alignement à la main.
+        self.ui.alignement_NPC.setCurrentIndex(0)
+        self.setNPC()
+
         #TODO
         # Réinitilialise l'inventaire, les sorts et les traits
+
+        # Affiche le panneau Character pour la saisie
+        self.switch_to_character_menu_selection()
 
     def add_item_to_character(self):
         item = self.load_xml()
@@ -754,6 +774,21 @@ class GuiFunctions():
             f"}}"
         )
 
+    def _open_game_interface(self):
+        """
+        Slot connecté au signal clicked du bouton "Open game interface".
+        Ouvre la fenêtre du mode MJ (MJ_gamemode.MainWindow) en tant que
+        fenêtre indépendante. La référence est conservée sur self._game_window
+        pour éviter que Python ne la détruise (garbage collection) juste
+        après l'appel à show().
+        """
+        if self._game_window is None:
+            self._game_window = GameModeWindow()
+
+        self._game_window.show()
+        self._game_window.raise_()
+        self._game_window.activateWindow()
+
     # ----------------------------------------------------------------
     # Gestion de l'événement de fermeture de la fenêtre
     # ----------------------------------------------------------------
@@ -856,6 +891,27 @@ class GuiFunctions():
         # Affiche un message dans le chat
         self._append_log(f"[INFO] Objet '{item_name}' sauvegardé dans {save_dir}")
 
+    def save_spell(self):
+        """
+        Sauvegarde les informations du sort
+        dans un fichier XML
+        """
+        # Récupère les informations du sort
+        #TODO
+        # Récup image et stocke image
+        spell_name = self.ui.spell_name.text().strip()
+        spell_description = self.ui.spell_description.toPlainText().strip()
+        spell = Skill(Name=spell_name, Description=spell_description)
+
+        save_dir = "./local/Spells/"
+
+        # Création du fichier XML
+        os.makedirs(save_dir, exist_ok=True)
+        toXML_saveto(spell, save_dir)
+
+        # Affiche un message dans le chat
+        self._append_log(f"[INFO] Sort '{spell_name}' sauvegardé dans {save_dir}")
+
     def load_xml(self):
         """
         Charge un fichier XML et renvoie le chemin absolue du fichier
@@ -937,4 +993,22 @@ class GuiFunctions():
             self.ui.item_type.setCurrentText(item_type)
             self.ui.item_description.setText(item_description)
 
-                        
+    def load_spell(self):
+        """
+        Charge un sort et affiche le nom
+        et la description du sort
+        dans le menu Spell
+        """
+        spell = self.load_xml()
+        if not(isinstance(spell,Skill)):
+            raise Exception("Invalid_object_type (Expecting spell)")
+        else:
+            # Récupère les informations du sort
+            #TODO
+            # Charge image
+            spell_name = spell.name()
+            spell_description = spell.description()
+
+            # Assigne les attributs aux bons widgets
+            self.ui.spell_name.setText(spell_name)
+            self.ui.spell_description.setText(spell_description)
