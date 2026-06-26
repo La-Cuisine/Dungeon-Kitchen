@@ -2,121 +2,134 @@
     ID="0"
     name="zaz"
     description=""
+    image=""
 >
     <inventory>
         <Item
-            name="stick AAAAAAAAAA"
+            name="stick new"
             type="Weapon"
-            description="stick AAAAAAAAAA"
+            description="stick"
+            image=""
         />
         <Item
-            name="stickwithlongname"
+            name="stick"
             type="Weapon"
-            description="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            description="stick kjrhfdbgikjqsedrhswgiujsedrbhlio ujgyf"
+            image=""
         />
         <Item
             name="stick"
             type="Weapon"
             description="stick"
+            image=""
         />
         <Item
             name="stick"
             type="Weapon"
             description="stick"
+            image=""
         />
         <Item
             name="stick"
             type="Weapon"
             description="stick"
+            image=""
         />
         <Item
             name="stick"
             type="Weapon"
             description="stick"
+            image=""
         />
         <Item
             name="stick"
             type="Weapon"
             description="stick"
+            image=""
         />
         <Item
             name="stick"
             type="Weapon"
             description="stick"
-        />
-        <Item
-            name="stick"
-            type="Weapon"
-            description="stick"
+            image=""
         />
     </inventory>
     <skills>
         <Skill
-            name="fireball AAAAAAAA"
+            name="fireball new"
             type="0"
-            description="aaaaaaaaaaaa fireball"
-        />
-        <Skill
-            name="fireballwithlongname"
-            type="0"
-            description="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            description="fireball"
+            image=""
         />
         <Skill
             name="fireball"
             type="0"
             description="fireball"
+            image=""
         />
         <Skill
             name="fireball"
             type="0"
             description="fireball"
+            image=""
         />
         <Skill
             name="fireball"
             type="0"
             description="fireball"
+            image=""
         />
         <Skill
             name="fireball"
             type="0"
             description="fireball"
+            image=""
         />
         <Skill
             name="fireball"
             type="0"
             description="fireball"
+            image=""
         />
         <Skill
             name="fireball"
             type="0"
             description="fireball"
+            image=""
         />
         <Skill
             name="fireball"
             type="0"
             description="fireball"
+            image=""
+        />
+        <Skill
+            name="fireball"
+            type="0"
+            description="fireball"
+            image=""
         />
     </skills>
     <stats>
         <couple
             stat="HP"
-            value="86"
+            value="96"
         />
         <couple
             stat="STR"
-            value="86"
+            value="62"
         />
         <couple
             stat="DEX"
-            value="65"
+            value="16"
         />
         <couple
             stat="CON"
-            value="65"
+            value="68"
         />
         <couple
             stat="INT"
-            value="25"
+            value="54"
         />
         <couple
             stat="WIS"
@@ -124,7 +137,7 @@
         />
         <couple
             stat="CHA"
-            value="25"
+            value="41"
         />
     </stats>
 </PC>

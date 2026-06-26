@@ -113,7 +113,6 @@ class GuiFunctions():
         self.ui.add_spell_btn.clicked.connect(self.add_skill_to_character)
         self.ui.edit_spell_btn.clicked.connect(self.edit_selected_spell)
         self.ui.remove_spell_btn.clicked.connect(self.remove_selected_skill_from_character)
-        self.ui.clear_trait_btn.clicked.connect(self.clear_trait)
 
         # Ouvre ou ferme le log/chat
         self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
@@ -485,7 +484,7 @@ class GuiFunctions():
         self.ui.actionInfo_menu.blockSignals(False)
             
     # ----------------------------------------------------------------
-    # Stat/Inv/Spell/Trait
+    # Stat/Inv/Spell
     # ----------------------------------------------------------------
 
     def setNPC(self):
@@ -540,9 +539,6 @@ class GuiFunctions():
         self._character_skills = []
         self._selected_skill_row = None
         self._refresh_skill_grid()
-
-        # Réinitilialise les traits
-        self.clear_trait()
 
         # Affiche le panneau Character pour la saisie
         self.switch_to_character_menu()
@@ -814,12 +810,6 @@ class GuiFunctions():
                 btn.setChecked(True)
 
     #---------Réinitialisation d'objet----------#
-
-    def clear_trait(self):
-        """
-        Réinitialise la page des traits
-        """
-        self.ui.trait_editbox.clear()
 
     # ----------------------------------------------------------------
     # Chat/Log
@@ -1209,9 +1199,6 @@ class GuiFunctions():
         for skill in self._character_skills:
             sheet.addSkill(skill)
 
-        # Ajoute les traits à la fiche de personnage
-        # trait = self.ui.trait_editbox.currentText()
-        # sheet.addTrait(trait)
 
         # Création du fichier XML
         os.makedirs(save_dir, exist_ok=True)
@@ -1308,7 +1295,7 @@ class GuiFunctions():
     def load_character(self):
         """
         Charge la feuille d'un personnage et associe 
-        les attributs, inventaire, sorts et traits
+        les attributs, inventaire, sorts
         """
         sheet = self.load_xml()
         if not(isinstance(sheet,PC) or isinstance(sheet,NPC)):

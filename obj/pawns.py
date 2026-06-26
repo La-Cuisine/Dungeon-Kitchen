@@ -103,6 +103,7 @@ class PC:
         self._inv = []
         self._skills = []
         self._img =  "" # FilePath
+        self
 
 
     #getters
