@@ -28,7 +28,15 @@ def toXML(o,indent=0):
         res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
         res += ntab(indent+1) + "description=\"" + o.description() + "\"\n"
         res += ntab(indent) + "/>\n"
-   
+
+
+    elif isinstance(o,Skill):
+        res = ntab(indent) + "<Skill\n"
+        res += ntab(indent+1) + "name=\"" + o.name() + "\"\n" 
+        res += ntab(indent+1) + "type=\"" + str(o.type()) + "\"\n"
+        res += ntab(indent+1) + "description=\"" + o.description() + "\"\n"
+        res += ntab(indent) + "/>\n"
+ 
 
     elif isinstance(o,NPC):
         res = ntab(indent) + "<NPC\n"
@@ -41,6 +49,10 @@ def toXML(o,indent=0):
         for i in o.inventory():
             res += toXML(i,indent+2) 
         res += ntab(indent+1) + "</inventory>\n"
+        res += ntab(indent+1) + "<skills>\n"
+        for s in o.skills():
+            res += toXML(s,indent+2)
+        res += ntab(indent+1) + "</skills>\n"
         res += ntab(indent+1) + "<stats>\n"
         for s in o.stats():
             res += ntab(indent+2) + "<couple\n"
@@ -61,6 +73,10 @@ def toXML(o,indent=0):
         for i in o.inventory():
             res += toXML(i,indent+2) 
         res += ntab(indent+1) + "</inventory>\n"
+        res += ntab(indent+1) + "<skills>\n"
+        for s in o.skills():
+            res += toXML(s,indent+2) 
+        res += ntab(indent+1) + "</skills>\n"
         res += ntab(indent+1) + "<stats>\n"
         for s in o.stats():
             res += ntab(indent+2) + "<couple\n"
@@ -127,6 +143,17 @@ def toXML(o,indent=0):
                 f = open(local_path + "Items/"+"Item#"+str(i)+"-"+e.name()+".xml","x")
             except FileExistsError:
                 f = open(local_path + "Items/"+"Item#"+str(i)+"-"+e.name()+".xml","w")
+            finally:
+                f.write(toXML(e))
+                f.close()
+            i+=1
+
+        i=1
+        for e in o.skills():
+            try:
+                f = open(local_path + "Skills/"+"Skill#"+str(i)+"-"+e.name()+".xml","x")
+            except FileExistsError:
+                f = open(local_path + "Skills/"+"Skill#"+str(i)+"-"+e.name()+".xml","w")
             finally:
                 f.write(toXML(e))
                 f.close()
@@ -232,7 +259,22 @@ def fromXMLTree(root):
                 d = root.attrib[att]
             i+=1
         new = Item(s,t,d)
-    
+   
+
+    elif(observe == "Skill"):
+        i = 0
+        t = 0
+        d = ""
+        for att in root.attrib:
+            if i==0:
+                s = root.attrib[att]
+            if i==1:
+                t = int(root.attrib[att])
+            if i==2:
+                d = root.attrib[att]
+            i+=1
+        new = Skill(s,t,d)
+ 
 
     elif(observe == "NPC"):
         i = 0
@@ -252,6 +294,9 @@ def fromXMLTree(root):
             if(child.tag == "inventory"):
                 for it in child:
                     new.addItem(fromXMLTree(it))
+            if(child.tag == "skills"):
+                for sk in child:
+                    new.addSkill(fromXMLTree(sk))
             if(child.tag == "stats"):
                 for c in child:
                     s=""
@@ -261,7 +306,7 @@ def fromXMLTree(root):
                         if(j==0):
                             s = c.attrib[e]
                         else:
-                            v = c.attrib[e]
+                            v = int(c.attrib[e]) #Maybe not int depends on rules
                         j += 1
                     new.add_stat(s,v)
 
@@ -284,6 +329,9 @@ def fromXMLTree(root):
             if(child.tag == "inventory"):
                 for it in child:
                     new.addItem(fromXMLTree(it))
+            if(child.tag == "skills"):
+                for sk in child:
+                    new.addSkill(fromXMLTree(sk))           
             if(child.tag == "stats"):
                 for c in child:
                     s=""
@@ -400,6 +448,8 @@ def fromXMLTree(root):
         local_path = TARGET_DIRECTORY + n + "/"
         for it in os.listdir(local_path+"Items/"):
             new.add_item(fromXML(local_path+"Items/"+it))
+        for sk in os.listdir(local_path+"Skills/"):
+            new.add_skill(fromXML(local_path+"Skills/"+sk))
         for npc in os.listdir(local_path+"Sheets/"):
             if(npc.endswith(".xml")): 
                 new.add_character(fromXML(local_path+"Sheets/"+npc))
@@ -420,12 +470,14 @@ def fromXMLTree(root):
     return new
 
 def fromXML(path):
-    tree = ET.parse(path)
+    tree = ET.parse(path) #TODO Secure this if possible; Parse exposed to attacks
     root = tree.getroot()
     return fromXMLTree(root)
 
 def toXML_saveto(o,path):
     res = toXML(o)
+    if(isinstance(o,Game)):
+        raise Exception("ObjectAlreadySaved")
     try:
         f = open(path + o.name()+".xml","x")
     except FileExistsError:
