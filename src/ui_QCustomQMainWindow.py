@@ -636,6 +636,11 @@ class Ui_CustomMainWindow(object):
 
         self.verticalLayout_13.addWidget(self.line_map_1)
 
+        self.new_map_btn = QPushButton(self.map_menu)
+        self.new_map_btn.setObjectName(u"new_map_btn")
+
+        self.verticalLayout_13.addWidget(self.new_map_btn)
+
         self.save_map_btn = QPushButton(self.map_menu)
         self.save_map_btn.setObjectName(u"save_map_btn")
 
@@ -1099,6 +1104,7 @@ class Ui_CustomMainWindow(object):
         self.clear_trait_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Clear trait", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools", None))
+        self.new_map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"New Map", None))
         self.save_map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Save Map", None))
         self.load_map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Load Map", None))
         self.map_image_list_label.setText(QCoreApplication.translate("CustomMainWindow", u"Images", None))

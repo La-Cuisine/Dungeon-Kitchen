@@ -151,6 +151,7 @@ class GuiFunctions():
         self.ui.create_new_spell_btn.clicked.connect(self.create_new_spell)
         self.ui.save_spell.clicked.connect(self.save_spell)
         self.ui.load_spell.clicked.connect(self.load_spell)
+        self.ui.new_map_btn.clicked.connect(self.create_new_map)
         self.ui.save_map_btn.clicked.connect(self.save_map)
         self.ui.load_map_btn.clicked.connect(self.load_map)
         
@@ -525,7 +526,7 @@ class GuiFunctions():
         path = obj.image_reference()
         return path or None
 
-    def init_grid(self, n: int = 100, s_cell: int = 64):
+    def init_grid(self, n: int = 50, s_cell: int = 64):
         """
         Remplace le QGraphicsView généré par Qt Designer par un View_Grid,
         puis y injecte la scène, le mur invisible et la grille.
@@ -533,7 +534,6 @@ class GuiFunctions():
         :param n:      Nombre de cellules par côté de la grille.
         :param s_cell: Taille en pixels d'une cellule.
         """
-        from PySide6.QtWidgets import QGraphicsItem
         import src.MJ_application.grid as _grid_module
 
         # Recupere le layout parent du graphicsView
@@ -576,6 +576,29 @@ class GuiFunctions():
         self._scene.addItem(self._wall)
 
         # Grille
+        self._build_grid(n, s_cell)
+
+        # Met à jour la référence ui.graphicsView pour que le reste du code
+        # continue à fonctionner via self.ui.graphicsView si besoin
+        self.ui.graphicsView = self._view_grid
+
+    def _build_grid(self, n: int, s_cell: int = 64):
+        """
+        Construit une grille (n x n cellules) et l'ajoute à la scène.
+
+        Si une grille existait déjà sur la scène (self._world), elle est
+        retirée au préalable : cette méthode peut donc aussi bien servir
+        à l'initialisation de la grille qu'au remplacement par une
+        nouvelle carte vide (voir create_new_map()).
+
+        :param n:      Nombre de cellules par côté de la grille.
+        :param s_cell: Taille en pixels d'une cellule.
+        """
+        from PySide6.QtWidgets import QGraphicsItem
+
+        if getattr(self, "_world", None) is not None:
+            self._scene.removeItem(self._world)
+
         self._world = Grid(n, s_cell)
         (self._world.atoms[0]).setName("TL")
         (self._world.atoms[0]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
@@ -591,9 +614,36 @@ class GuiFunctions():
         # fonctionne meme avant le premier mouseMoveEvent.
         self._view_grid._grid = self._world
 
-        # Met à jour la référence ui.graphicsView pour que le reste du code
-        # continue à fonctionner via self.ui.graphicsView si besoin
-        self.ui.graphicsView = self._view_grid
+    def create_new_map(self):
+        """
+        Crée une nouvelle carte vide : demande à l'utilisateur le nombre
+        de cellules par côté, confirme (la carte affichée actuellement
+        sera remplacée), puis reconstruit la grille avec _build_grid().
+        """
+        n, ok = QInputDialog.getInt(
+            self.main,
+            "Nouvelle carte",
+            "Nombre de cellules par côté :",
+            10,   # valeur par défaut
+            1,    # minimum
+            200,  # maximum
+            1     # pas
+        )
+        if not ok:
+            return
+
+        confirm = QMessageBox.question(
+            self.main,
+            "Nouvelle carte",
+            "La carte actuellement affichée sera remplacée par une carte "
+            f"vide de {n}x{n} cellules. Continuer ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        self._build_grid(n)
+        self._append_log(f"[INFO] Nouvelle carte créée ({n}x{n} cellules)")
     
     def init_action_menubar(self):
         """
@@ -610,7 +660,7 @@ class GuiFunctions():
         self.ui.actionNew_character.triggered.connect(self.create_new_character)
         self.ui.actionNew_item.triggered.connect(self.create_new_item)
         self.ui.actionNew_spell.triggered.connect(self.create_new_spell)
-        #self.ui.actionNew_map.triggered.connect(self.create_new_map)
+        self.ui.actionNew_map.triggered.connect(self.create_new_map)
         
         # Load object
         self.ui.actionOpen_character.triggered.connect(self.load_character)
@@ -1897,10 +1947,28 @@ class GuiFunctions():
         )
         
     def apply_blueprint_to_grid(self, blueprint):
-        for cell in self._world.atoms:   
-            if cell._img is not None:
-                cell._img.setPixmap(QPixmap())
-            cell.Path = None
+        """
+        Redimensionne la grille affichée pour correspondre à la taille
+        du blueprint chargé, puis y applique l'image de chaque cellule.
+
+        La grille (Grid) ne gère que des cases carrées (n x n) : si le
+        blueprint n'est pas carré, on redimensionne au plus grand des
+        deux côtés pour ne perdre aucune cellule, et on prévient dans
+        les logs.
+        """
+        n = blueprint.length()
+        if blueprint.width() != n:
+            n = max(blueprint.length(), blueprint.width())
+            self._append_log(
+                "[ATTENTION] Le blueprint n'est pas carré "
+                f"({blueprint.length()}x{blueprint.width()}) : la grille "
+                f"a été redimensionnée en {n}x{n}."
+            )
+
+        # Reconstruit la grille à la bonne taille. _build_grid() crée une
+        # grille neuve (donc déjà vide) : pas besoin de la nettoyer avant.
+        self._build_grid(n, self._world.s_cell)
+
         for x in range(blueprint.length()):
             for y in range(blueprint.width()):
                 bp_cell = blueprint.get_cell(x, y)
