@@ -110,6 +110,9 @@ class View_GameMode(QGraphicsView):
         self.setAlignment(Qt.AlignmentFlag.AlignLeft) # force l'espace à ce coller gauche (permet par exemple un meilleur rendu du rectangle "profile_rect")
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate)
 
+    def getDicesBox(self):
+        return self.dices_box
+
     def getDiceResult(self):
         return self.Dice_result
     
@@ -680,6 +683,7 @@ class DicesBox(QLabel):
             self.dice_laucher.setVisible(True)
 
     
+    
     def mousePressEvent(self, ev):
         if self.CheckFinish == True :
             self.CheckFinish = False
@@ -699,6 +703,8 @@ class DicesBox(QLabel):
     def Reset(self):
         for i in self.dicebox :
             i.reset()
+            self.more.resetRes()
+            self.moins.resetRes()
             self.dice_laucher.reset()
             self.DiceLauchable = False
 
@@ -1422,7 +1428,7 @@ class Enter_Dice_Option_Const(QWidget):
     W = 45
     H = 50
 
-    def __init__(self, parent_view, t : str):
+    def __init__(self, parent_view : View_GameMode, t : str):
         super().__init__(parent_view)
         self.setFixedSize(self.W, self.H)
         self.setCursor(Qt.CursorShape.ArrowCursor)
@@ -1446,7 +1452,7 @@ class Enter_Dice_Option_Const(QWidget):
         self.enter.setStyleSheet(
             "background-color: #2b2b2b;"
             "border-radius: 5px;") 
-        #"#2b2b2b"
+        
         self.enter.setFixedSize(self.W-6, self.H/1.5)
         self.enter.move((self.W-(self.W-6))/2+2.5,space.top()+12)
         self.enter.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -1462,13 +1468,15 @@ class Enter_Dice_Option_Const(QWidget):
         if text == "":
             return
         self.res = int(text)
-        print("55")
         self.enter.clear()
         self.hide()
+        self.parent().getDicesBox().CheckLaucheable()
 
     def getRes(self):
         return self.res
 
+    def resetRes(self):
+        self.res=0 
 
     def _reposition(self):
         parent = self.parent()
