@@ -510,6 +510,7 @@ class ProfileBox(QLabel):
     """    
     #Supprime le profile graphiquement
     def prof_remove(self,id):
+        
 
         for i in self.profs:
             if isinstance(i,Interface_Profile):
@@ -556,7 +557,7 @@ class Interface_Profile(QPushButton):
         
         
         
-
+        self.setFiche()
         
         self.clicked.connect(self.openFiche)
         
@@ -570,14 +571,17 @@ class Interface_Profile(QPushButton):
     def setCreateWind(self, b :bool):
         self.createwindow = False
     
+    def setFiche(self):
+        scale = self.parent().parent().transform().m11()
+        layerwindow_dic["profile"+str(self.place)] = layerwindow(50+self.place*35,80+self.place*8,200,500,self.place,"Black",self)
+        layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
+        z_dic[layerwindow_dic["profile"+str(self.place)]] = layerwindow_dic["profile"+str(self.place)].zValue()
+
+
     def openFiche(self):
         global layerwindow_dic
         global z_dic
         if self.createwindow == False:
-            scale = self.parent().parent().transform().m11()
-            layerwindow_dic["profile"+str(self.place)] = layerwindow(50+self.place*35,80+self.place*8,200,500,self.place,"Black",self)
-            layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
-            z_dic[layerwindow_dic["profile"+str(self.place)]] = layerwindow_dic["profile"+str(self.place)].zValue()
             self.scene.addItem(layerwindow_dic["profile"+str(self.place)])
             self.createwindow = True
         
