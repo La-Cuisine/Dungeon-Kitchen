@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'new_QCustomQMainWindow.ui'
+## Form generated from reading UI file 'QCustomQMainWindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.11.1
 ##
@@ -1153,7 +1153,7 @@ class Ui_CustomMainWindow(object):
         self.create_new_skill_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Create new skill", None))
         self.save_skill.setText(QCoreApplication.translate("CustomMainWindow", u"Save skill", None))
         self.load_skill.setText(QCoreApplication.translate("CustomMainWindow", u"Load skill", None))
-        self.log_view_label.setText(QCoreApplication.translate("CustomMainWindow", u"Logs du serveur PHP :", None))
+        self.log_view_label.setText(QCoreApplication.translate("CustomMainWindow", u"Logs  :", None))
         self.close_log_view_btn.setText(QCoreApplication.translate("CustomMainWindow", u"\u2715", None))
         self.menuFile.setTitle(QCoreApplication.translate("CustomMainWindow", u"File", None))
         self.menuNew.setTitle(QCoreApplication.translate("CustomMainWindow", u"New...", None))

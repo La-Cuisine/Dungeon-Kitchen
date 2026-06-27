@@ -1684,7 +1684,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
           <item>
            <widget class="QLabel" name="log_view_label">
             <property name="text">
-             <string>Logs du serveur PHP :</string>
+             <string>Logs  :</string>
             </property>
            </widget>
           </item>
