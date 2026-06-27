@@ -98,9 +98,14 @@ class View_GameMode(QGraphicsView):
         
 
         self._Mxy = None
-        # self._scene_center = QPointF(350.0, 260.0) here # centre fixe de la scène (350x260 = moitié de 700x520)
 
         self._Items_needs = []
+
+        # Overlay fixe (bas a droite) affichant les proprietes d'une case :
+        # widget enfant de la vue, donc insensible au zoom/pan, et
+        # repositionne automatiquement au resize via align()
+        #self._properties_overlay = Interface_Proprieties(self)
+        #self.addItemNeeds(self._properties_overlay)
 
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
@@ -161,9 +166,7 @@ class View_GameMode(QGraphicsView):
             self._fitted_once = True
 
         self._update_world_bounds()
-        # Maintient le centre fixe après resize
-        # self.centerOn(self._scene_center) here
-
+        
         self.profile_rect.Align()
         self.dices_box.Align()
         self.Dice_result.Align()
@@ -172,9 +175,8 @@ class View_GameMode(QGraphicsView):
         self.plus.Align()
         self.moins.Align()
 
-        if self.launch_dices is not None:
+        if self.launch_dices is not None :
             self.launch_dices.Align()
-
         scale = self.transform().m11()
         for item in self.scene().items():
             if isinstance(item, layerwindow):
@@ -548,9 +550,9 @@ class ProfileBox(QLabel):
         self.add_profile()
         self.add_profile()
         self.add_profile()
-        self.add_profile()
-        
-        
+        self.add_profile()  
+
+              
 
 
     def _reposition(self):
@@ -584,7 +586,7 @@ class ProfileBox(QLabel):
     """    
     #Supprime le profile graphiquement
     def prof_remove(self,id):
-
+        
         for i in self.profs:
             if isinstance(i,Interface_Profile):
                 if i.get_id() == id:
@@ -630,7 +632,7 @@ class Interface_Profile(QPushButton):
         
         
         
-
+        self.setFiche()
         
         self.clicked.connect(self.openFiche)
         
@@ -644,6 +646,13 @@ class Interface_Profile(QPushButton):
     def setCreateWind(self, b :bool):
         self.createwindow = False
     
+    def setFiche(self):
+        scale = self.parent().parent().transform().m11()
+        layerwindow_dic["profile"+str(self.place)] = layerwindow(50+self.place*35,80+self.place*8,200,500,self.place,"Black",self)
+        layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
+        z_dic[layerwindow_dic["profile"+str(self.place)]] = layerwindow_dic["profile"+str(self.place)].zValue()
+
+
     def openFiche(self):
         global layerwindow_dic
         global z_dic
