@@ -387,13 +387,13 @@ def fromXMLTree(root):
                 w = int(root.attrib[att])
         new = Blueprint(l,w,n)
         for grid in root:
-            y = 0
+            x = 0
             for row in grid:
-                x = 0 
+                y = 0 
                 for cell in row:
                     new.set_cell(x,y,fromXMLTree(cell))
-                    x+=1
-                y+=1
+                    y+=1
+                x+=1
 
 
     elif(observe == "Game"):
@@ -480,8 +480,6 @@ def fromXML(path,Type=""):
         raise Exception("NotPlayerFile")
     elif(Type == "Game" and root.tag != "Game"):
         raise Exception("NotGameFile")
-    elif(Type != ""):
-        raise Exception("UnhandledClassFile")
     return fromXMLTree(root)
 
 def toXML_saveto(o,path):

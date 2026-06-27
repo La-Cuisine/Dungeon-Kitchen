@@ -1757,6 +1757,8 @@ class GuiFunctions():
         match index:
             case 1: # Character
                 self.save_character_stat()
+            case 2: # Map
+                self.save_map()
             case 6: # Item
                 self.save_item()
             case 7: # skill
@@ -1895,28 +1897,6 @@ class GuiFunctions():
 
             self.switch_to_skill_menu()
 
-    def load_blueprint(self, filename):
-        tree = ET.parse(filename)
-        root = tree.getroot()
-        if root.tag != "Blueprint":
-            raise Exception("Not a Blueprint file")
-        name = root.attrib["name"]
-        length = int(root.attrib["length"])
-        width = int(root.attrib["width"])
-        blueprint = Blueprint(length, width, name)
-        rows = root.find("grid")
-        x = 0
-        for row in rows.findall("row"):
-            y = 0
-            for xml_cell in row.findall("Cell"):
-                image = xml_cell.attrib.get("image", "")
-                cell = blueprint.get_cell(x, y)
-                if image:
-                    cell.new_reference(image)
-                y += 1
-            x += 1
-        return blueprint
-
     def load_image(self, directories, target_list):
         """
         Import an image into the local assets folder and refresh the list.
@@ -1966,7 +1946,7 @@ class GuiFunctions():
         )
         if not filename:
             return
-        blueprint = self.load_blueprint(filename)
+        blueprint = fromXML(filename,"Blueprint")
         self.apply_blueprint_to_grid(blueprint)
         self._append_log(
             f"[INFO] Blueprint loaded : {filename}"
