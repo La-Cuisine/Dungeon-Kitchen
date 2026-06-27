@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import sys
 import random
 from enum import Enum
@@ -23,6 +24,8 @@ from PySide6.QtWidgets import (
     QScrollBar,
     QGraphicsPathItem,
     QGraphicsOpacityEffect,
+    QLineEdit,
+    
     
 )
 from PySide6.QtCore import (
@@ -32,6 +35,7 @@ from PySide6.QtCore import (
     QRectF, 
     QSize,
     QPointF,
+    
     
 )
 from PySide6.QtGui import (
@@ -45,6 +49,7 @@ from PySide6.QtGui import (
     QResizeEvent,
     QIcon,
     QPixmap,
+    QIntValidator,
     
 )
 
@@ -79,10 +84,13 @@ class View_GameMode(QGraphicsView):
         self.zoom = 1.0
         self._fitted_once = False
 
-        self.adventage_dice = Adventage_Dice(self)
-        self.dices_box = DicesBox(self,self.scene())
+        self.plus = Enter_Dice_Option_Const(self,"+")
+        self.moins = Enter_Dice_Option_Const(self,"-")
         self.profile_rect = ProfileBox(self,self.scene())
+        self.adventage_dice = Retry_Dice(self)
+        self.dices_box = DicesBox(self,self.scene())
         self.Dice_result = Dice_result(self)
+        self.space_dice_const = Space_Dice_Constante(self,self.scene(),self.dices_box)
         
 
         self._Mxy = None
@@ -104,11 +112,20 @@ class View_GameMode(QGraphicsView):
         self.setAlignment(Qt.AlignmentFlag.AlignLeft) # force l'espace à ce coller gauche (permet par exemple un meilleur rendu du rectangle "profile_rect")
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate)
 
+    def getDicesBox(self):
+        return self.dices_box
+
     def getDiceResult(self):
         return self.Dice_result
     
     def getAdvantageDice(self):
         return self.adventage_dice
+    
+    def getplusDice(self):
+        return self.plus
+
+    def getmoinsDice(self):
+        return self.moins
 
     def setButtonDices(self, button : Launch_Dices_Buttons):
         self.launch_dices = button
@@ -147,6 +164,9 @@ class View_GameMode(QGraphicsView):
         self.dices_box.Align()
         self.Dice_result.Align()
         self.adventage_dice.Align()
+        self.space_dice_const.Align()
+        self.plus.Align()
+        self.moins.Align()
 
         if self.launch_dices is not None :
             self.launch_dices.Align()
@@ -222,13 +242,13 @@ class MainWindow(QMainWindow):
             
         
 class layerwindow(QGraphicsItem):
-    def __init__(self, x, y, w, h,z,color):
+    def __init__(self, x, y, w, h,z,color, b : Interface_Profile):
         super().__init__()
         self.setPos(x,y)
         self.rect = QRectF(0,0,w,h)
         self.color = QColor(color)
         self.setZValue(z)
-
+        
         self._gpos = QPointF(50,80)
         self.round = 12
 
@@ -243,7 +263,7 @@ class layerwindow(QGraphicsItem):
         
         self.setCursor(Qt.CursorShape.ArrowCursor)
         
-        self.child = childrect(0,0,w,26,self)
+        self.child = childrect(0,0,w,26,self,b)
     
         
 
@@ -336,7 +356,7 @@ class layerwindow(QGraphicsItem):
 
 class childrect(QGraphicsItem):
 
-    def __init__(self, x, y, w, h, parent):
+    def __init__(self, x, y, w, h, parent, b : Interface_Profile):
         super().__init__(parent)
         self.setPos(x,y)
         self.rect = QRectF(0,0,w,h)
@@ -344,6 +364,7 @@ class childrect(QGraphicsItem):
         self.setOpacity(1)
         self.parent = parent
         self.round = 10
+        self.b = b
         # Defini l'espace comme un lieu ne pouvant pas faire bouger layerwindow
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
@@ -397,6 +418,7 @@ class childrect(QGraphicsItem):
     def close(self):
         scene = self.scene()
         if scene is not None :
+            self.b.setCreateWind(False)
             scene.removeItem(self.parent)
             del self.parent           
             del self
@@ -519,6 +541,7 @@ class ProfileBox(QLabel):
         
 class Interface_Profile(QPushButton):
     WH=80
+    createwindow = False
     def __init__(self, parent : ProfileBox,nb_joueurs : int, n : int, id : int):
         super().__init__(parent)
         self._idplayer = id 
@@ -544,16 +567,21 @@ class Interface_Profile(QPushButton):
         return self._idplayer  
 
     def get_place(self):
-        return self.place 
+        return self.place
+
+    def setCreateWind(self, b :bool):
+        self.createwindow = False
     
     def openFiche(self):
         global layerwindow_dic
         global z_dic
-        scale = self.parent().parent().transform().m11()
-        layerwindow_dic["profile"+str(self.place)] = layerwindow(50+self.place*35,80+self.place*8,200,500,self.place,"Black")
-        layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
-        z_dic[layerwindow_dic["profile"+str(self.place)]] = layerwindow_dic["profile"+str(self.place)].zValue()
-        self.scene.addItem(layerwindow_dic["profile"+str(self.place)])
+        if self.createwindow == False:
+            scale = self.parent().parent().transform().m11()
+            layerwindow_dic["profile"+str(self.place)] = layerwindow(50+self.place*35,80+self.place*8,200,500,self.place,"Black",self)
+            layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
+            z_dic[layerwindow_dic["profile"+str(self.place)]] = layerwindow_dic["profile"+str(self.place)].zValue()
+            self.scene.addItem(layerwindow_dic["profile"+str(self.place)])
+            self.createwindow = True
         
     def setPlace_Overwrite(self,new_place:int):
         global layerwindow_dic
@@ -625,6 +653,8 @@ class DicesBox(QLabel):
         self.dicebox.append(DiceBox(self,100,6))
 
         self.Adventage_dice = self.parent().getAdvantageDice()
+        self.more = self.parent().getplusDice() 
+        self.moins = self.parent().getmoinsDice()
 
         
     def _reposition(self):
@@ -657,9 +687,12 @@ class DicesBox(QLabel):
                     print("CHECK : ",i.getNbDice())
                     self.dice_laucher.updateDicesData(j,i.getNbDice())
                 j = j +1
+            self.dice_laucher.setconst(self.more.getRes(),0)
+            self.dice_laucher.setconst(self.moins.getRes(),1)
             self.dice_laucher.connectLauch()
             self.dice_laucher.setVisible(True)
 
+    
     
     def mousePressEvent(self, ev):
         if self.CheckFinish == True :
@@ -680,6 +713,8 @@ class DicesBox(QLabel):
     def Reset(self):
         for i in self.dicebox :
             i.reset()
+            self.more.resetRes()
+            self.moins.resetRes()
             self.dice_laucher.reset()
             self.DiceLauchable = False
 
@@ -846,9 +881,7 @@ class Dices_Buttons(QLabel):
         
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents,False)
         self.raise_()
-        self._reposition()
-        print()
-
+        self._reposition()   
     
     def _reposition(self):
         self.move(self.space.left(),self.space.top())
@@ -865,15 +898,13 @@ class Dices_Buttons(QLabel):
 
     
 
-
-
 class Launch_Dices_Buttons(QPushButton):
 
     W = 80
     H = 40
     _dataSet = False
     Result = ""
-
+    Const = {0:0,1:0}
     def __init__(self, parent_view : View_GameMode, Coworker : DiceBox):
         
         #self._parent = Launch_Dices_Buttons(parent_view)
@@ -926,6 +957,8 @@ class Launch_Dices_Buttons(QPushButton):
     def getData(self):
         return self.Dices
 
+    def setconst(self,const, i : int ):
+        self.Const[i] = const
     
     def _reposition(self):
         self.move((self.parent().width()-self.W)/2,(self.parent().height()-self.H)/2+110)
@@ -948,6 +981,7 @@ class Launch_Dices_Buttons(QPushButton):
     def disconnectLauch(self):
         self.clicked.disconnect(self.lauch)
 
+
     def getResult(self):
         return self.Result
 
@@ -964,8 +998,10 @@ class Launch_Dices_Buttons(QPushButton):
                     hasard[m].append(random.randint(1,m))
             j=j+1
         self.Result =  self.resultToString(hasard)
+        self.parent().getAdvantageDice().setconst(self.Const)
         self.parent().getAdvantageDice().setData(self.Dices)  
         self.parent().getAdvantageDice().connectLauch() 
+
         self.coworker.Reset()
         self.parent().getDiceResult().setProperties(self.Result)
         
@@ -1000,7 +1036,18 @@ class Launch_Dices_Buttons(QPushButton):
                         t = t + str(j) + "(d00) "
                     else :
                         t = t + str(j) + "(d"+str(i)+") "
-    
+        signe = 0
+        for i in self.Const.keys():
+            if self.Const[i] !=0:
+                if signe == 0 :
+                    s = s + self.Const[i]
+                    t = t + str(self.Const[i])
+                    signe = 1
+                else : 
+                    s = s- self.Const[i]
+                    t = t + " -"+str(self.Const[i])
+
+
         t = t + "= "+str(s)
         self.parent().getAdvantageDice().setpred(s)
         print(t)
@@ -1011,13 +1058,13 @@ class Launch_Dices_Buttons(QPushButton):
             self.Dices[i]=0
     
     def reset(self):
+        self.Const = {0:0,1:0}
         self.reset_data()
         self.disconnectLauch()
         self.hide()
 
 
-
-class Adventage_Dice(QPushButton):
+class Retry_Dice(QPushButton):
 
     W = 80
     H = 25
@@ -1025,6 +1072,7 @@ class Adventage_Dice(QPushButton):
     Result = ""
     pre_res = -1
     min = 1601
+    Const = {0:0,1:0}
 
     def __init__(self, parent_view : View_GameMode):
         
@@ -1045,12 +1093,12 @@ class Adventage_Dice(QPushButton):
             border : 1px solid black;
             background-color: black;
             color: #ffffff;
-            font-size: 15px;
+            font-size: 13px;
             border-radius: 5px;
         }
         QPushButton:hover {
             
-            font-size: 15.5px;
+            font-size: 13.5px;
         }
         """)
 
@@ -1077,11 +1125,15 @@ class Adventage_Dice(QPushButton):
 
     def setpred(self,pred : int):
         self.pre_res = pred
+
+    def setconst(self,const : dict):
+        for i in const.keys() : 
+            self.Const[i] = const[i]
     
     def setData(self,d : list):
         for i in range(7):
             self.Dices[i] = d[i]
-        print("ADVENTAGE : ",self.Dices)
+        
 
     def updateDicesData(self,i,n):
         
@@ -1147,7 +1199,18 @@ class Adventage_Dice(QPushButton):
                         t = t + str(j) + "(d00) "
                     else :
                         t = t + str(j) + "(d"+str(i)+") "
-    
+
+        signe = 0
+        for i in self.Const.keys():
+            if self.Const[i] !=0:
+                if signe == 0 :
+                    s = s + self.Const[i]
+                    t = t + str(self.Const[i])
+                    signe = 1
+                else : 
+                    s = s- self.Const[i]
+                    t = t + " -"+str(self.Const[i])
+
         t = t + "= "+str(s) + "\nBest Result : "
         if self.pre_res  > s :
             t = t+ str(self.pre_res)
@@ -1177,8 +1240,7 @@ class Adventage_Dice(QPushButton):
         self.disconnectLauch()
         self.hide()
 
-
-    
+ 
 class Dice_result(QWidget):
     
     W = 80*2.5
@@ -1243,6 +1305,218 @@ class Dice_result(QWidget):
             Qt.AlignmentFlag.AlignHCenter | Qt.TextFlag.TextWordWrap,
             self.text,
         )
+
+class Space_Dice_Constante(QLabel):
+    W = 30
+    H = 70
+
+
+    def __init__(self, parent : View_GameMode, scene : QGraphicsScene,Dice_Box:DicesBox):
+
+        super().__init__(parent)
+        
+        self.setFixedSize(self.W, self.H)
+        
+        self.scene = scene
+        self.diceBox = Dice_Box
+
+        self.setStyleSheet(
+            "background-color: transparent;"
+            "color: #ffffff;"
+            "font-size: 12px;"
+            "border-radius: 3px;")
+        
+        
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents,False)
+        
+        self.raise_()
+        self._reposition()
+
+        self.plus = Dice_option_Const(self,"+",parent)
+        self.moins = Dice_option_Const(self,"-",parent)
+    
+    def _reposition(self):
+        parent = self.parent()
+        if parent is not None:
+            self.move((parent.width()-self.W)/2+self.diceBox.width()/2.1,parent.height()-self.H-60)
+
+
+    def Align(self):
+        self._reposition()     
+
+
+class Dice_option_Const(QLabel):
+    W = 15
+    H = 15
+
+    _Open = False
+
+    def __init__(self, parent : Space_Dice_Constante, x : str , view : View_GameMode):
+
+        super().__init__(parent)
+        
+        self.setFixedSize(self.W, self.H)
+        
+        self.text = x
+        self.view = view
+        
+
+        self.setStyleSheet(
+            "background-color: black;"
+            "color: #ffffff;"
+            "font-size: 17.5px;"
+            "border-radius: 5px;")
+        
+        
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents,False)
+        
+        self.raise_()
+        self._reposition()
+
+    
+    def _reposition(self):
+        parent = self.parent()
+        if parent is not None:
+            if self.text == "+":
+                self.move((parent.width()-self.W)-1,parent.height()-self.H-45)
+            elif self.text == "-":
+                self.move((parent.width()-self.W)-1,parent.height()-self.H-25)
+
+
+    def Align(self):
+        self._reposition()        
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing)  
+        
+
+        space = self.rect().toRectF()
+        r = QRectF(space.left(),space.top(),space.right(),space.bottom()-4)
+        font = painter.font()
+        font.setBold(True)
+        font.setPixelSize(15)
+        painter.setFont(font)
+        painter.setPen(QPen(QColor("#FFFFFF")))
+        if self.text == "+":
+            painter.drawText(r,Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop  , str(self.text))
+        elif self.text == "-":
+            painter.drawText(r,Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop  , str(self.text))
+
+    def mousePressEvent(self, ev):
+
+        
+
+        if self.text == "+":
+            if self._Open == True and not self.view.getplusDice().isVisible():
+                self._Open = False
+            if self._Open == False :
+                self.view.getmoinsDice().hide()
+                self.view.getplusDice().setVisible(True)
+                self._Open = True
+            else:
+                self.view.getplusDice().hide()
+                self._Open = False
+        
+        elif self.text == "-":
+            if self._Open == True and not self.view.getmoinsDice().isVisible():
+                self._Open = False
+            if self._Open == False :
+                self.view.getplusDice().hide()
+                self.view.getmoinsDice().setVisible(True)
+                self._Open = True
+            else:
+                self.view.getmoinsDice().hide()
+                self._Open = False
+        
+
+
+        return super().mousePressEvent(ev)
+
+class Enter_Dice_Option_Const(QWidget):
+    W = 45
+    H = 50
+
+    def __init__(self, parent_view : View_GameMode, t : str):
+        super().__init__(parent_view)
+        self.setFixedSize(self.W, self.H)
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        
+        E = QGraphicsOpacityEffect(self)
+        E.setOpacity(1)
+        self.setGraphicsEffect(E)
+
+        self.text = ""
+        self.round = 5
+        self.res = 0
+        self.t = t
+        
+        self._reposition()
+
+        space = self.rect().toRectF()
+        #r = QRectF(space.left()+2,space.top()+5,space.right()-2,space.bottom()-5)
+
+        self.enter = QLineEdit(self)
+        self.enter.setPlaceholderText(" ")
+        self.enter.setStyleSheet(
+            "background-color: #2b2b2b;"
+            "border-radius: 5px;") 
+        
+        self.enter.setFixedSize(self.W-6, self.H/1.5)
+        self.enter.move((self.W-(self.W-6))/2+2.5,space.top()+12)
+        self.enter.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.enter.setValidator(QIntValidator(1,100,self))
+        self.enter.returnPressed.connect(self._send)
+
+
+        self.hide()
+
+
+    def _send(self):
+        text = self.enter.text().strip()  
+        if text == "":
+            return
+        self.res = int(text)
+        self.enter.clear()
+        self.hide()
+        self.parent().getDicesBox().CheckLaucheable()
+
+    def getRes(self):
+        return self.res
+
+    def resetRes(self):
+        self.res=0 
+
+    def _reposition(self):
+        parent = self.parent()
+        self.move(parent.width()/2+500/2-3,parent.height()-self.H-70)
+
+
+    # Repositionne au resize de la vue (appele depuis View_Grid.resizeEvent,
+    # comme pour Interface_MouseCoord)
+    def Align(self):
+        self._reposition()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        rect = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
+
+
+
+        painter.setPen(QPen(Qt.black, 1.5))
+        painter.setBrush(QBrush(QColor("#000000")))
+        painter.drawRoundedRect(rect, self.round, self.round)
+
+        header_rect = rect.adjusted(0, -6, 0, 0)
+        font = painter.font()
+        font.setBold(True)
+        font.setPixelSize(15)
+        painter.setFont(font)
+        painter.setPen(QPen(QColor("#e1dfdf")))
+        painter.drawText(header_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, self.t)
 
 if __name__ == "__main__":
     
