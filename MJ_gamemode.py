@@ -240,13 +240,13 @@ class MainWindow(QMainWindow):
             
         
 class layerwindow(QGraphicsItem):
-    def __init__(self, x, y, w, h,z,color):
+    def __init__(self, x, y, w, h,z,color, b : Interface_Profile):
         super().__init__()
         self.setPos(x,y)
         self.rect = QRectF(0,0,w,h)
         self.color = QColor(color)
         self.setZValue(z)
-
+        
         self._gpos = QPointF(50,80)
         self.round = 12
 
@@ -261,7 +261,7 @@ class layerwindow(QGraphicsItem):
         
         self.setCursor(Qt.CursorShape.ArrowCursor)
         
-        self.child = childrect(0,0,w,26,self)
+        self.child = childrect(0,0,w,26,self,b)
     
         
 
@@ -354,7 +354,7 @@ class layerwindow(QGraphicsItem):
 
 class childrect(QGraphicsItem):
 
-    def __init__(self, x, y, w, h, parent):
+    def __init__(self, x, y, w, h, parent, b : Interface_Profile):
         super().__init__(parent)
         self.setPos(x,y)
         self.rect = QRectF(0,0,w,h)
@@ -362,6 +362,7 @@ class childrect(QGraphicsItem):
         self.setOpacity(1)
         self.parent = parent
         self.round = 10
+        self.b = b
         # Defini l'espace comme un lieu ne pouvant pas faire bouger layerwindow
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable,False)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemContainsChildrenInShape)
@@ -415,6 +416,7 @@ class childrect(QGraphicsItem):
     def close(self):
         scene = self.scene()
         if scene is not None :
+            self.b.setCreateWind(False)
             scene.removeItem(self.parent)
             del self.parent           
             del self
@@ -537,6 +539,7 @@ class ProfileBox(QLabel):
         
 class Interface_Profile(QPushButton):
     WH=80
+    createwindow = False
     def __init__(self, parent : ProfileBox,nb_joueurs : int, n : int, id : int):
         super().__init__(parent)
         self._idplayer = id 
@@ -562,16 +565,21 @@ class Interface_Profile(QPushButton):
         return self._idplayer  
 
     def get_place(self):
-        return self.place 
+        return self.place
+
+    def setCreateWind(self, b :bool):
+        self.createwindow = False
     
     def openFiche(self):
         global layerwindow_dic
         global z_dic
-        scale = self.parent().parent().transform().m11()
-        layerwindow_dic["profile"+str(self.place)] = layerwindow(50+self.place*35,80+self.place*8,200,500,self.place,"Black")
-        layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
-        z_dic[layerwindow_dic["profile"+str(self.place)]] = layerwindow_dic["profile"+str(self.place)].zValue()
-        self.scene.addItem(layerwindow_dic["profile"+str(self.place)])
+        if self.createwindow == False:
+            scale = self.parent().parent().transform().m11()
+            layerwindow_dic["profile"+str(self.place)] = layerwindow(50+self.place*35,80+self.place*8,200,500,self.place,"Black",self)
+            layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
+            z_dic[layerwindow_dic["profile"+str(self.place)]] = layerwindow_dic["profile"+str(self.place)].zValue()
+            self.scene.addItem(layerwindow_dic["profile"+str(self.place)])
+            self.createwindow = True
         
     def setPlace_Overwrite(self,new_place:int):
         global layerwindow_dic
@@ -1507,10 +1515,6 @@ class Enter_Dice_Option_Const(QWidget):
         painter.setFont(font)
         painter.setPen(QPen(QColor("#e1dfdf")))
         painter.drawText(header_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, self.t)
-    
-
-
-
 
 if __name__ == "__main__":
     
