@@ -241,14 +241,22 @@ class Interface_Cell(QGraphicsRectItem):
 
     def setImage(self, Path: str):
         self.Path = Path
-        # utilise le cache au lieu de recharger depuis le disque
         scaled = _get_scaled_pixmap(Path, self.w, self.h)
-        # Ne retirer de la scène que si l'item y est déjà (pixmap non null = déjà posé)
-        if not self._img.pixmap().isNull() and self._img.scene() is not None:
+        if self._img is None:
+            self._img = Img()
+        elif (
+            not self._img.pixmap().isNull()
+            and self._img.scene() is not None
+        ):
             self._img.scene().removeItem(self._img)
-        self._img.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        self._img.setTransformationMode(
+            Qt.TransformationMode.SmoothTransformation
+        )
         self._img.setPixmap(scaled)
-        self._img.setPos(self.w * self._coord[0], self.h * self._coord[1])
+        self._img.setPos(
+            self.w * self._coord[0],
+            self.h * self._coord[1]
+        )
         self._img.setParentItem(self)
         self.update()
 
@@ -270,22 +278,21 @@ class Interface_Cell(QGraphicsRectItem):
         global _cell_cp_data
         _cell_cp_data["fill"] = True
         _cell_cp_data["img"] = self._img
+        _cell_cp_data["path"] = self.Path
 
     def Paste(self):
         global _cell_cp_data
-        if self._img is not None:
-            self.scene().removeItem(self._img)
-            tmp = self._img
-            del tmp
-        self._img = _cell_cp_data["img"].copy_for_cell()
-        self._CPimage()
+        path = _cell_cp_data["path"]
+        if path is not None:
+            self.setImage(path)
 
     def Cut(self):
         self.Copy()
-        self.scene().removeItem(self._img)
-        tmp = self._img
-        del tmp
-        self._img = None
+        if self._img is not None:
+            if self._img.scene() is not None:
+                self.scene().removeItem(self._img)
+            self._img = None
+        self.Path = None
         self.update()
 
     def Proprieties(self,xy:QPointF|None):
@@ -299,6 +306,14 @@ class Interface_Cell(QGraphicsRectItem):
             else:
                 text = text + self.Path + "\n"
             view.showProperties(text)
+            
+    def DeleteImage(self):
+        if self._img is not None:
+            if self._img.scene() is not None:
+                self.scene().removeItem(self._img)
+            self._img = Img()
+        self.Path = None
+        self.update()
         
         
 
@@ -481,6 +496,14 @@ class View_Grid(QGraphicsView):
                 if self._cell_select is not None and self._Mxy is not None:
                     self._cell_select.Proprieties(self._Mxy)
 
+        if event.key() in (
+            Qt.Key.Key_Delete,
+            Qt.Key.Key_Backspace,
+        ):
+            if self._cell_select is not None:
+                self._cell_select.DeleteImage()
+                self._cell_select_use = True
+
         return super().keyPressEvent(event)
 
     def mouseDoubleClickEvent(self, event):
@@ -650,6 +673,11 @@ class View_Grid(QGraphicsView):
             nameAction.triggered.connect(lambda: cell.Proprieties(self._Mxy))
             self.menu.addAction(nameAction)
 
+            if cell.Path is not None:
+                nameAction = QAction("Delete", self)
+                nameAction.triggered.connect(lambda: cell.DeleteImage())
+                self.menu.addAction(nameAction)
+            
             ## add other required actions
             self.menu.popup(QCursor.pos())
             return  # on court-circuite super() pour éviter le double-menu

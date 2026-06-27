@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from PySide6.QtCore import QSettings, QTimer, Qt, QSize
 from PySide6.QtGui import QColor, QPalette, QPainter, QBrush, QPixmap, QIcon
-from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy, QListWidgetItem
+from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy, QListWidgetItem, QInputDialog
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 from Custom_Widgets.QCustomTheme import QCustomTheme
@@ -19,6 +19,7 @@ from obj.pawns import *
 from obj.player import *
 from obj.save import *
 from obj.skills import *
+import xml.etree.ElementTree as ET
 
 class GuiFunctions():
     def __init__(self,MainWindow):
@@ -148,6 +149,8 @@ class GuiFunctions():
         self.ui.create_new_spell_btn.clicked.connect(self.create_new_spell)
         self.ui.save_spell.clicked.connect(self.save_spell)
         self.ui.load_spell.clicked.connect(self.load_spell)
+        self.ui.save_map_btn.clicked.connect(self.save_map)
+        self.ui.load_map_btn.clicked.connect(self.load_map)
         
         # Démarre ou ferme le serveur
         self.ui.open_server_btn.clicked.connect(self._update_server_label_open)
@@ -281,6 +284,7 @@ class GuiFunctions():
         Path("Assets/Images/Spells"),
         Path("local/Assets/Images/Spells"),
     ]
+    BLUEPRINT_DIRECTORY = Path("local/Blueprint")
 
     # Image utilisee comme aperçu quand aucune image n'a ete choisie
     PLACEHOLDER_IMAGE = "image/placeholder.png"
@@ -1748,52 +1752,129 @@ class GuiFunctions():
     def load_image(self, directories, target_list):
         """
         Import an image into the local assets folder and refresh the list.
-
         directories:
             [Assets/..., local/Assets/...]
         target_list:
             cells_image_list or props_image_list
         """
-
         filename, _ = QFileDialog.getOpenFileName(
             self.main,
             "Select image",
             "",
             "Images (*.png *.jpg *.jpeg *.gif *.bmp *.svg *.webp *.PNG)"
         )
-
         if not filename:
             return
-
         source = Path(filename)
-
         # Always save in local folder
         local_dir = directories[-1]
         local_dir.mkdir(parents=True, exist_ok=True)
-
         destination = local_dir / source.name
-
         try:
             import shutil
-
             shutil.copy2(source, destination)
-
             self._append_log(
                 f"[INFO] Image '{source.name}' copied to '{local_dir}'."
             )
-
             # Refresh list
             self._populate_image_list(target_list, directories)
-
             matches = target_list.findItems(
                 source.name,
                 Qt.MatchFlag.MatchExactly
             )
-            
             if matches:
                 target_list.setCurrentItem(matches[0])
-            
         except Exception as exc:
             self._append_log(
                 f"[ERREUR] Impossible d'ajouter l'image : {exc}"
             )
+        
+    
+    def save_map(self):
+        name, ok = QInputDialog.getText(
+            self.main,
+            "Save Blueprint",
+            "Blueprint name:"
+        )
+        if not ok or not name:
+            return
+        self.BLUEPRINT_DIRECTORY.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+        blueprint = self.build_blueprint(name)
+        filename = self.BLUEPRINT_DIRECTORY / f"{name}.xml"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(toXML(blueprint))
+        self._append_log(
+            f"[INFO] Blueprint saved : {filename}"
+        )
+        
+    def build_blueprint(self, name):
+        grid = self._world
+        blueprint = Blueprint(
+            grid.n,
+            grid.n,
+            name
+        )
+        for cell in grid.atoms:
+            x, y = cell._coord
+            bp_cell = blueprint.get_cell(x, y)    
+            if getattr(cell, "Path", None):
+                bp_cell.new_reference(cell.Path)
+    
+        return blueprint
+
+    def load_blueprint(self, filename):
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        if root.tag != "Blueprint":
+            raise Exception("Not a Blueprint file")
+        name = root.attrib["name"]
+        length = int(root.attrib["length"])
+        width = int(root.attrib["width"])
+        blueprint = Blueprint(length, width, name)
+        rows = root.find("grid")
+        x = 0
+        for row in rows.findall("row"):
+            y = 0
+            for xml_cell in row.findall("Cell"):
+                image = xml_cell.attrib.get("image", "")
+                cell = blueprint.get_cell(x, y)
+                if image:
+                    cell.new_reference(image)
+                y += 1
+            x += 1
+        return blueprint
+    
+    from PySide6.QtWidgets import QFileDialog
+
+    def load_map(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self.main,
+            "Load Blueprint",
+            "local/Blueprint",
+            "Blueprint (*.xml)"
+        )
+        if not filename:
+            return
+        blueprint = self.load_blueprint(filename)
+        self.apply_blueprint_to_grid(blueprint)
+        self._append_log(
+            f"[INFO] Blueprint loaded : {filename}"
+        )
+        
+    def apply_blueprint_to_grid(self, blueprint):
+        for cell in self._world.atoms:   
+            if cell._img is not None:
+                cell._img.setPixmap(QPixmap())
+            cell.Path = None
+        for x in range(blueprint.length()):
+            for y in range(blueprint.width()):
+                bp_cell = blueprint.get_cell(x, y)
+                visual_cell = self._world.atoms[
+                    y * self._world.n + x
+                ]
+                image = bp_cell.image_reference()
+                if image:
+                    visual_cell.setImage(image)

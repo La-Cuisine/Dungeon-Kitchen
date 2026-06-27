@@ -628,6 +628,16 @@ class Ui_CustomMainWindow(object):
 
         self.verticalLayout_13.addWidget(self.line_map_1)
 
+        self.save_map_btn = QPushButton(self.map_menu)
+        self.save_map_btn.setObjectName(u"save_map_btn")
+
+        self.verticalLayout_13.addWidget(self.save_map_btn)
+
+        self.load_map_btn = QPushButton(self.map_menu)
+        self.load_map_btn.setObjectName(u"load_map_btn")
+
+        self.verticalLayout_13.addWidget(self.load_map_btn)
+
         self.map_image_list_label = QLabel(self.map_menu)
         self.map_image_list_label.setObjectName(u"map_image_list_label")
         self.map_image_list_label.setAlignment(Qt.AlignmentFlag.AlignLeading)
@@ -1072,6 +1082,8 @@ class Ui_CustomMainWindow(object):
         self.clear_trait_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Clear trait", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools", None))
+        self.save_map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Save Map", None))
+        self.load_map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Load Map", None))
         self.map_image_list_label.setText(QCoreApplication.translate("CustomMainWindow", u"Images", None))
         self.add_cells_image_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Add Image", None))
         self.map_tab_widget.setTabText(self.map_tab_widget.indexOf(self.cells_tab), QCoreApplication.translate("CustomMainWindow", u"Cells", None))
