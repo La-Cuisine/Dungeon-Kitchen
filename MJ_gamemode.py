@@ -476,7 +476,9 @@ class ProfileBox(QLabel):
         self.add_profile()
         self.add_profile()
         
-        
+        self.prof_remove(0)   
+
+        self.prof_remove(3)        
 
 
     def _reposition(self):
@@ -511,7 +513,6 @@ class ProfileBox(QLabel):
     #Supprime le profile graphiquement
     def prof_remove(self,id):
         
-
         for i in self.profs:
             if isinstance(i,Interface_Profile):
                 if i.get_id() == id:
@@ -582,6 +583,8 @@ class Interface_Profile(QPushButton):
         global layerwindow_dic
         global z_dic
         if self.createwindow == False:
+            scale = self.parent().parent().transform().m11()
+            layerwindow_dic["profile"+str(self.place)].setScale(1/scale)
             self.scene.addItem(layerwindow_dic["profile"+str(self.place)])
             self.createwindow = True
         
