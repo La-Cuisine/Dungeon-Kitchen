@@ -17,48 +17,9 @@ Utilisation autonome (sans GUI) :
 """
 
 # Imports de la bibliothèque standard Python uniquement
-import sys           # Détection de la plateforme (Windows vs Linux/macOS)
 import os            # Manipulation des chemins de fichiers et dossiers
 import subprocess    # Lancement et contrôle de processus externes (PHP)
-
-
-# Configuration – toutes les constantes modifiables sont regroupées ici
-
-# Répertoire du script courant, utilisé comme base pour construire
-# les chemins relatifs vers php-portable/ et site/.
-# os.path.abspath garantit un chemin absolu même si le script est lancé
-# depuis un répertoire différent.
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Chemin vers le dossier contenant le binaire PHP portable.
-# Ce dossier doit se trouver au même niveau que server.py.
-PHP_DIR = os.path.join(_BASE_DIR, "php-portable")
-
-# Nom de l'exécutable PHP selon la plateforme :
-#   - "php.exe" sur Windows (sys.platform == "win32")
-#   - "php"     sur Linux / macOS
-PHP_BIN = "php.exe" if sys.platform == "win32" else "php"
-
-# Chemin complet vers l'exécutable PHP (utilisé dans la commande subprocess).
-PHP_EXECUTABLE = os.path.join(PHP_DIR, PHP_BIN)
-
-# Chemin vers le dossier racine du site PHP à servir.
-# PHP utilisera ce dossier comme document root (option -t).
-SITE_DIR = os.path.join(_BASE_DIR, "../site")
-
-# Adresse IP sur laquelle le serveur PHP écoute.
-# "127.0.0.1" = localhost uniquement (non accessible depuis le réseau local).
-# Remplacez par "0.0.0.0" pour exposer le serveur sur le réseau local.
-SERVER_HOST = "0.0.0.0"
-
-# Port TCP sur lequel le serveur PHP écoute les requêtes HTTP.
-# 8080 est un port non privilégié couramment utilisé pour le développement.
-SERVER_PORT = 8080
-
-# URL complète construite à partir de l'hôte et du port.
-# Utilisée pour l'affichage dans l'interface et pour ouvrir le navigateur.
-SERVER_URL = f"http://localhost:{SERVER_PORT}"
-
+from src.MJ_application.Sym_const import *
 
 # ---------------------------------------------------------------------------
 # ServerController – gère le cycle de vie du processus PHP
