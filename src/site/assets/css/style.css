@@ -1,0 +1,186 @@
+/*
+  style.css
+  ---------
+  Theme : "table de jeu eclairee a la bougie" - fond charbon chaud, accent
+  ambre, HUD en monospace qui fait echo aux overlays (coordonnees, zoom)
+  deja presents dans l'app de bureau (grid.py / MJ_gamemode.py).
+*/
+
+:root {
+  --bg-deep:        #14120f;
+  --bg-panel:       #1f1b16;
+  --bg-panel-edge:  #2b2419;
+  --cell-empty:     #4a4540;
+  --cell-line:      rgba(232, 149, 74, 0.16);
+  --ember:          #e8954a;
+  --ember-dim:      #8a5a2c;
+  --ember-glow:     rgba(232, 149, 74, 0.35);
+  --text-bone:      #e9e3d8;
+  --text-dim:       #a89c8a;
+  --offline:        #c6573f;
+
+  --font-display: "Oswald", "Arial Narrow", system-ui, sans-serif;
+  --font-body:    system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hud:     "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-bone);
+  font-family: var(--font-body);
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- topbar */
+
+.topbar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 18px;
+  background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-deep) 100%);
+  border-bottom: 1px solid var(--bg-panel-edge);
+}
+
+.topbar__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 15px;
+  color: var(--text-bone);
+}
+
+.topbar__mark {
+  color: var(--ember);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-hud);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ember);
+  box-shadow: 0 0 8px 1px var(--ember-glow);
+  animation: pulse 2.2s ease-in-out infinite;
+}
+
+.status--offline .status__dot {
+  background: var(--offline);
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+/* ------------------------------------------------------------------ stage */
+
+.stage {
+  position: relative;
+  height: calc(100% - 52px);
+  width: 100%;
+  background: var(--bg-deep);
+}
+
+#mapCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  cursor: grab;
+  touch-action: none;
+}
+
+#mapCanvas:active {
+  cursor: grabbing;
+}
+
+/* -------------------------------------------------------------------- hud */
+
+.hud {
+  position: absolute;
+  z-index: 10;
+  font-family: var(--font-hud);
+  color: var(--ember);
+  background: rgba(20, 18, 15, 0.78);
+  border: 1px solid var(--bg-panel-edge);
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+.hud--coords {
+  top: 14px;
+  right: 14px;
+  padding: 5px 10px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.hud--controls {
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  pointer-events: auto;
+}
+
+.hudbtn {
+  appearance: none;
+  border: 1px solid var(--bg-panel-edge);
+  background: var(--bg-panel);
+  color: var(--text-bone);
+  font-family: var(--font-hud);
+  font-size: 15px;
+  line-height: 1;
+  width: 30px;
+  height: 30px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.hudbtn:hover {
+  background: var(--ember-dim);
+  border-color: var(--ember);
+  color: var(--text-bone);
+}
+
+.hudbtn--wide {
+  width: auto;
+  padding: 0 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.hudbtn__zoom {
+  min-width: 44px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+}
