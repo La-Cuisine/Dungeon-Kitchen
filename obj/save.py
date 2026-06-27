@@ -148,9 +148,9 @@ def toXML(o,indent=0):
         i=1
         for e in o.items():
             try:
-                f = open(local_path + "Items/"+"Item#"+str(i)+"-"+e.name()+".xml","x")
+                f = open(local_path + "Items/"+"Item#"+str(i)+"-"+e.name()+".xml","x",encoding="utf-8")
             except FileExistsError:
-                f = open(local_path + "Items/"+"Item#"+str(i)+"-"+e.name()+".xml","w")
+                f = open(local_path + "Items/"+"Item#"+str(i)+"-"+e.name()+".xml","w",encoding="utf-8")
             finally:
                 f.write(toXML(e))
                 f.close()
@@ -159,9 +159,9 @@ def toXML(o,indent=0):
         i=1
         for e in o.skills():
             try:
-                f = open(local_path + "Skills/"+"Skill#"+str(i)+"-"+e.name()+".xml","x")
+                f = open(local_path + "Skills/"+"Skill#"+str(i)+"-"+e.name()+".xml","x",encoding="utf-8")
             except FileExistsError:
-                f = open(local_path + "Skills/"+"Skill#"+str(i)+"-"+e.name()+".xml","w")
+                f = open(local_path + "Skills/"+"Skill#"+str(i)+"-"+e.name()+".xml","w",encoding="utf-8")
             finally:
                 f.write(toXML(e))
                 f.close()
@@ -171,12 +171,12 @@ def toXML(o,indent=0):
         for e in o.characters():
             try:
                 if(isinstance(e,PC)):
-                    f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","x")
+                    f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","x",encoding="utf-8")
                 f = open(local_path + "Sheets/"+"Sheet#"+str(i)+"-"+e.name()+".xml","x")
             except FileExistsError:
                 if(isinstance(e,PC)):
-                    f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","w")
-                f = open(local_path + "Sheets/"+"Sheet#"+str(i)+"-"+e.name()+".xml","w")
+                    f = open(local_path + "Sheets/PC"+"Sheet#"+str(i)+"-"+e.name()+".xml","w",encoding="utf-8")
+                f = open(local_path + "Sheets/"+"Sheet#"+str(i)+"-"+e.name()+".xml","w",encoding="utf-8")
             finally:
                 f.write(toXML(e))
                 f.close()
@@ -185,9 +185,9 @@ def toXML(o,indent=0):
         i=1
         for e in o.props():
             try:
-                f = open(local_path + "Blueprints/Props"+"Prop#"+str(i)+"-"+e.name()+".xml","x")
+                f = open(local_path + "Blueprints/Props"+"Prop#"+str(i)+"-"+e.name()+".xml","x",encoding="utf-8")
             except FileExistsError:
-                f = open(local_path + "Blueprints/Props"+"Prop#"+str(i)+"-"+e.name()+".xml","w")
+                f = open(local_path + "Blueprints/Props"+"Prop#"+str(i)+"-"+e.name()+".xml","w",encoding="utf-8")
             finally:
                 f.write(toXML(e))
                 f.close()
@@ -196,9 +196,9 @@ def toXML(o,indent=0):
         i=1
         for e in o.blueprints():
             try:
-                f = open(local_path + "Blueprints/"+"Blueprint#"+str(i)+"-"+e.name()+".xml","x")
+                f = open(local_path + "Blueprints/"+"Blueprint#"+str(i)+"-"+e.name()+".xml","x",encoding="utf-8")
             except FileExistsError:
-                f = open(local_path + "Blueprints/"+"Blueprint#"+str(i)+"-"+e.name()+".xml","w")
+                f = open(local_path + "Blueprints/"+"Blueprint#"+str(i)+"-"+e.name()+".xml","w",encoding="utf-8")
             finally:
                 f.write(toXML(e))
                 f.close()
@@ -234,9 +234,9 @@ def toXML(o,indent=0):
         res += ntab(indent) + "</Game>\n"
         
         try:
-            f = open(local_path + o.name()+".xml","x")
+            f = open(local_path + o.name()+".xml","x",encoding="utf-8")
         except FileExistsError:
-            f = open(local_path + o.name()+".xml","w")
+            f = open(local_path + o.name()+".xml","w",encoding="utf-8")
         finally:
             f.write(res)
             f.close()
@@ -387,13 +387,13 @@ def fromXMLTree(root):
                 w = int(root.attrib[att])
         new = Blueprint(l,w,n)
         for grid in root:
-            y = 0
+            x = 0
             for row in grid:
-                x = 0 
+                y = 0 
                 for cell in row:
                     new.set_cell(x,y,fromXMLTree(cell))
-                    x+=1
-                y+=1
+                    y+=1
+                x+=1
 
 
     elif(observe == "Game"):
@@ -459,9 +459,27 @@ def fromXMLTree(root):
     
     return new
 
-def fromXML(path):
+def fromXML(path,Type=""):
     tree = ET.parse(path) #TODO Secure this if possible; Parse exposed to attacks
     root = tree.getroot()
+    if(Type == "Blueprint" and root.tag != "Blueprint"):
+        raise Exception("NotBlueprintFile")
+    elif(Type == "Prop" and root.tag != "Prop"):
+        raise Exception("NotPropFile")
+    elif(Type == "Cell" and root.tag != "Cell"):
+        raise Exception("NotCellFile")
+    elif(Type == "Item" and root.tag != "Item"):
+        raise Exception("NotItemFile")
+    elif(Type == "Skill" and root.tag != "Skill"):
+        raise Exception("NotSkillFile")
+    elif(Type == "NPC" and root.tag != "NPC"):
+        raise Exception("NotNPCFile")
+    elif(Type == "PC" and root.tag != "PC"):
+        raise Exception("NotPCFile")
+    elif(Type == "Player" and root.tag != "Player"):
+        raise Exception("NotPlayerFile")
+    elif(Type == "Game" and root.tag != "Game"):
+        raise Exception("NotGameFile")
     return fromXMLTree(root)
 
 def toXML_saveto(o,path):
@@ -469,9 +487,9 @@ def toXML_saveto(o,path):
     if(isinstance(o,Game)):
         raise Exception("ObjectAlreadySaved")
     try:
-        f = open(path + o.name()+".xml","x")
+        f = open(path + o.name()+".xml","x",encoding="utf-8")
     except FileExistsError:
-        f = open(path + o.name()+".xml","w")
+        f = open(path + o.name()+".xml","w",encoding="utf-8")
     finally:
         f.write(res)
         f.close()
