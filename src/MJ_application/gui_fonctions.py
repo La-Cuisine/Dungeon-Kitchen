@@ -1,8 +1,9 @@
 import os
+import shutil
 from pathlib import Path
 from PySide6.QtCore import QSettings, QTimer, Qt, QSize
 from PySide6.QtGui import QColor, QPalette, QPainter, QBrush, QPixmap, QIcon
-from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy, QListWidgetItem, QInputDialog
+from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy, QListWidgetItem, QInputDialog, QMessageBox
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 from Custom_Widgets.QCustomTheme import QCustomTheme
@@ -36,6 +37,7 @@ class GuiFunctions():
         self._item_image_path = None  # Chemin de l'image choisie pour l'objet en cours d'édition
         self._spell_image_path = None  # Chemin de l'image choisie pour le sort en cours d'édition
         self._character_icon_path = None  # Chemin de l'icône du personnage en cours d'édition
+        self._current_session_path = None  # Chemin (projects/<nom>) de la session active, None si nouvelle/non sauvegardée
         self._controller = ServerController()
         self.settings =  QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
         self.last_menu = self.settings.value("Menu")
@@ -285,6 +287,29 @@ class GuiFunctions():
         Path("local/Assets/Images/Spells"),
     ]
     BLUEPRINT_DIRECTORY = Path("local/Blueprint")
+
+    # Dossier de travail courant (la "session" active) et dossier
+    # dans lequel les sessions sont archivées / sauvegardées
+    SESSION_LOCAL_DIRECTORY = Path("local")
+    SESSION_PROJECTS_DIRECTORY = Path("projects")
+
+    # Arborescence de base recréée dans local/ lors de la création
+    # d'une nouvelle session vide
+    SESSION_SUBFOLDERS = [
+        "Assets/Images/Cells",
+        "Assets/Images/Characters",
+        "Assets/Images/Props",
+        "Assets/Images/Items",
+        "Assets/Images/Spells",
+        "Blueprint",
+        "Sheets/NPC",
+        "Sheets/PC",
+        "Items/Weapon",
+        "Items/Armour",
+        "Items/Consumable",
+        "Items/Miscellaneous",
+        "Spells",
+    ]
 
     # Image utilisee comme aperçu quand aucune image n'a ete choisie
     PLACEHOLDER_IMAGE = "image/placeholder.png"
@@ -596,6 +621,13 @@ class GuiFunctions():
         # Save/Save as
         self.ui.actionSave.triggered.connect(self.save_actionmenu)
         #self.ui.actionSave_as.triggered.connect(self.save_as_actionmenu)
+
+        # Save/Load session (sauvegarde le dossier local/ dans projects/,
+        # et recharge un projet sauvegardé dans local/)
+        self.ui.actionNew_session.triggered.connect(self.new_session)
+        self.ui.actionSave_session.triggered.connect(self.save_session)
+        self.ui.actionUpdate_session.triggered.connect(self.update_session)
+        self.ui.actionLoad_session.triggered.connect(self.load_session)
 
     def init_info_menu(self):
         """
@@ -1878,3 +1910,205 @@ class GuiFunctions():
                 image = bp_cell.image_reference()
                 if image:
                     visual_cell.setImage(image)
+
+    # ----------------------------------------------------------------
+    # Sauvegarde / chargement de session
+    # ----------------------------------------------------------------
+
+    def new_session(self):
+        """
+        Crée une nouvelle session vide : vide entièrement le dossier
+        local/ (après confirmation) et y recrée l'arborescence de base
+        attendue par l'application.
+
+        La session active (self._current_session_path) est réinitialisée
+        à None, puisqu'une nouvelle session n'a encore jamais été
+        sauvegardée dans projects/.
+        """
+        confirm = QMessageBox.question(
+            self.main,
+            "Nouvelle session",
+            f"Le contenu actuel de '{self.SESSION_LOCAL_DIRECTORY}' va être "
+            "définitivement supprimé. Pensez à sauvegarder la session en "
+            "cours si nécessaire. Continuer ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            if self.SESSION_LOCAL_DIRECTORY.exists():
+                shutil.rmtree(self.SESSION_LOCAL_DIRECTORY)
+            for sub in self.SESSION_SUBFOLDERS:
+                (self.SESSION_LOCAL_DIRECTORY / sub).mkdir(parents=True, exist_ok=True)
+            self._current_session_path = None
+            self._append_log(
+                f"[INFO] Nouvelle session créée, '{self.SESSION_LOCAL_DIRECTORY}' a été réinitialisé."
+            )
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible de créer une nouvelle session : {exc}"
+            )
+            return
+
+        self._refresh_session_views()
+
+    def update_session(self):
+        """
+        Met à jour la session active (la dernière session sauvegardée ou
+        chargée via save_session()/load_session()) en remplaçant son
+        contenu dans projects/ par celui du dossier local/ actuel.
+
+        Si aucune session n'est active, invite l'utilisateur à utiliser
+        "Sauvegarder la session" pour en créer une.
+        """
+        if self._current_session_path is None:
+            self._append_log(
+                "[INFO] Aucune session active à mettre à jour. "
+                "Utilisez 'Sauvegarder la session' pour en créer une."
+            )
+            return
+
+        if not self.SESSION_LOCAL_DIRECTORY.is_dir():
+            self._append_log(
+                f"[ERREUR] Dossier '{self.SESSION_LOCAL_DIRECTORY}' introuvable, rien à mettre à jour."
+            )
+            return
+
+        confirm = QMessageBox.question(
+            self.main,
+            "Mettre à jour la session",
+            f"La session '{self._current_session_path.name}' va être "
+            "remplacée par le contenu actuel de "
+            f"'{self.SESSION_LOCAL_DIRECTORY}'. Continuer ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            if self._current_session_path.exists():
+                shutil.rmtree(self._current_session_path)
+            shutil.copytree(self.SESSION_LOCAL_DIRECTORY, self._current_session_path)
+            self._append_log(
+                f"[INFO] Session '{self._current_session_path.name}' mise à jour."
+            )
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible de mettre à jour la session : {exc}"
+            )
+
+    def save_session(self):
+        """
+        Sauvegarde la session courante (tout le contenu du dossier
+        local/) dans un nouveau dossier sous projects/.
+
+        Séquence d'actions :
+          1. Demande un nom de session à l'utilisateur.
+          2. Évite d'écraser une session existante du même nom en
+             ajoutant un suffixe "(1)", "(2)", ... si besoin.
+          3. Copie récursivement local/ vers projects/<nom>/.
+        """
+        name, ok = QInputDialog.getText(
+            self.main,
+            "Sauvegarder la session",
+            "Nom de la session :"
+        )
+        if not ok or not name:
+            return
+
+        self.SESSION_PROJECTS_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+        # Évite d'écraser une session existante portant le même nom
+        destination = self.SESSION_PROJECTS_DIRECTORY / name
+        suffix = 1
+        base_name = name
+        while destination.exists():
+            name = f"{base_name}({suffix})"
+            destination = self.SESSION_PROJECTS_DIRECTORY / name
+            suffix += 1
+
+        if not self.SESSION_LOCAL_DIRECTORY.is_dir():
+            self._append_log(
+                f"[ERREUR] Dossier '{self.SESSION_LOCAL_DIRECTORY}' introuvable, rien à sauvegarder."
+            )
+            return
+
+        try:
+            shutil.copytree(self.SESSION_LOCAL_DIRECTORY, destination)
+            self._current_session_path = destination
+            self._append_log(
+                f"[INFO] Session sauvegardée dans '{destination}'"
+            )
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible de sauvegarder la session : {exc}"
+            )
+
+    def load_session(self):
+        """
+        Charge une session sauvegardée depuis projects/ et remplace le
+        contenu du dossier local/ par celui de la session choisie.
+
+        Séquence d'actions :
+          1. Ouvre un sélecteur de dossier dans projects/.
+          2. Demande confirmation (le contenu actuel de local/ sera
+             remplacé, donc perdu s'il n'a pas été sauvegardé).
+          3. Supprime local/ puis copie le dossier de session choisi
+             à sa place.
+          4. Rafraîchit les listes d'images affichées dans l'interface.
+        """
+        self.SESSION_PROJECTS_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+        directory = QFileDialog.getExistingDirectory(
+            self.main,
+            "Charger une session",
+            str(self.SESSION_PROJECTS_DIRECTORY)
+        )
+        if not directory:
+            return
+
+        source = Path(directory)
+
+        confirm = QMessageBox.question(
+            self.main,
+            "Charger la session",
+            f"Le contenu actuel de '{self.SESSION_LOCAL_DIRECTORY}' va être "
+            "remplacé par la session sélectionnée. Continuer ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            if self.SESSION_LOCAL_DIRECTORY.exists():
+                shutil.rmtree(self.SESSION_LOCAL_DIRECTORY)
+            shutil.copytree(source, self.SESSION_LOCAL_DIRECTORY)
+            self._current_session_path = source
+            self._append_log(
+                f"[INFO] Session '{source.name}' chargée dans '{self.SESSION_LOCAL_DIRECTORY}'"
+            )
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible de charger la session : {exc}"
+            )
+            return
+
+        self._refresh_session_views()
+
+    def _refresh_session_views(self):
+        """
+        Rafraîchit les éléments de l'interface qui dépendent du contenu
+        du dossier local/ (listes d'images des cellules et des props)
+        après le chargement d'une session.
+        """
+        if hasattr(self.ui, "cells_image_list"):
+            self._populate_image_list(
+                self.ui.cells_image_list,
+                self.CELL_DIRECTORIES
+            )
+        if hasattr(self.ui, "props_image_list"):
+            self._populate_image_list(
+                self.ui.props_image_list,
+                self.PROP_DIRECTORIES
+            )

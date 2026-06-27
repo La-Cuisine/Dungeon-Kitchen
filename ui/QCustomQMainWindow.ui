@@ -1768,6 +1768,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
     <addaction name="separator"/>
+    <addaction name="actionNew_session"/>
+    <addaction name="actionSave_session"/>
+    <addaction name="actionUpdate_session"/>
+    <addaction name="actionLoad_session"/>
+    <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -1825,6 +1830,26 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionSave_as">
    <property name="text">
     <string>Save as...</string>
+   </property>
+  </action>
+  <action name="actionNew_session">
+   <property name="text">
+    <string>New session</string>
+   </property>
+  </action>
+  <action name="actionSave_session">
+   <property name="text">
+    <string>Save session</string>
+   </property>
+  </action>
+  <action name="actionUpdate_session">
+   <property name="text">
+    <string>Update session</string>
+   </property>
+  </action>
+  <action name="actionLoad_session">
+   <property name="text">
+    <string>Load session</string>
    </property>
   </action>
   <action name="actionClose">
