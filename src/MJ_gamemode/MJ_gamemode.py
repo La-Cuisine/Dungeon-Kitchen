@@ -4,6 +4,8 @@ import sys
 import random
 from enum import Enum
 
+# La grille est injectée depuis gui_fonctions via MainWindow.set_map()
+
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -50,6 +52,7 @@ from PySide6.QtGui import (
     QIcon,
     QPixmap,
     QIntValidator,
+    QWheelEvent,
     
 )
 
@@ -94,6 +97,7 @@ class View_GameMode(QGraphicsView):
         
 
         self._Mxy = None
+        self._pan_last = None   # point de départ du panoramique (MMB)
 
         self._Items_needs = []
 
@@ -185,6 +189,25 @@ class View_GameMode(QGraphicsView):
         
         super().resizeEvent(event)
    
+    # ------------------------------------------------------------------
+    # Navigation de la carte en arrière-plan
+    #   - Molette               : zoom centré sous la souris
+    #   - Clic molette (MMB)    : début du panoramique (pan)
+    #   - Glisser MMB enfoncé   : panoramique
+    #   - Relâcher MMB          : fin du panoramique
+    # ------------------------------------------------------------------
+
+    def wheelEvent(self, event):
+        if self._grid is None:
+            return super().wheelEvent(event)
+        factor = 1.15 if event.angleDelta().y() > 0 else 1 / 1.15
+        new_zoom = self.zoom * factor
+        if not (0.15 <= new_zoom <= 8):
+            return
+        self.zoom = new_zoom
+        # Only the map
+        self._grid.setScale(self.zoom)
+
     def mousePressEvent(self, event):
         if self.Dice_result.isVisible():
             if not self.Dice_result.geometry().contains(event.position().toPoint()):
@@ -192,13 +215,54 @@ class View_GameMode(QGraphicsView):
                 self.adventage_dice.disconnectLauch()
                 self.adventage_dice.hide()
 
+        # Début du panoramique avec le bouton du milieu
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._pan_last = event.position().toPoint()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+            event.accept()
+            return
+
         return super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._pan_last is not None:
+            delta = event.position().toPoint() - self._pan_last
+            self._pan_last = event.position().toPoint()
+            if self._grid is not None:
+                scale = self.transform().m11()
+                dx = delta.x() / scale
+                dy = delta.y() / scale
+                view = self.mapToScene(self.viewport().rect()).boundingRect()
+                scene_rect = self._grid.sceneBoundingRect()
+                new_rect = scene_rect.translated(dx, dy)
+                # Horizontal
+                if new_rect.left() > view.left():
+                    dx = view.left() - scene_rect.left()
+                elif new_rect.right() < view.right():
+                    dx = view.right() - scene_rect.right()
+                # Vertical
+                if new_rect.top() > view.top():
+                    dy = view.top() - scene_rect.top()
+                elif new_rect.bottom() < view.bottom():
+                    dy = view.bottom() - scene_rect.bottom()
+                self._grid.moveBy(dx, dy)
+            event.accept()
+            return
+        return super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._pan_last = None
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+            event.accept()
+            return
+        return super().mouseReleaseEvent(event)
 
 
 
 class MainWindow(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, scene=None, world=None, wall=None):
         """
         Constructeur : initialise les objets métier, configure la fenêtre
         et crée tous les widgets de l'interface.
@@ -232,6 +296,11 @@ class MainWindow(QMainWindow):
         _LimitBoundingRight = self.LimitBoundingRight
         self.univers.addItem(self.LimitBoundingRight)
 
+        # ── Carte de la session (injectée depuis gui_fonctions) ──────────
+        # set_map() peut aussi être appelé après construction.
+        if world is not None:
+            self.set_map(scene, world, wall)
+
 
         
 
@@ -239,8 +308,37 @@ class MainWindow(QMainWindow):
         
         
         #self.user_profile_1 = self.addButItem(15,20)
-            
-        
+
+    def set_map(self, scene, world, wall):
+        """Injecte la grille existante depuis gui_fonctions.
+        Peut etre appele avant ou apres show().
+        """
+        # Retirer une ancienne grille si present
+        if getattr(self, 'map_grid', None) is not None:
+            self.univers.removeItem(self.map_grid)
+
+        self.map_grid = world
+        self.map_grid.setZValue(-1)   # sous les profils, des, etc.
+
+        # Cree un mur invisible pour la scene du gamemode
+        # et met a jour la globale _wall du module grid.
+        from src.MJ_application.grid import InvisibleWallLimit as _IWL
+        import src.MJ_application.grid as _grid_mod
+        if getattr(self, '_map_wall', None) is not None:
+            self.univers.removeItem(self._map_wall)
+        self._map_wall = _IWL(self.univers)
+        _grid_mod._wall = self._map_wall
+        self.univers.addItem(self._map_wall)
+
+        self.univers.setItemIndexMethod(
+            QGraphicsScene.ItemIndexMethod.NoIndex
+        )
+        self.univers.addItem(self.map_grid)
+
+        # Reference directe sur la grille pour la vue
+        self.view._grid = self.map_grid
+
+
 class layerwindow(QGraphicsItem):
     def __init__(self, x, y, w, h,z,color, b : Interface_Profile):
         super().__init__()

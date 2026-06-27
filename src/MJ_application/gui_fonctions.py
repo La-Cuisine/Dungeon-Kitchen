@@ -1522,14 +1522,19 @@ class GuiFunctions():
 
     def _open_game_interface(self):
         """
-        Slot connecté au signal clicked du bouton "Open game interface".
-        Ouvre la fenêtre du mode MJ (MJ_gamemode.MainWindow) en tant que
-        fenêtre indépendante. La référence est conservée sur self._game_window
-        pour éviter que Python ne la détruise (garbage collection) juste
-        après l'appel à show().
+        Slot connecte au signal clicked du bouton "Open game interface".
+        Ouvre la fenetre du mode MJ (MJ_gamemode.MainWindow) en tant que
+        fenetre independante et lui injecte la grille active de la session.
         """
         if self._game_window is None:
             self._game_window = GameModeWindow()
+
+        # Injecte la grille de la session courante si elle existe
+        world = getattr(self, '_world', None)
+        scene = getattr(self, '_scene', None)
+        wall  = getattr(self, '_wall',  None)
+        if world is not None:
+            self._game_window.set_map(scene, world, wall)
 
         self._game_window.show()
         self._game_window.raise_()
