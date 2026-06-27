@@ -22,6 +22,8 @@ from PySide6.QtWidgets import (
     QGraphicsSceneWheelEvent,
     QGraphicsPixmapItem,
     QMenu,
+    QListWidget,
+    QAbstractItemView,
     
 )
 from PySide6.QtCore import (
@@ -31,7 +33,8 @@ from PySide6.QtCore import (
     QRectF, 
     QSize,
     QPointF,
-    
+    QMimeData,
+    QByteArray,
     
 )
 from PySide6.QtGui import (
@@ -51,6 +54,7 @@ from PySide6.QtGui import (
     QCursor,
     QMouseEvent,
     QKeySequence,
+    QDrag,
     
 ) 
 
@@ -76,6 +80,49 @@ def _get_scaled_pixmap(path: str, w: int, h: int) -> QPixmap:
             Qt.TransformationMode.SmoothTransformation,
         )
     return _pixmap_cache[key]
+
+
+# ---------------------------------------------------------------------------
+# Liste d'images glissable (cells_image_list / props_image_list)
+# ---------------------------------------------------------------------------
+class DraggableImageList(QListWidget):
+    """QListWidget dont les items peuvent etre glisses (drag) vers la
+    grille pour y deposer une image sur une case.
+
+    Le chemin de l'image (stocke dans Qt.ItemDataRole.UserRole par
+    GuiFunctions._populate_image_list) est transporte via un mime type
+    custom MIME_TYPE, lu par View_Grid.dropEvent()."""
+
+    MIME_TYPE = "application/x-grid-image-path"
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setDragEnabled(True)
+        self.setDragDropMode(QAbstractItemView.DragDropMode.DragOnly)
+
+    def startDrag(self, supportedActions):
+        item = self.currentItem()
+        if item is None:
+            return
+
+        path = item.data(Qt.ItemDataRole.UserRole)
+        if not path:
+            return
+
+        mime = QMimeData()
+        mime.setData(self.MIME_TYPE, QByteArray(str(path).encode("utf-8")))
+        mime.setText(str(path))  # repli texte, lisible par d'autres widgets
+
+        drag = QDrag(self)
+        drag.setMimeData(mime)
+
+        icon = item.icon()
+        if not icon.isNull():
+            pixmap = icon.pixmap(self.iconSize())
+            drag.setPixmap(pixmap)
+            drag.setHotSpot(pixmap.rect().center())
+
+        drag.exec(Qt.DropAction.CopyAction)
 
 
 class Interface_Proprieties(QWidget):
@@ -194,14 +241,22 @@ class Interface_Cell(QGraphicsRectItem):
 
     def setImage(self, Path: str):
         self.Path = Path
-        # utilise le cache au lieu de recharger depuis le disque
         scaled = _get_scaled_pixmap(Path, self.w, self.h)
-        # Ne retirer de la scène que si l'item y est déjà (pixmap non null = déjà posé)
-        if not self._img.pixmap().isNull() and self._img.scene() is not None:
+        if self._img is None:
+            self._img = Img()
+        elif (
+            not self._img.pixmap().isNull()
+            and self._img.scene() is not None
+        ):
             self._img.scene().removeItem(self._img)
-        self._img.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        self._img.setTransformationMode(
+            Qt.TransformationMode.SmoothTransformation
+        )
         self._img.setPixmap(scaled)
-        self._img.setPos(self.w * self._coord[0], self.h * self._coord[1])
+        self._img.setPos(
+            self.w * self._coord[0],
+            self.h * self._coord[1]
+        )
         self._img.setParentItem(self)
         self.update()
 
@@ -223,22 +278,21 @@ class Interface_Cell(QGraphicsRectItem):
         global _cell_cp_data
         _cell_cp_data["fill"] = True
         _cell_cp_data["img"] = self._img
+        _cell_cp_data["path"] = self.Path
 
     def Paste(self):
         global _cell_cp_data
-        if self._img is not None:
-            self.scene().removeItem(self._img)
-            tmp = self._img
-            del tmp
-        self._img = _cell_cp_data["img"].copy_for_cell()
-        self._CPimage()
+        path = _cell_cp_data["path"]
+        if path is not None:
+            self.setImage(path)
 
     def Cut(self):
         self.Copy()
-        self.scene().removeItem(self._img)
-        tmp = self._img
-        del tmp
-        self._img = None
+        if self._img is not None:
+            if self._img.scene() is not None:
+                self.scene().removeItem(self._img)
+            self._img = None
+        self.Path = None
         self.update()
 
     def Proprieties(self,xy:QPointF|None):
@@ -252,6 +306,14 @@ class Interface_Cell(QGraphicsRectItem):
             else:
                 text = text + self.Path + "\n"
             view.showProperties(text)
+            
+    def DeleteImage(self):
+        if self._img is not None:
+            if self._img.scene() is not None:
+                self.scene().removeItem(self._img)
+            self._img = Img()
+        self.Path = None
+        self.update()
         
         
 
@@ -322,6 +384,10 @@ class View_Grid(QGraphicsView):
 
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
+
+        # Accepte le drop d'images provenant de DraggableImageList
+        # (cells_image_list / props_image_list)
+        self.setAcceptDrops(True)
 
         #  mise à jour viewport limitée à la zone modifiée (pas toute la vue)
         self.setViewportUpdateMode(
@@ -430,6 +496,14 @@ class View_Grid(QGraphicsView):
                 if self._cell_select is not None and self._Mxy is not None:
                     self._cell_select.Proprieties(self._Mxy)
 
+        if event.key() in (
+            Qt.Key.Key_Delete,
+            Qt.Key.Key_Backspace,
+        ):
+            if self._cell_select is not None:
+                self._cell_select.DeleteImage()
+                self._cell_select_use = True
+
         return super().keyPressEvent(event)
 
     def mouseDoubleClickEvent(self, event):
@@ -496,34 +570,25 @@ class View_Grid(QGraphicsView):
             self._shift_press = False
         return super().keyReleaseEvent(event)
 
-    # zoom non au point
+    # Comportement de la molette :
+    # - molette seule → zoom centré sous le curseur
     def wheelEvent(self, event):
-
-        if self._shift_press:
-            angle = event.angleDelta().y()
-            if angle == 0:
-                event.accept()
-                return
-
-            factor = self.zoomfac if angle > 0 else 1 / self.zoomfac
-            new_zoom = max(self.zoomMin, min(self.zoomMax, self.zoom * factor))
-            applied = new_zoom / self.zoom
-
-            if applied != 1.0:
-                self.zoom = new_zoom
-
-                cursor_scene = self.mapToScene(event.position().toPoint())
-                self.scale(applied, applied)
-                cursor_scene_after = self.mapToScene(event.position().toPoint())
-                delta = cursor_scene_after - cursor_scene
-                self.translate(delta.x(), delta.y())
-
-                self._update_world_bounds()
-
-            event.accept()
+        angle = event.angleDelta().y()
+        if angle == 0:
+            event.ignore()
             return
 
-        return super().wheelEvent(event)
+        factor = self.zoomfac if angle > 0 else 1 / self.zoomfac
+        new_zoom = max(self.zoomMin, min(self.zoomMax, self.zoom * factor))
+        applied = new_zoom / self.zoom
+
+        if applied != 1.0:
+            self.zoom = new_zoom
+            # AnchorUnderMouse garde le point de scène sous le curseur fixe
+            self.scale(applied, applied)
+            self._update_world_bounds()
+
+        event.accept()
 
     def resizeEvent(self, event: QResizeEvent):
         if not self._fitted_once and self.scene() is not None:
@@ -540,6 +605,38 @@ class View_Grid(QGraphicsView):
             if hasattr(it, "align"):
                 it.align()
         super().resizeEvent(event)
+
+    # ------------------------------------------------------------------
+    # Drag and drop d'images (depuis cells_image_list / props_image_list)
+    # ------------------------------------------------------------------
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat(DraggableImageList.MIME_TYPE):
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat(DraggableImageList.MIME_TYPE):
+            cell = self._cell_at_view_pos(event.position().toPoint())
+            if cell is not None:
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        if event.mimeData().hasFormat(DraggableImageList.MIME_TYPE):
+            raw = event.mimeData().data(DraggableImageList.MIME_TYPE)
+            path = bytes(raw).decode("utf-8")
+            cell = self._cell_at_view_pos(event.position().toPoint())
+            if cell is not None and path:
+                cell.setImage(path)
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        else:
+            super().dropEvent(event)
 
     def contextMenuEvent(self, event):
         # résolution mathématique pour le menu contextuel aussi
@@ -567,6 +664,11 @@ class View_Grid(QGraphicsView):
             nameAction.triggered.connect(lambda: cell.Proprieties(self._Mxy))
             self.menu.addAction(nameAction)
 
+            if cell.Path is not None:
+                nameAction = QAction("Delete", self)
+                nameAction.triggered.connect(lambda: cell.DeleteImage())
+                self.menu.addAction(nameAction)
+            
             ## add other required actions
             self.menu.popup(QCursor.pos())
             return  # on court-circuite super() pour éviter le double-menu
@@ -659,8 +761,7 @@ class Grid(QGraphicsRectItem):
                 cell = Interface_Cell(s_cell * j, s_cell * i, s_cell, s_cell)
                 cell.setCoord(j, i)
                 cell.setParentItem(self)
-                if j <= i:
-                    cell.setImage("ui/image/sponge.jpg")
+                
         self.atoms = [item for item in self.childItems() if isinstance(item, Interface_Cell)]
 
         self._gpos = QPointF(0, 0)

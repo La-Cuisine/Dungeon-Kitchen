@@ -4,6 +4,7 @@ class Prop:
         self._type = Type
         self._desc = Description
         self._state = State #ex: 0=Neutral; 1=Activated
+        self._img =  "" # FilePath
     
     #getters
     def name(self):
@@ -14,6 +15,8 @@ class Prop:
         return self._desc
     def state(self):
         return self._state
+    def image_reference(self):
+        return self._img
 
     #setters 
     def rename(self,n):
@@ -24,6 +27,8 @@ class Prop:
         self._desc = d
     def restate(self,s):
         self._state = s
+    def new_reference(self,path):
+        self._img = path
 
     #methods
     def activate(self):
@@ -36,8 +41,9 @@ class Prop:
         self._state -=1
     
     def copy(self):
-        return Prop(self._name, self._type, self._desc, self._state)
-
+        res = Prop(self._name, self._type, self._desc, self._state)
+        res.new_reference(self._img)
+        return res
 
 class Cell:
     def __init__(self, Contents=[], Ground=0, Walls=0b0000, Doors=0b0000):
@@ -51,6 +57,7 @@ class Cell:
         if(Doors>0b1111 or Doors<0b000):
             raise Exception("ArgumentOutOfRange")
         self._doors = Doors # 0b1010 = NESW
+        self._img =  "" # FilePath
 
     #getters
     def contents(self):
@@ -65,6 +72,9 @@ class Cell:
         return self._walls
     def doors(self):
         return self._doors
+    def image_reference(self):
+        return self._img
+
     
     #setters
     def set_ground(self, c):
@@ -79,6 +89,8 @@ class Cell:
         if(d>0b1111 or d<0b000):
             raise Exception("ArgumentOutOfRange")
         self._doors = d 
+    def new_reference(self,path):
+        self._img = path
 
     #methods 
     def add_content(self, con):
@@ -94,8 +106,9 @@ class Cell:
         return res
 
     def copy(self):
-        return Cell(self._contents, self._ground, self._walls, self._doors)
-
+        res = Cell(self._contents, self._ground, self._walls, self._doors)
+        res.new_reference(self._img)
+        return res
 
 
 class Blueprint: 
@@ -219,7 +232,10 @@ class Blueprint:
         self.AllMoveTo_content(x2,y2,x1,y1)
         for j in range(tmp):
             self._grid[x2][y2].add_content(acc[j])    
-
+    def cell_new_reference(self,x,y,path):
+        if(x<0 or y<0 or x>self._length or y>self._width):
+            raise Exception("IndexOutOfRange")
+        self._grid[x][y].new_reference(path)
    
     def copy(self):
         new = Blueprint(self._length, self._width, (self._name +" - Copy"))

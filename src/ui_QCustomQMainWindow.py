@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'new_QCustomQMainWindow.ui'
+## Form generated from reading UI file 'QCustomQMainWindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.11.1
 ##
@@ -18,10 +18,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QComboBox,
     QFormLayout, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QLayout, QLineEdit, QMenu,
-    QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
-    QSpinBox, QStackedWidget, QTabWidget, QTextEdit,
-    QVBoxLayout, QWidget)
+    QLabel, QLayout, QLineEdit, QListWidget,
+    QListWidgetItem, QMenu, QMenuBar, QPushButton,
+    QSizePolicy, QSpacerItem, QSpinBox, QStackedWidget,
+    QTabWidget, QTextEdit, QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQMainWindow import QCustomQMainWindow
 class Ui_CustomMainWindow(object):
@@ -44,6 +44,14 @@ class Ui_CustomMainWindow(object):
         self.actionSave.setObjectName(u"actionSave")
         self.actionSave_as = QAction(CustomMainWindow)
         self.actionSave_as.setObjectName(u"actionSave_as")
+        self.actionNew_session = QAction(CustomMainWindow)
+        self.actionNew_session.setObjectName(u"actionNew_session")
+        self.actionSave_session = QAction(CustomMainWindow)
+        self.actionSave_session.setObjectName(u"actionSave_session")
+        self.actionUpdate_session = QAction(CustomMainWindow)
+        self.actionUpdate_session.setObjectName(u"actionUpdate_session")
+        self.actionLoad_session = QAction(CustomMainWindow)
+        self.actionLoad_session.setObjectName(u"actionLoad_session")
         self.actionClose = QAction(CustomMainWindow)
         self.actionClose.setObjectName(u"actionClose")
         self.actionUndo = QAction(CustomMainWindow)
@@ -621,6 +629,73 @@ class Ui_CustomMainWindow(object):
 
         self.verticalLayout_13.addWidget(self.map_menu_label, 0, Qt.AlignmentFlag.AlignTop)
 
+        self.line_map_1 = QFrame(self.map_menu)
+        self.line_map_1.setObjectName(u"line_map_1")
+        self.line_map_1.setFrameShape(QFrame.Shape.HLine)
+        self.line_map_1.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_13.addWidget(self.line_map_1)
+
+        self.new_map_btn = QPushButton(self.map_menu)
+        self.new_map_btn.setObjectName(u"new_map_btn")
+
+        self.verticalLayout_13.addWidget(self.new_map_btn)
+
+        self.save_map_btn = QPushButton(self.map_menu)
+        self.save_map_btn.setObjectName(u"save_map_btn")
+
+        self.verticalLayout_13.addWidget(self.save_map_btn)
+
+        self.load_map_btn = QPushButton(self.map_menu)
+        self.load_map_btn.setObjectName(u"load_map_btn")
+
+        self.verticalLayout_13.addWidget(self.load_map_btn)
+
+        self.map_image_list_label = QLabel(self.map_menu)
+        self.map_image_list_label.setObjectName(u"map_image_list_label")
+        self.map_image_list_label.setAlignment(Qt.AlignmentFlag.AlignLeading)
+
+        self.verticalLayout_13.addWidget(self.map_image_list_label)
+
+        self.map_tab_widget = QTabWidget(self.map_menu)
+        self.map_tab_widget.setObjectName(u"map_tab_widget")
+        self.cells_tab = QWidget()
+        self.cells_tab.setObjectName(u"cells_tab")
+        self.verticalLayout_cells = QVBoxLayout(self.cells_tab)
+        self.verticalLayout_cells.setObjectName(u"verticalLayout_cells")
+        self.add_cells_image_btn = QPushButton(self.cells_tab)
+        self.add_cells_image_btn.setObjectName(u"add_cells_image_btn")
+
+        self.verticalLayout_cells.addWidget(self.add_cells_image_btn)
+
+        self.cells_image_list = QListWidget(self.cells_tab)
+        self.cells_image_list.setObjectName(u"cells_image_list")
+        self.cells_image_list.setIconSize(QSize(32, 32))
+        self.cells_image_list.setUniformItemSizes(True)
+
+        self.verticalLayout_cells.addWidget(self.cells_image_list)
+
+        self.map_tab_widget.addTab(self.cells_tab, "")
+        self.props_tab = QWidget()
+        self.props_tab.setObjectName(u"props_tab")
+        self.verticalLayout_props = QVBoxLayout(self.props_tab)
+        self.verticalLayout_props.setObjectName(u"verticalLayout_props")
+        self.add_props_image_btn = QPushButton(self.props_tab)
+        self.add_props_image_btn.setObjectName(u"add_props_image_btn")
+
+        self.verticalLayout_props.addWidget(self.add_props_image_btn)
+
+        self.props_image_list = QListWidget(self.props_tab)
+        self.props_image_list.setObjectName(u"props_image_list")
+        self.props_image_list.setIconSize(QSize(32, 32))
+        self.props_image_list.setUniformItemSizes(True)
+
+        self.verticalLayout_props.addWidget(self.props_image_list)
+
+        self.map_tab_widget.addTab(self.props_tab, "")
+
+        self.verticalLayout_13.addWidget(self.map_tab_widget)
+
         self.stacked_widget.addWidget(self.map_menu)
         self.server_menu = QWidget()
         self.server_menu.setObjectName(u"server_menu")
@@ -916,6 +991,11 @@ class Ui_CustomMainWindow(object):
         self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionSave_as)
         self.menuFile.addSeparator()
+        self.menuFile.addAction(self.actionNew_session)
+        self.menuFile.addAction(self.actionSave_session)
+        self.menuFile.addAction(self.actionUpdate_session)
+        self.menuFile.addAction(self.actionLoad_session)
+        self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionClose)
         self.menuNew.addAction(self.actionNew_character)
         self.menuNew.addAction(self.actionNew_map)
@@ -933,7 +1013,8 @@ class Ui_CustomMainWindow(object):
         self.retranslateUi(CustomMainWindow)
 
         self.stacked_widget.setCurrentIndex(2)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(3)
+        self.map_tab_widget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(CustomMainWindow)
@@ -950,6 +1031,10 @@ class Ui_CustomMainWindow(object):
         self.actionSave.setShortcut(QCoreApplication.translate("CustomMainWindow", u"Ctrl+S", None))
 #endif // QT_CONFIG(shortcut)
         self.actionSave_as.setText(QCoreApplication.translate("CustomMainWindow", u"Save as...", None))
+        self.actionNew_session.setText(QCoreApplication.translate("CustomMainWindow", u"New session", None))
+        self.actionSave_session.setText(QCoreApplication.translate("CustomMainWindow", u"Save session", None))
+        self.actionUpdate_session.setText(QCoreApplication.translate("CustomMainWindow", u"Update session", None))
+        self.actionLoad_session.setText(QCoreApplication.translate("CustomMainWindow", u"Load session", None))
         self.actionClose.setText(QCoreApplication.translate("CustomMainWindow", u"Close", None))
 #if QT_CONFIG(shortcut)
         self.actionClose.setShortcut(QCoreApplication.translate("CustomMainWindow", u"Alt+F4", None))
@@ -1019,6 +1104,14 @@ class Ui_CustomMainWindow(object):
         self.clear_trait_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Clear trait", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.trait), QCoreApplication.translate("CustomMainWindow", u"Trait", None))
         self.map_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Map tools", None))
+        self.new_map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"New Map", None))
+        self.save_map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Save Map", None))
+        self.load_map_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Load Map", None))
+        self.map_image_list_label.setText(QCoreApplication.translate("CustomMainWindow", u"Images", None))
+        self.add_cells_image_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Add Image", None))
+        self.map_tab_widget.setTabText(self.map_tab_widget.indexOf(self.cells_tab), QCoreApplication.translate("CustomMainWindow", u"Cells", None))
+        self.add_props_image_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Add Image", None))
+        self.map_tab_widget.setTabText(self.map_tab_widget.indexOf(self.props_tab), QCoreApplication.translate("CustomMainWindow", u"Props", None))
         self.server_state_label.setText(QCoreApplication.translate("CustomMainWindow", u"Server: closed", None))
         self.url_link_label.setText(QCoreApplication.translate("CustomMainWindow", u"URL : <a href=\"{SERVER_URL}\">{SERVER_URL}</a>", None))
         self.open_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open server", None))

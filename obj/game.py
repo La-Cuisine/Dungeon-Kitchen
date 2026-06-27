@@ -12,9 +12,14 @@ def generate_FileSystemProject(project_name):
         os.mkdir("./projects/"+project_name)
     except FileExistsError:
         if(os.path.isdir("./projects/"+project_name)):
-            generate_FileSystemProject(project_name+"(1)")
+            return generate_FileSystemProject(project_name+"(1)")
     
-    os.mkdir("./projects/"+project_name+"/Assets")
+    os.makedirs("./projects/"+project_name+"/Assets/Images")
+    os.mkdir("./projects/"+project_name+"/Assets/Images/Cells")
+    os.mkdir("./projects/"+project_name+"/Assets/Images/Props")
+    os.mkdir("./projects/"+project_name+"/Assets/Images/Items")
+    os.mkdir("./projects/"+project_name+"/Assets/Images/Skills")
+    os.mkdir("./projects/"+project_name+"/Assets/Images/Characters")
     os.mkdir("./projects/"+project_name+"/Items")
     os.mkdir("./projects/"+project_name+"/Skills")
     os.makedirs("./projects/"+project_name+"/Sheets/PC")
@@ -33,6 +38,15 @@ class Game:
         self.__base_width = 64
         self._layers = dict() #(layer_name:Blueprint)
         self._pawns = dict() #((x,y,layer_name):Pawn)
+        
+        self._assets = dict() #(asset_type:assetList)
+        self._assets["Images"] = dict() #(imageTypeList)
+        self._assets["Images"]["Cells"] = []
+        self._assets["Images"]["Props"] = []
+        self._assets["Images"]["Items"] = []
+        self._assets["Images"]["Skills"] = []
+        self._assets["Images"]["Characters"] = []
+        
         self._itemList = [] #(Item)
         self._skillList = [] #(Skill)
         self._charList = [] #(PC/NPC)
@@ -61,6 +75,24 @@ class Game:
         if(not((x,y,l) in self._pawns)):
             raise Exception("PawnNotFound")
         return self._layers[(x,y,l)]
+    def assets(self):
+        return self._assets
+    def get_assetList(self,al):
+        if not(al in self._assets):
+            raise Exception("AssetDoesNotExist")
+        return self._assets[al]
+    def images(self):
+        return self._assets["Images"]
+    def get_imageFolderList(self,Folder):
+        if not(Folder in self._assets["Images"]):
+            raise Exception("ImageTypeDoesNotExist")
+        return self._assets["Images"][Folder]
+    def get_imagePath(self,Folder,i):
+        if not(Folder in self._assets["Images"]):
+            raise Exception("ImageTypeDoesNotExist")
+        if not(i in self._assets["Images"][Folder]):
+            raise Exception("IndexOutOfRange")
+        return self._assets["Images"][Folder][i]
     def items(self):
         return self._itemList
     def get_item(self,i):
@@ -183,6 +215,20 @@ class Game:
         self._pawns[(x1,y1,l1)] = limbo
 
 
+    def add_image(self,Folder,path):
+        if not(Folder in self._assets["Images"]):
+            raise Exception("ImageTypeDoesNotExist")
+        self._assets["Images"][Folder].append(path)
+    def remove_image(self,Folder,i):
+        if not(Folder in self._assets["Images"]):
+            raise Exception("ImageTypeDoesNotExist")
+        if not(i in self._assets["Images"][Folder]):
+            raise Exception("IndexOutOfRange")
+        res = self._assets["Images"][Folder][i]        
+        del self._assets["Images"][Folder][i]
+        return res
+    
+    
     def add_item(self, it):
         if(not isinstance(it, Item)):
             raise Exception("InvalidArgument")
@@ -253,6 +299,9 @@ class Game:
             res.new_layer(l,0,0,self._layers[l])
         for p in self._pawns:
             res.add_pawn(self._pawns[p],p[0],p[1],p[2])
+        for folder in self._assets["Images"]:
+            for img in self._assets["Images"][folder]:
+                res.add_image(folder,img)
         for it in self._itemList:
             res.add_item(it)
         for sk in self._skillList:

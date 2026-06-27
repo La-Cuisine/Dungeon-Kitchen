@@ -1,8 +1,9 @@
 class Item:
-    def __init__(self, Name, Type=0, Description=""):
+    def __init__(self, Name, Type="Miscellaneous", Description=""):
         self._name = Name 
         self._type = Type #TODO
         self._desc = Description
+        self._img =  "" # FilePath
 
     #getters
     def name(self):
@@ -11,6 +12,8 @@ class Item:
         return self._type
     def description(self):
         return self._desc
+    def image_reference(self):
+        return self._img
 
     #setters
     def rename(self,n):
@@ -19,7 +22,11 @@ class Item:
         self._type = t
     def redescribe(self,d):
         self._desc = d
+    def new_reference(self,path):
+        self._img = path
 
     #methods
     def copy(self):
-        return Item(self._name, self._type, self._desc)
+        res = Item(self._name, self._type, self._desc)
+        res.new_reference(self._img)
+        return res

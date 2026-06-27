@@ -1,6 +1,9 @@
-from PySide6.QtCore import QSettings, QTimer, Qt
-from PySide6.QtGui import QColor, QPalette, QPainter, QBrush
-from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy
+import os
+import shutil
+from pathlib import Path
+from PySide6.QtCore import QSettings, QTimer, Qt, QSize
+from PySide6.QtGui import QColor, QPalette, QPainter, QBrush, QPixmap, QIcon
+from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy, QListWidgetItem, QInputDialog, QMessageBox
 from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 from Custom_Widgets.QCustomTheme import QCustomTheme
@@ -8,7 +11,7 @@ import webbrowser
 # Import interne
 from src.MJ_application.server import SERVER_URL, ServerController
 from src.MJ_application.LogReaderThread import LogReaderThread
-from src.MJ_application.grid import View_Grid, Grid, InvisibleWallLimit
+from src.MJ_application.grid import View_Grid, Grid, InvisibleWallLimit, DraggableImageList
 from src.MJ_gamemode.MJ_gamemode import MainWindow as GameModeWindow
 from obj.blueprint import *
 from obj.game import *
@@ -17,6 +20,7 @@ from obj.pawns import *
 from obj.player import *
 from obj.save import *
 from obj.skills import *
+import xml.etree.ElementTree as ET
 
 class GuiFunctions():
     def __init__(self,MainWindow):
@@ -30,6 +34,10 @@ class GuiFunctions():
         self._character_skills = []  # Skill(s)/sort(s) du personnage en cours d'édition
         self._selected_skill_row = None  # Ligne actuellement sélectionnée dans la liste de sorts
         self._editing_spell_index = None  # Index du sort en cours d'édition (None = création)
+        self._item_image_path = None  # Chemin de l'image choisie pour l'objet en cours d'édition
+        self._spell_image_path = None  # Chemin de l'image choisie pour le sort en cours d'édition
+        self._character_icon_path = None  # Chemin de l'icône du personnage en cours d'édition
+        self._current_session_path = None  # Chemin (projects/<nom>) de la session active, None si nouvelle/non sauvegardée
         self._controller = ServerController()
         self.settings =  QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
         self.last_menu = self.settings.value("Menu")
@@ -41,6 +49,8 @@ class GuiFunctions():
         self.init_info_menu()
         self.init_grid()
         self._init_inventory_scroll_areas()
+        self._init_map_image_list()
+        self._init_character_icon_row()
 
     # ----------------------------------------------------------------
     # Initialisation de l'application 
@@ -113,10 +123,23 @@ class GuiFunctions():
         self.ui.add_spell_btn.clicked.connect(self.add_skill_to_character)
         self.ui.edit_spell_btn.clicked.connect(self.edit_selected_spell)
         self.ui.remove_spell_btn.clicked.connect(self.remove_selected_skill_from_character)
-        self.ui.clear_trait_btn.clicked.connect(self.clear_trait)
 
         # Ouvre ou ferme le log/chat
         self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
+        
+        # Add images
+        # Add images
+        self.ui.add_cells_image_btn.clicked.connect(
+            lambda: self.load_image(self.CELL_DIRECTORIES, self.ui.cells_image_list)
+        )
+
+        self.ui.add_props_image_btn.clicked.connect(
+            lambda: self.load_image(self.PROP_DIRECTORIES, self.ui.props_image_list)
+        ) 
+
+        self.ui.choose_item_img.clicked.connect(self.choose_item_image)
+        self.ui.choose_spell_img.clicked.connect(self.choose_spell_image)
+        # Note: choose_character_icon_btn is connected in _init_character_icon_row()
 
         # Save/Load
         self.ui.create_new_character_btn.clicked.connect(self.create_new_character)
@@ -128,6 +151,9 @@ class GuiFunctions():
         self.ui.create_new_spell_btn.clicked.connect(self.create_new_spell)
         self.ui.save_spell.clicked.connect(self.save_spell)
         self.ui.load_spell.clicked.connect(self.load_spell)
+        self.ui.new_map_btn.clicked.connect(self.create_new_map)
+        self.ui.save_map_btn.clicked.connect(self.save_map)
+        self.ui.load_map_btn.clicked.connect(self.load_map)
         
         # Démarre ou ferme le serveur
         self.ui.open_server_btn.clicked.connect(self._update_server_label_open)
@@ -195,7 +221,312 @@ class GuiFunctions():
 
         spell_parent_layout.insertWidget(index_spell, self._spell_scroll_area, 1)
 
-    def init_grid(self, n: int = 100, s_cell: int = 64):
+    def _init_character_icon_row(self):
+        """
+        Insère dynamiquement, au-dessus du champ character_name, une ligne
+        composée de :
+          - un QLabel carré (48×48) affichant l'icône du personnage
+          - le champ character_name existant (déplacé dans ce layout)
+          - un QPushButton « 🖼 » pour choisir l'icône
+
+        Tout est injecté dans verticalLayout_12 sans toucher au fichier UI.
+        """
+        from PySide6.QtWidgets import QHBoxLayout, QLabel
+
+        parent_layout = self.ui.verticalLayout_12  # layout du character_menu
+
+        # --- Retire character_name de son emplacement actuel ---
+        parent_layout.removeWidget(self.ui.character_name)
+
+        # --- Label aperçu de l'icône (48×48) ---
+        self._character_icon_label = QLabel()
+        self._character_icon_label.setFixedSize(QSize(48, 48))
+        self._character_icon_label.setScaledContents(True)
+        self._character_icon_label.setPixmap(QPixmap(self.PLACEHOLDER_IMAGE))
+        self._character_icon_label.setStyleSheet(
+            "border: 1px solid #555; border-radius: 4px;"
+        )
+
+        # --- Bouton pour choisir l'icône ---
+        self._choose_character_icon_btn = QPushButton("🖼")
+        self._choose_character_icon_btn.setToolTip("Choisir une icône pour le personnage")
+        self._choose_character_icon_btn.setFixedSize(QSize(30, 30))
+        self._choose_character_icon_btn.clicked.connect(self.choose_character_icon)
+
+        # --- Ligne horizontale : [icône] [character_name] [bouton] ---
+        icon_row_widget = QWidget()
+        icon_row_widget.setMaximumHeight(48)
+        icon_row_layout = QHBoxLayout(icon_row_widget)
+        icon_row_layout.setContentsMargins(0, 0, 0, 0)
+        icon_row_layout.setSpacing(4)
+        icon_row_layout.addWidget(self._character_icon_label)
+        icon_row_layout.addWidget(self.ui.character_name)
+        icon_row_layout.addWidget(self._choose_character_icon_btn)
+
+        # --- Insère la ligne en position 0 (tout en haut du character_menu) ---
+        parent_layout.insertWidget(0, icon_row_widget)
+
+    # Assets image folder for character icons
+    CHARACTER_ICON_DIRECTORIES = [
+        Path("Assets/Images/Characters"),
+        Path("local/Assets/Images/Characters"),
+    ]
+    CELL_DIRECTORIES = [
+        Path("Assets/Images/Cells"),
+        Path("local/Assets/Images/Cells"),
+    ]
+    PROP_DIRECTORIES = [
+        Path("Assets/Images/Props"),
+        Path("local/Assets/Images/Props"),
+    ]
+    ITEM_DIRECTORIES = [
+        Path("Assets/Images/Items"),
+        Path("local/Assets/Images/Items"),
+    ]
+    SPELL_DIRECTORIES = [
+        Path("Assets/Images/Spells"),
+        Path("local/Assets/Images/Spells"),
+    ]
+    BLUEPRINT_DIRECTORY = Path("local/Blueprint")
+
+    # Dossier de travail courant (la "session" active) et dossier
+    # dans lequel les sessions sont archivées / sauvegardées
+    SESSION_LOCAL_DIRECTORY = Path("local")
+    SESSION_PROJECTS_DIRECTORY = Path("projects")
+
+    # Arborescence de base recréée dans local/ lors de la création
+    # d'une nouvelle session vide
+    SESSION_SUBFOLDERS = [
+        "Assets/Images/Cells",
+        "Assets/Images/Characters",
+        "Assets/Images/Props",
+        "Assets/Images/Items",
+        "Assets/Images/Spells",
+        "Blueprint",
+        "Sheets/NPC",
+        "Sheets/PC",
+        "Items/Weapon",
+        "Items/Armour",
+        "Items/Consumable",
+        "Items/Miscellaneous",
+        "Spells",
+    ]
+
+    # Image utilisee comme aperçu quand aucune image n'a ete choisie
+    PLACEHOLDER_IMAGE = "image/placeholder.png"
+
+    # Taille des icones affichees devant chaque objet/sort dans les listes
+    # de l'inventaire et des sorts du menu Character
+    INVENTORY_ICON_SIZE = QSize(24, 24)
+
+    # Image extensions to show in the list
+    IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".PNG"}
+
+    def _populate_image_list(self, list_widget, directories):
+        """
+        Populate a QListWidget with images found in several folders.
+        """
+        list_widget.clear()
+
+        images = {}
+
+        for directory in directories:
+            if not directory.is_dir():
+                continue
+
+            for file in directory.iterdir():
+                if file.suffix.lower() not in self.IMAGE_EXTENSIONS:
+                    continue
+
+                # local folder overrides base folder
+                images[file.name] = file
+
+        for file in sorted(images.values(), key=lambda p: p.name.lower()):
+            item = QListWidgetItem(file.name)
+
+            pixmap = QPixmap(str(file))
+            if not pixmap.isNull():
+                item.setIcon(
+                    QIcon(
+                        pixmap.scaled(
+                            32,
+                            32,
+                            Qt.AspectRatioMode.KeepAspectRatio,
+                            Qt.TransformationMode.SmoothTransformation,
+                        )
+                    )
+                )
+
+            item.setData(Qt.ItemDataRole.UserRole, str(file))
+            list_widget.addItem(item)
+
+    def _init_map_image_list(self):
+        """
+        Remplace les QListWidget generes par Qt Designer (cells_image_list,
+        props_image_list) par des DraggableImageList : meme apparence et
+        meme comportement, mais leurs items peuvent desormais etre glisses
+        (drag and drop) vers une case de la grille pour y deposer l'image.
+
+        Remplit ensuite les panneaux Cells et Props.
+        """
+
+        if hasattr(self.ui, "cells_image_list") and hasattr(self.ui, "verticalLayout_cells"):
+            self.ui.cells_image_list = self._make_draggable_image_list(
+                self.ui.cells_image_list, self.ui.verticalLayout_cells
+            )
+            self._populate_image_list(
+                self.ui.cells_image_list,
+                self.CELL_DIRECTORIES
+            )
+
+        if hasattr(self.ui, "props_image_list") and hasattr(self.ui, "verticalLayout_props"):
+            self.ui.props_image_list = self._make_draggable_image_list(
+                self.ui.props_image_list, self.ui.verticalLayout_props
+            )
+            self._populate_image_list(
+                self.ui.props_image_list,
+                self.PROP_DIRECTORIES
+            )
+
+    def _make_draggable_image_list(self, old_list, layout):
+        """
+        Remplace old_list (QListWidget cree par Qt Designer) par un
+        DraggableImageList insere au meme endroit dans layout, en
+        conservant son nom d'objet et la taille de ses icones.
+
+        Renvoie la nouvelle instance (a reassigner sur self.ui.<nom>).
+        """
+        index = layout.indexOf(old_list)
+        name = old_list.objectName()
+        icon_size = old_list.iconSize()
+        parent = old_list.parentWidget()
+
+        layout.removeWidget(old_list)
+        old_list.deleteLater()
+
+        new_list = DraggableImageList(parent)
+        new_list.setObjectName(name)
+        new_list.setIconSize(icon_size)
+        new_list.setUniformItemSizes(True)
+
+        layout.insertWidget(index, new_list)
+        return new_list
+
+    # ------------------------------------------------------------------
+    # Image de l'objet / du sort (choose_item_img, choose_spell_img)
+    # ------------------------------------------------------------------
+
+    def choose_item_image(self):
+        """
+        Slot connecté au signal clicked du bouton "choose_item_img".
+        Ouvre un sélecteur de fichier, copie l'image choisie dans le
+        dossier d'assets local des objets, met à jour l'aperçu (item_img)
+        et mémorise le chemin pour qu'il soit sauvegardé avec l'objet
+        dans save_item().
+        """
+        path = self._choose_and_store_image(self.ITEM_DIRECTORIES)
+        if path is None:
+            return
+
+        self._item_image_path = path
+        self.ui.item_img.setPixmap(QPixmap(path))
+
+    def choose_spell_image(self):
+        """
+        Slot connecté au signal clicked du bouton "choose_spell_img".
+        Équivalent de choose_item_image() pour le sort en cours d'édition.
+        """
+        path = self._choose_and_store_image(self.SPELL_DIRECTORIES)
+        if path is None:
+            return
+
+        self._spell_image_path = path
+        self.ui.spell_img.setPixmap(QPixmap(path))
+
+    def choose_character_icon(self):
+        """
+        Slot connecté au bouton 🖼 dans la ligne au-dessus du nom du personnage.
+        Ouvre un sélecteur de fichier image, copie l'image dans le dossier
+        local des icônes de personnages, met à jour le label aperçu et
+        mémorise le chemin dans _character_icon_path pour qu'il soit
+        sauvegardé avec la fiche dans save_character_stat().
+        """
+        path = self._choose_and_store_image(self.CHARACTER_ICON_DIRECTORIES)
+        if path is None:
+            return
+
+        self._character_icon_path = path
+        self._character_icon_label.setPixmap(QPixmap(path))
+
+    def _choose_and_store_image(self, directories):
+        """
+        Ouvre un sélecteur de fichier image, copie le fichier choisi dans
+        le dossier local (directories[-1], créé si besoin, même logique
+        que load_image()) et renvoie son chemin absolu.
+
+        Renvoie None si l'utilisateur annule la sélection ou si la copie
+        échoue (un message est alors ajouté au log).
+        """
+        filename, _ = QFileDialog.getOpenFileName(
+            self.main,
+            "Select image",
+            "",
+            "Images (*.png *.jpg *.jpeg *.gif *.bmp *.svg *.webp *.PNG)"
+        )
+
+        if not filename:
+            return None
+
+        source = Path(filename)
+        local_dir = directories[-1]
+        local_dir.mkdir(parents=True, exist_ok=True)
+        destination = local_dir / source.name
+
+        try:
+            import shutil
+
+            if source.resolve() != destination.resolve():
+                shutil.copy2(source, destination)
+
+            self._append_log(
+                f"[INFO] Image '{source.name}' copiée dans '{local_dir}'."
+            )
+            return str(destination)
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible d'ajouter l'image : {exc}"
+            )
+            return None
+
+    def _build_item(self, name, type_, description, image_path):
+        """
+        Construit un Item à partir des champs du formulaire et lui
+        attribue l'image choisie via new_reference() (obj/items.py).
+        """
+        item = Item(Name=name, Type=type_, Description=description)
+        if image_path:
+            item.new_reference(image_path)
+        return item
+
+    def _build_skill(self, name, description, image_path):
+        """
+        Équivalent de _build_item() pour les sorts (Skill).
+        """
+        skill = Skill(Name=name, Description=description)
+        if image_path:
+            skill.new_reference(image_path)
+        return skill
+
+    def _image_path_of(self, obj):
+        """
+        Récupère le chemin d'image stocké sur un Item/Skill déjà
+        construit (via image_reference(), cf. obj/items.py et
+        obj/skills.py). Renvoie None si l'objet n'a pas d'image.
+        """
+        path = obj.image_reference()
+        return path or None
+
+    def init_grid(self, n: int = 50, s_cell: int = 64):
         """
         Remplace le QGraphicsView généré par Qt Designer par un View_Grid,
         puis y injecte la scène, le mur invisible et la grille.
@@ -203,7 +534,6 @@ class GuiFunctions():
         :param n:      Nombre de cellules par côté de la grille.
         :param s_cell: Taille en pixels d'une cellule.
         """
-        from PySide6.QtWidgets import QGraphicsItem
         import src.MJ_application.grid as _grid_module
 
         # Recupere le layout parent du graphicsView
@@ -246,6 +576,29 @@ class GuiFunctions():
         self._scene.addItem(self._wall)
 
         # Grille
+        self._build_grid(n, s_cell)
+
+        # Met à jour la référence ui.graphicsView pour que le reste du code
+        # continue à fonctionner via self.ui.graphicsView si besoin
+        self.ui.graphicsView = self._view_grid
+
+    def _build_grid(self, n: int, s_cell: int = 64):
+        """
+        Construit une grille (n x n cellules) et l'ajoute à la scène.
+
+        Si une grille existait déjà sur la scène (self._world), elle est
+        retirée au préalable : cette méthode peut donc aussi bien servir
+        à l'initialisation de la grille qu'au remplacement par une
+        nouvelle carte vide (voir create_new_map()).
+
+        :param n:      Nombre de cellules par côté de la grille.
+        :param s_cell: Taille en pixels d'une cellule.
+        """
+        from PySide6.QtWidgets import QGraphicsItem
+
+        if getattr(self, "_world", None) is not None:
+            self._scene.removeItem(self._world)
+
         self._world = Grid(n, s_cell)
         (self._world.atoms[0]).setName("TL")
         (self._world.atoms[0]).setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
@@ -261,9 +614,36 @@ class GuiFunctions():
         # fonctionne meme avant le premier mouseMoveEvent.
         self._view_grid._grid = self._world
 
-        # Met à jour la référence ui.graphicsView pour que le reste du code
-        # continue à fonctionner via self.ui.graphicsView si besoin
-        self.ui.graphicsView = self._view_grid
+    def create_new_map(self):
+        """
+        Crée une nouvelle carte vide : demande à l'utilisateur le nombre
+        de cellules par côté, confirme (la carte affichée actuellement
+        sera remplacée), puis reconstruit la grille avec _build_grid().
+        """
+        n, ok = QInputDialog.getInt(
+            self.main,
+            "Nouvelle carte",
+            "Nombre de cellules par côté :",
+            10,   # valeur par défaut
+            1,    # minimum
+            200,  # maximum
+            1     # pas
+        )
+        if not ok:
+            return
+
+        confirm = QMessageBox.question(
+            self.main,
+            "Nouvelle carte",
+            "La carte actuellement affichée sera remplacée par une carte "
+            f"vide de {n}x{n} cellules. Continuer ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        self._build_grid(n)
+        self._append_log(f"[INFO] Nouvelle carte créée ({n}x{n} cellules)")
     
     def init_action_menubar(self):
         """
@@ -280,7 +660,7 @@ class GuiFunctions():
         self.ui.actionNew_character.triggered.connect(self.create_new_character)
         self.ui.actionNew_item.triggered.connect(self.create_new_item)
         self.ui.actionNew_spell.triggered.connect(self.create_new_spell)
-        #self.ui.actionNew_map.triggered.connect(self.create_new_map)
+        self.ui.actionNew_map.triggered.connect(self.create_new_map)
         
         # Load object
         self.ui.actionOpen_character.triggered.connect(self.load_character)
@@ -291,6 +671,13 @@ class GuiFunctions():
         # Save/Save as
         self.ui.actionSave.triggered.connect(self.save_actionmenu)
         #self.ui.actionSave_as.triggered.connect(self.save_as_actionmenu)
+
+        # Save/Load session (sauvegarde le dossier local/ dans projects/,
+        # et recharge un projet sauvegardé dans local/)
+        self.ui.actionNew_session.triggered.connect(self.new_session)
+        self.ui.actionSave_session.triggered.connect(self.save_session)
+        self.ui.actionUpdate_session.triggered.connect(self.update_session)
+        self.ui.actionLoad_session.triggered.connect(self.load_session)
 
     def init_info_menu(self):
         """
@@ -485,7 +872,7 @@ class GuiFunctions():
         self.ui.actionInfo_menu.blockSignals(False)
             
     # ----------------------------------------------------------------
-    # Stat/Inv/Spell/Trait
+    # Stat/Inv/Spell
     # ----------------------------------------------------------------
 
     def setNPC(self):
@@ -521,6 +908,10 @@ class GuiFunctions():
         self.ui.wis_nb.setValue(0)
         self.ui.cha_nb.setValue(0)
 
+        # Réinitialise l'icône du personnage
+        self._character_icon_path = None
+        self._character_icon_label.setPixmap(QPixmap(self.PLACEHOLDER_IMAGE))
+
         # Décoche la case isNPC
         self.ui.isNPC.blockSignals(True)
         self.ui.isNPC.setChecked(False)
@@ -541,9 +932,6 @@ class GuiFunctions():
         self._selected_skill_row = None
         self._refresh_skill_grid()
 
-        # Réinitilialise les traits
-        self.clear_trait()
-
         # Affiche le panneau Character pour la saisie
         self.switch_to_character_menu()
 
@@ -560,6 +948,8 @@ class GuiFunctions():
         self.ui.item_name.setText("")
         self.ui.item_type.setCurrentIndex(0)
         self.ui.item_description.clear()
+        self._item_image_path = None
+        self.ui.item_img.setPixmap(QPixmap(self.PLACEHOLDER_IMAGE))
 
         # Affiche le panneau Item pour la saisie
         self.switch_to_item_menu()
@@ -576,6 +966,8 @@ class GuiFunctions():
         # Réinitialise les champs du sort
         self.ui.spell_name.setText("")
         self.ui.spell_description.clear()
+        self._spell_image_path = None
+        self.ui.spell_img.setPixmap(QPixmap(self.PLACEHOLDER_IMAGE))
 
         # Affiche le panneau Spell pour la saisie
         self.switch_to_spell_menu()
@@ -677,6 +1069,8 @@ class GuiFunctions():
         self.ui.item_name.setText(item.name())
         self.ui.item_type.setCurrentText(item.type())
         self.ui.item_description.setText(item.description())
+        self._item_image_path = self._image_path_of(item)
+        self.ui.item_img.setPixmap(QPixmap(self._item_image_path or self.PLACEHOLDER_IMAGE))
 
         # Bascule vers le menu Item
         self.switch_to_item_menu()
@@ -699,6 +1093,8 @@ class GuiFunctions():
         # Pré-remplit le formulaire avec les données du sort
         self.ui.spell_name.setText(skill.name())
         self.ui.spell_description.setText(skill.description())
+        self._spell_image_path = self._image_path_of(skill)
+        self.ui.spell_img.setPixmap(QPixmap(self._spell_image_path or self.PLACEHOLDER_IMAGE))
 
         # Bascule vers le menu Spell
         self.switch_to_spell_menu()
@@ -747,6 +1143,10 @@ class GuiFunctions():
         # Reconstruit une ligne par objet, du haut vers le bas
         for row, item in enumerate(self._inventory_items):
             btn = QPushButton(f"{item.name()} ({item.type()})")
+            icon_path = item.image_reference()
+            if icon_path:
+                btn.setIcon(QIcon(icon_path))
+                btn.setIconSize(self.INVENTORY_ICON_SIZE)
             btn.setCheckable(True)
             btn.setAutoExclusive(True)  # Une seule ligne sélectionnable à la fois
             btn.setStyleSheet(
@@ -791,6 +1191,10 @@ class GuiFunctions():
         # Reconstruit une ligne par sort, du haut vers le bas
         for row, skill in enumerate(self._character_skills):
             btn = QPushButton(skill.name())
+            icon_path = skill.image_reference()
+            if icon_path:
+                btn.setIcon(QIcon(icon_path))
+                btn.setIconSize(self.INVENTORY_ICON_SIZE)
             btn.setCheckable(True)
             btn.setAutoExclusive(True)  # Une seule ligne sélectionnable à la fois
             btn.setStyleSheet(
@@ -814,12 +1218,6 @@ class GuiFunctions():
                 btn.setChecked(True)
 
     #---------Réinitialisation d'objet----------#
-
-    def clear_trait(self):
-        """
-        Réinitialise la page des traits
-        """
-        self.ui.trait_editbox.clear()
 
     # ----------------------------------------------------------------
     # Chat/Log
@@ -1124,14 +1522,19 @@ class GuiFunctions():
 
     def _open_game_interface(self):
         """
-        Slot connecté au signal clicked du bouton "Open game interface".
-        Ouvre la fenêtre du mode MJ (MJ_gamemode.MainWindow) en tant que
-        fenêtre indépendante. La référence est conservée sur self._game_window
-        pour éviter que Python ne la détruise (garbage collection) juste
-        après l'appel à show().
+        Slot connecte au signal clicked du bouton "Open game interface".
+        Ouvre la fenetre du mode MJ (MJ_gamemode.MainWindow) en tant que
+        fenetre independante et lui injecte la grille active de la session.
         """
         if self._game_window is None:
             self._game_window = GameModeWindow()
+
+        # Injecte la grille de la session courante si elle existe
+        world = getattr(self, '_world', None)
+        scene = getattr(self, '_scene', None)
+        wall  = getattr(self, '_wall',  None)
+        if world is not None:
+            self._game_window.set_map(scene, world, wall)
 
         self._game_window.show()
         self._game_window.raise_()
@@ -1209,9 +1612,9 @@ class GuiFunctions():
         for skill in self._character_skills:
             sheet.addSkill(skill)
 
-        # Ajoute les traits à la fiche de personnage
-        # trait = self.ui.trait_editbox.currentText()
-        # sheet.addTrait(trait)
+        # Associe l'icône du personnage à la fiche si une image a été choisie
+        if self._character_icon_path and hasattr(sheet, 'new_reference'):
+            sheet.new_reference(self._character_icon_path)
 
         # Création du fichier XML
         os.makedirs(save_dir, exist_ok=True)
@@ -1230,12 +1633,10 @@ class GuiFunctions():
           d'habitude.
         """
         # Récupère les informations de l'objet
-        #TODO
-        # Récup image et stocke image
         item_name = self.ui.item_name.text().strip()
         item_type = self.ui.item_type.currentText()
         item_description = self.ui.item_description.toPlainText().strip()
-        item = Item(Name=item_name, Type=item_type, Description=item_description)
+        item = self._build_item(item_name, item_type, item_description, self._item_image_path)
 
         if self._editing_item_index is not None:
             # Mode édition : mise à jour en mémoire uniquement
@@ -1270,11 +1671,9 @@ class GuiFunctions():
           d'habitude.
         """
         # Récupère les informations du sort
-        #TODO
-        # Récup image et stocke image
         spell_name = self.ui.spell_name.text().strip()
         spell_description = self.ui.spell_description.toPlainText().strip()
-        spell = Skill(Name=spell_name, Description=spell_description)
+        spell = self._build_skill(spell_name, spell_description, self._spell_image_path)
 
         if self._editing_spell_index is not None:
             # Mode édition : mise à jour en mémoire uniquement
@@ -1308,7 +1707,7 @@ class GuiFunctions():
     def load_character(self):
         """
         Charge la feuille d'un personnage et associe 
-        les attributs, inventaire, sorts et traits
+        les attributs, inventaire, sorts
         """
         sheet = self.load_xml()
         if not(isinstance(sheet,PC) or isinstance(sheet,NPC)):
@@ -1333,6 +1732,13 @@ class GuiFunctions():
             self.ui.int_nb.setValue(int)
             self.ui.wis_nb.setValue(wis)
             self.ui.cha_nb.setValue(cha)
+
+            # Restaure l'icône du personnage si elle est stockée dans la fiche
+            icon_path = self._image_path_of(sheet) if hasattr(sheet, 'image_reference') else None
+            self._character_icon_path = icon_path
+            self._character_icon_label.setPixmap(
+                QPixmap(icon_path) if icon_path else QPixmap(self.PLACEHOLDER_IMAGE)
+            )
 
             # Déconnecte isNPC du signal
             self.ui.isNPC.blockSignals(True)
@@ -1372,16 +1778,16 @@ class GuiFunctions():
             raise Exception("Invalid_object_type (Expecting item)")
         else:
             # Récupère les informations de l'objet
-            #TODO
-            # Charge image
             item_name = item.name()
             item_type = item.type()
             item_description = item.description()
-            
+
             # Assigne les attributs aux bons widgets
             self.ui.item_name.setText(item_name)
             self.ui.item_type.setCurrentText(item_type)
             self.ui.item_description.setText(item_description)
+            self._item_image_path = self._image_path_of(item)
+            self.ui.item_img.setPixmap(QPixmap(self._item_image_path or self.PLACEHOLDER_IMAGE))
             self.switch_to_item_menu()
 
     def load_spell(self):
@@ -1395,14 +1801,14 @@ class GuiFunctions():
             raise Exception("Invalid_object_type (Expecting spell)")
         else:
             # Récupère les informations du sort
-            #TODO
-            # Charge image
             spell_name = spell.name()
             spell_description = spell.description()
 
             # Assigne les attributs aux bons widgets
             self.ui.spell_name.setText(spell_name)
             self.ui.spell_description.setText(spell_description)
+            self._spell_image_path = self._image_path_of(spell)
+            self.ui.spell_img.setPixmap(QPixmap(self._spell_image_path or self.PLACEHOLDER_IMAGE))
 
             self.switch_to_spell_menu()
 
@@ -1429,3 +1835,353 @@ class GuiFunctions():
         """
         #fileName = QFileDialog.getSaveFileName(None, "Save File", "", "(*.xml)")
         #print(fileName)
+    
+    def load_image(self, directories, target_list):
+        """
+        Import an image into the local assets folder and refresh the list.
+        directories:
+            [Assets/..., local/Assets/...]
+        target_list:
+            cells_image_list or props_image_list
+        """
+        filename, _ = QFileDialog.getOpenFileName(
+            self.main,
+            "Select image",
+            "",
+            "Images (*.png *.jpg *.jpeg *.gif *.bmp *.svg *.webp *.PNG)"
+        )
+        if not filename:
+            return
+        source = Path(filename)
+        # Always save in local folder
+        local_dir = directories[-1]
+        local_dir.mkdir(parents=True, exist_ok=True)
+        destination = local_dir / source.name
+        try:
+            import shutil
+            shutil.copy2(source, destination)
+            self._append_log(
+                f"[INFO] Image '{source.name}' copied to '{local_dir}'."
+            )
+            # Refresh list
+            self._populate_image_list(target_list, directories)
+            matches = target_list.findItems(
+                source.name,
+                Qt.MatchFlag.MatchExactly
+            )
+            if matches:
+                target_list.setCurrentItem(matches[0])
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible d'ajouter l'image : {exc}"
+            )
+        
+    
+    def save_map(self):
+        name, ok = QInputDialog.getText(
+            self.main,
+            "Save Blueprint",
+            "Blueprint name:"
+        )
+        if not ok or not name:
+            return
+        self.BLUEPRINT_DIRECTORY.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+        blueprint = self.build_blueprint(name)
+        filename = self.BLUEPRINT_DIRECTORY / f"{name}.xml"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(toXML(blueprint))
+        self._append_log(
+            f"[INFO] Blueprint saved : {filename}"
+        )
+        
+    def build_blueprint(self, name):
+        grid = self._world
+        blueprint = Blueprint(
+            grid.n,
+            grid.n,
+            name
+        )
+        for cell in grid.atoms:
+            x, y = cell._coord
+            bp_cell = blueprint.get_cell(x, y)    
+            if getattr(cell, "Path", None):
+                bp_cell.new_reference(cell.Path)
+    
+        return blueprint
+
+    def load_blueprint(self, filename):
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        if root.tag != "Blueprint":
+            raise Exception("Not a Blueprint file")
+        name = root.attrib["name"]
+        length = int(root.attrib["length"])
+        width = int(root.attrib["width"])
+        blueprint = Blueprint(length, width, name)
+        rows = root.find("grid")
+        x = 0
+        for row in rows.findall("row"):
+            y = 0
+            for xml_cell in row.findall("Cell"):
+                image = xml_cell.attrib.get("image", "")
+                cell = blueprint.get_cell(x, y)
+                if image:
+                    cell.new_reference(image)
+                y += 1
+            x += 1
+        return blueprint
+    
+    from PySide6.QtWidgets import QFileDialog
+
+    def load_map(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self.main,
+            "Load Blueprint",
+            "local/Blueprint",
+            "Blueprint (*.xml)"
+        )
+        if not filename:
+            return
+        blueprint = self.load_blueprint(filename)
+        self.apply_blueprint_to_grid(blueprint)
+        self._append_log(
+            f"[INFO] Blueprint loaded : {filename}"
+        )
+        
+    def apply_blueprint_to_grid(self, blueprint):
+        """
+        Redimensionne la grille affichée pour correspondre à la taille
+        du blueprint chargé, puis y applique l'image de chaque cellule.
+
+        La grille (Grid) ne gère que des cases carrées (n x n) : si le
+        blueprint n'est pas carré, on redimensionne au plus grand des
+        deux côtés pour ne perdre aucune cellule, et on prévient dans
+        les logs.
+        """
+        n = blueprint.length()
+        if blueprint.width() != n:
+            n = max(blueprint.length(), blueprint.width())
+            self._append_log(
+                "[ATTENTION] Le blueprint n'est pas carré "
+                f"({blueprint.length()}x{blueprint.width()}) : la grille "
+                f"a été redimensionnée en {n}x{n}."
+            )
+
+        # Reconstruit la grille à la bonne taille. _build_grid() crée une
+        # grille neuve (donc déjà vide) : pas besoin de la nettoyer avant.
+        self._build_grid(n, self._world.s_cell)
+
+        for x in range(blueprint.length()):
+            for y in range(blueprint.width()):
+                bp_cell = blueprint.get_cell(x, y)
+                visual_cell = self._world.atoms[
+                    y * self._world.n + x
+                ]
+                image = bp_cell.image_reference()
+                if image:
+                    visual_cell.setImage(image)
+
+    # ----------------------------------------------------------------
+    # Sauvegarde / chargement de session
+    # ----------------------------------------------------------------
+
+    def new_session(self):
+        """
+        Crée une nouvelle session vide : vide entièrement le dossier
+        local/ (après confirmation) et y recrée l'arborescence de base
+        attendue par l'application.
+
+        La session active (self._current_session_path) est réinitialisée
+        à None, puisqu'une nouvelle session n'a encore jamais été
+        sauvegardée dans projects/.
+        """
+        confirm = QMessageBox.question(
+            self.main,
+            "Nouvelle session",
+            f"Le contenu actuel de '{self.SESSION_LOCAL_DIRECTORY}' va être "
+            "définitivement supprimé. Pensez à sauvegarder la session en "
+            "cours si nécessaire. Continuer ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            if self.SESSION_LOCAL_DIRECTORY.exists():
+                shutil.rmtree(self.SESSION_LOCAL_DIRECTORY)
+            for sub in self.SESSION_SUBFOLDERS:
+                (self.SESSION_LOCAL_DIRECTORY / sub).mkdir(parents=True, exist_ok=True)
+            self._current_session_path = None
+            self._append_log(
+                f"[INFO] Nouvelle session créée, '{self.SESSION_LOCAL_DIRECTORY}' a été réinitialisé."
+            )
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible de créer une nouvelle session : {exc}"
+            )
+            return
+
+        self._refresh_session_views()
+
+    def update_session(self):
+        """
+        Met à jour la session active (la dernière session sauvegardée ou
+        chargée via save_session()/load_session()) en remplaçant son
+        contenu dans projects/ par celui du dossier local/ actuel.
+
+        Si aucune session n'est active, invite l'utilisateur à utiliser
+        "Sauvegarder la session" pour en créer une.
+        """
+        if self._current_session_path is None:
+            self._append_log(
+                "[INFO] Aucune session active à mettre à jour. "
+                "Utilisez 'Sauvegarder la session' pour en créer une."
+            )
+            return
+
+        if not self.SESSION_LOCAL_DIRECTORY.is_dir():
+            self._append_log(
+                f"[ERREUR] Dossier '{self.SESSION_LOCAL_DIRECTORY}' introuvable, rien à mettre à jour."
+            )
+            return
+
+        confirm = QMessageBox.question(
+            self.main,
+            "Mettre à jour la session",
+            f"La session '{self._current_session_path.name}' va être "
+            "remplacée par le contenu actuel de "
+            f"'{self.SESSION_LOCAL_DIRECTORY}'. Continuer ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            if self._current_session_path.exists():
+                shutil.rmtree(self._current_session_path)
+            shutil.copytree(self.SESSION_LOCAL_DIRECTORY, self._current_session_path)
+            self._append_log(
+                f"[INFO] Session '{self._current_session_path.name}' mise à jour."
+            )
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible de mettre à jour la session : {exc}"
+            )
+
+    def save_session(self):
+        """
+        Sauvegarde la session courante (tout le contenu du dossier
+        local/) dans un nouveau dossier sous projects/.
+
+        Séquence d'actions :
+          1. Demande un nom de session à l'utilisateur.
+          2. Évite d'écraser une session existante du même nom en
+             ajoutant un suffixe "(1)", "(2)", ... si besoin.
+          3. Copie récursivement local/ vers projects/<nom>/.
+        """
+        name, ok = QInputDialog.getText(
+            self.main,
+            "Sauvegarder la session",
+            "Nom de la session :"
+        )
+        if not ok or not name:
+            return
+
+        self.SESSION_PROJECTS_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+        # Évite d'écraser une session existante portant le même nom
+        destination = self.SESSION_PROJECTS_DIRECTORY / name
+        suffix = 1
+        base_name = name
+        while destination.exists():
+            name = f"{base_name}({suffix})"
+            destination = self.SESSION_PROJECTS_DIRECTORY / name
+            suffix += 1
+
+        if not self.SESSION_LOCAL_DIRECTORY.is_dir():
+            self._append_log(
+                f"[ERREUR] Dossier '{self.SESSION_LOCAL_DIRECTORY}' introuvable, rien à sauvegarder."
+            )
+            return
+
+        try:
+            shutil.copytree(self.SESSION_LOCAL_DIRECTORY, destination)
+            self._current_session_path = destination
+            self._append_log(
+                f"[INFO] Session sauvegardée dans '{destination}'"
+            )
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible de sauvegarder la session : {exc}"
+            )
+
+    def load_session(self):
+        """
+        Charge une session sauvegardée depuis projects/ et remplace le
+        contenu du dossier local/ par celui de la session choisie.
+
+        Séquence d'actions :
+          1. Ouvre un sélecteur de dossier dans projects/.
+          2. Demande confirmation (le contenu actuel de local/ sera
+             remplacé, donc perdu s'il n'a pas été sauvegardé).
+          3. Supprime local/ puis copie le dossier de session choisi
+             à sa place.
+          4. Rafraîchit les listes d'images affichées dans l'interface.
+        """
+        self.SESSION_PROJECTS_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+        directory = QFileDialog.getExistingDirectory(
+            self.main,
+            "Charger une session",
+            str(self.SESSION_PROJECTS_DIRECTORY)
+        )
+        if not directory:
+            return
+
+        source = Path(directory)
+
+        confirm = QMessageBox.question(
+            self.main,
+            "Charger la session",
+            f"Le contenu actuel de '{self.SESSION_LOCAL_DIRECTORY}' va être "
+            "remplacé par la session sélectionnée. Continuer ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            if self.SESSION_LOCAL_DIRECTORY.exists():
+                shutil.rmtree(self.SESSION_LOCAL_DIRECTORY)
+            shutil.copytree(source, self.SESSION_LOCAL_DIRECTORY)
+            self._current_session_path = source
+            self._append_log(
+                f"[INFO] Session '{source.name}' chargée dans '{self.SESSION_LOCAL_DIRECTORY}'"
+            )
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible de charger la session : {exc}"
+            )
+            return
+
+        self._refresh_session_views()
+
+    def _refresh_session_views(self):
+        """
+        Rafraîchit les éléments de l'interface qui dépendent du contenu
+        du dossier local/ (listes d'images des cellules et des props)
+        après le chargement d'une session.
+        """
+        if hasattr(self.ui, "cells_image_list"):
+            self._populate_image_list(
+                self.ui.cells_image_list,
+                self.CELL_DIRECTORIES
+            )
+        if hasattr(self.ui, "props_image_list"):
+            self._populate_image_list(
+                self.ui.props_image_list,
+                self.PROP_DIRECTORIES
+            )

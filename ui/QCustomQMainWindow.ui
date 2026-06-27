@@ -1104,6 +1104,109 @@ li.checked::marker { content: &quot;\2612&quot;; }
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="Line" name="line_map_1">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+
+           <item>
+            <widget class="QPushButton" name="new_map_btn">
+             <property name="text">
+              <string>New Map</string>
+             </property>
+            </widget>
+           </item>
+
+           <item>
+            <widget class="QPushButton" name="save_map_btn">
+             <property name="text">
+              <string>Save Map</string>
+             </property>
+            </widget>
+           </item>
+
+           <item>
+            <widget class="QPushButton" name="load_map_btn">
+             <property name="text">
+              <string>Load Map</string>
+             </property>
+            </widget>
+           </item>
+
+           <item>
+            <widget class="QLabel" name="map_image_list_label">
+             <property name="text">
+              <string>Images</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignLeading</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTabWidget" name="map_tab_widget">
+             <property name="currentIndex">
+              <number>1</number>
+             </property>
+             <widget class="QWidget" name="cells_tab">
+              <attribute name="title">
+               <string>Cells</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_cells">
+               <item>
+                <widget class="QPushButton" name="add_cells_image_btn">
+                 <property name="text">
+                  <string>Add Image</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="cells_image_list">
+                 <property name="iconSize">
+                  <size>
+                   <width>32</width>
+                   <height>32</height>
+                  </size>
+                 </property>
+                 <property name="uniformItemSizes">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="props_tab">
+              <attribute name="title">
+               <string>Props</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_props">
+               <item>
+                <widget class="QPushButton" name="add_props_image_btn">
+                 <property name="text">
+                  <string>Add Image</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="props_image_list">
+                 <property name="iconSize">
+                  <size>
+                   <width>32</width>
+                   <height>32</height>
+                  </size>
+                 </property>
+                 <property name="uniformItemSizes">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="server_menu">
@@ -1673,6 +1776,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
     <addaction name="separator"/>
+    <addaction name="actionNew_session"/>
+    <addaction name="actionSave_session"/>
+    <addaction name="actionUpdate_session"/>
+    <addaction name="actionLoad_session"/>
+    <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -1730,6 +1838,26 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionSave_as">
    <property name="text">
     <string>Save as...</string>
+   </property>
+  </action>
+  <action name="actionNew_session">
+   <property name="text">
+    <string>New session</string>
+   </property>
+  </action>
+  <action name="actionSave_session">
+   <property name="text">
+    <string>Save session</string>
+   </property>
+  </action>
+  <action name="actionUpdate_session">
+   <property name="text">
+    <string>Update session</string>
+   </property>
+  </action>
+  <action name="actionLoad_session">
+   <property name="text">
+    <string>Load session</string>
    </property>
   </action>
   <action name="actionClose">
