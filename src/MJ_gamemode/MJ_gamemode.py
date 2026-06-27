@@ -67,6 +67,7 @@ class EnumBound(Enum):
     RIGHT = 1
 
 _view_bounds = {"cw": 350.0, "ch": 260.0}
+_wall = None
 
 #METTRE DES FONCT / VAR EN PRIVE SI NECESSAIRE "__"
 
@@ -97,18 +98,13 @@ class View_GameMode(QGraphicsView):
         
 
         self._Mxy = None
-        self._pan_last = None   # point de départ du panoramique (MMB)
+        # self._scene_center = QPointF(350.0, 260.0) here # centre fixe de la scène (350x260 = moitié de 700x520)
 
         self._Items_needs = []
 
-        # Overlay fixe (bas a droite) affichant les proprietes d'une case :
-        # widget enfant de la vue, donc insensible au zoom/pan, et
-        # repositionne automatiquement au resize via align()
-        #self._properties_overlay = Interface_Proprieties(self)
-        #self.addItemNeeds(self._properties_overlay)
-
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
+        self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
         self.setRenderHint(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing | QPainter.RenderHint.SmoothPixmapTransform) #antialiasing + meilleur rendu pour image 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff) # desactive la barre de scroll-V VISUELEMENT UNIQUEMENT
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff) # desactive la barre de scroll-H VISUELEMENT UNIQUEMENT
@@ -147,23 +143,27 @@ class View_GameMode(QGraphicsView):
         if _LimitBoundingLeft is not None and _LimitBoundingRight is not None :
             _LimitBoundingLeft.sizeUpdate(visible)
             _LimitBoundingRight.sizeUpdate(visible)
+            
+        import src.MJ_application.grid as _grid_mod
+        _grid_mod._view_bounds["cw"] = visible.center().x()
+        _grid_mod._view_bounds["ch"] = visible.center().y()
+        
+        if getattr(_grid_mod, '_wall', None) is not None:
+            _grid_mod._wall.sizeUpdate(visible)
 
     def resizeEvent(self, event: QResizeEvent):
-        
-        if not (event.oldSize().height() == -1 and event.oldSize().width() == -1):
-            if event.size().height() > event.oldSize().height() and event.size().width() > event.oldSize().width(): 
-                
-                #adapte la view de façon proporttionnel à la scene
-                self.fitInView(self.scene().sceneRect().adjusted(-1.1,-1.1,1.1,1.1),Qt.AspectRatioMode.KeepAspectRatioByExpanding) 
-            elif event.size().height() < event.oldSize().height() and event.size().width() < event.oldSize().width():
-                
-                #adapte la view de façon proporttionnel à la scene
-                self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatioByExpanding)
-        #Force la scene à s'adapter correctement à la partie visible de la scene  (plus de scrolling H et V)
-        self.setSceneRect(self.mapToScene(self.viewport().rect()).boundingRect())
-        
+        if not self._fitted_once and self.scene() is not None:
+            self.fitInView(
+                self.scene().sceneRect(),
+                Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+            )
+            self.zoom = self.transform().m11()
+            self._fitted_once = True
+
         self._update_world_bounds()
-        
+        # Maintient le centre fixe après resize
+        # self.centerOn(self._scene_center) here
+
         self.profile_rect.Align()
         self.dices_box.Align()
         self.Dice_result.Align()
@@ -172,41 +172,38 @@ class View_GameMode(QGraphicsView):
         self.plus.Align()
         self.moins.Align()
 
-        if self.launch_dices is not None :
+        if self.launch_dices is not None:
             self.launch_dices.Align()
+
         scale = self.transform().m11()
-        
-        
         for item in self.scene().items():
-            if isinstance(item,layerwindow):
-                item.setScale(1.0/scale)
-            
-                
-                
-            #if isinstance(item,ProfileBox):
-            #    item.setScale(item.scale()/scale)
-        
-        
+            if isinstance(item, layerwindow):
+                item.setScale(1.0 / scale)
+
         super().resizeEvent(event)
-   
-    # ------------------------------------------------------------------
-    # Navigation de la carte en arrière-plan
-    #   - Molette               : zoom centré sous la souris
-    #   - Clic molette (MMB)    : début du panoramique (pan)
-    #   - Glisser MMB enfoncé   : panoramique
-    #   - Relâcher MMB          : fin du panoramique
-    # ------------------------------------------------------------------
+        
+
+    zoomfac = 1.15
+    zoomMax = 8.0
+    zoomMin = 0.15
 
     def wheelEvent(self, event):
-        if self._grid is None:
-            return super().wheelEvent(event)
-        factor = 1.15 if event.angleDelta().y() > 0 else 1 / 1.15
-        new_zoom = self.zoom * factor
-        if not (0.15 <= new_zoom <= 8):
+        angle = event.angleDelta().y()
+        if angle == 0:
+            event.ignore()
             return
-        self.zoom = new_zoom
-        # Only the map
-        self._grid.setScale(self.zoom)
+
+        factor = self.zoomfac if angle > 0 else 1 / self.zoomfac
+        new_zoom = max(self.zoomMin, min(self.zoomMax, self.zoom * factor))
+        applied = new_zoom / self.zoom
+
+        if applied != 1.0:
+            self.zoom = new_zoom
+            self.scale(applied, applied)
+            # REMOVED self.centerOn(self._scene_center) 
+            self._update_world_bounds()
+
+        event.accept()
 
     def mousePressEvent(self, event):
         if self.Dice_result.isVisible():
@@ -215,47 +212,24 @@ class View_GameMode(QGraphicsView):
                 self.adventage_dice.disconnectLauch()
                 self.adventage_dice.hide()
 
-        # Début du panoramique avec le bouton du milieu
-        if event.button() == Qt.MouseButton.LeftButton:
-            self._pan_last = event.position().toPoint()
-            self.setCursor(Qt.CursorShape.ClosedHandCursor)
-            event.accept()
-            return
+        view_pt = event.position().toPoint()
+        item = self.itemAt(view_pt)
+        candidate = item
+        while candidate is not None:
+            if candidate == self._grid:
+                candidate.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
+                break
+            candidate = candidate.parentItem()
 
         return super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if self._pan_last is not None:
-            delta = event.position().toPoint() - self._pan_last
-            self._pan_last = event.position().toPoint()
-            if self._grid is not None:
-                scale = self.transform().m11()
-                dx = delta.x() / scale
-                dy = delta.y() / scale
-                view = self.mapToScene(self.viewport().rect()).boundingRect()
-                scene_rect = self._grid.sceneBoundingRect()
-                new_rect = scene_rect.translated(dx, dy)
-                # Horizontal
-                if new_rect.left() > view.left():
-                    dx = view.left() - scene_rect.left()
-                elif new_rect.right() < view.right():
-                    dx = view.right() - scene_rect.right()
-                # Vertical
-                if new_rect.top() > view.top():
-                    dy = view.top() - scene_rect.top()
-                elif new_rect.bottom() < view.bottom():
-                    dy = view.bottom() - scene_rect.bottom()
-                self._grid.moveBy(dx, dy)
-            event.accept()
-            return
         return super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self._pan_last = None
-            self.setCursor(Qt.CursorShape.ArrowCursor)
-            event.accept()
-            return
+        if self._grid is not None:
+            self._grid.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
+            
         return super().mouseReleaseEvent(event)
 
 

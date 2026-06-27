@@ -1524,17 +1524,53 @@ class GuiFunctions():
         """
         Slot connecte au signal clicked du bouton "Open game interface".
         Ouvre la fenetre du mode MJ (MJ_gamemode.MainWindow) en tant que
-        fenetre independante et lui injecte la grille active de la session.
+        fenetre independante et lui injecte une COPIE de la grille active de la session.
         """
         if self._game_window is None:
             self._game_window = GameModeWindow()
 
-        # Injecte la grille de la session courante si elle existe
+        # Check if the current world exists
         world = getattr(self, '_world', None)
-        scene = getattr(self, '_scene', None)
-        wall  = getattr(self, '_wall',  None)
         if world is not None:
-            self._game_window.set_map(scene, world, wall)
+            from PySide6.QtWidgets import QGraphicsItem, QGraphicsScene
+
+            # 1. Create a duplicate scene for the gamemode to use
+            new_scene = QGraphicsScene()
+            new_scene.setSceneRect(0, 0, 700, 520)
+            new_scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
+
+            # 2. Recreate the wall and world items for the new scene
+            new_wall = InvisibleWallLimit(new_scene)
+            new_scene.addItem(new_wall)
+
+            n = world.n
+            s_cell = world.s_cell
+            new_world = Grid(n, s_cell)
+
+            # Apply the exact same structural flags used in _build_grid
+            new_world.atoms[0].setName("TL")
+            new_world.atoms[0].setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+            new_world.atoms[n - 1].setName("TR")
+            new_world.atoms[n - 1].setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+            new_world.atoms[(n - 1) * n].setName("BL")
+            new_world.atoms[(n - 1) * n].setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+            new_world.atoms[(n - 1) * n + (n - 1)].setName("BR")
+            new_world.atoms[(n - 1) * n + (n - 1)].setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+
+            new_scene.addItem(new_world)
+
+            # 3. Clone the visual configuration using a temporary blueprint
+            blueprint = self.build_blueprint("temp_gamemode")
+            for x in range(blueprint.length()):
+                for y in range(blueprint.width()):
+                    bp_cell = blueprint.get_cell(x, y)
+                    image = bp_cell.image_reference()
+                    if image:
+                        visual_cell = new_world.atoms[y * new_world.n + x]
+                        visual_cell.setImage(image)
+
+            # 4. Inject the independent, duplicated map into the gamemode
+            self._game_window.set_map(new_scene, new_world, new_wall)
 
         self._game_window.show()
         self._game_window.raise_()
