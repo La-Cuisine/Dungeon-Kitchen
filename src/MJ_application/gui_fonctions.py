@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from PySide6.QtCore import QSettings, QTimer, Qt
+from PySide6.QtCore import QSettings, QTimer, Qt, QSize
 from PySide6.QtGui import QColor, QPalette, QPainter, QBrush, QPixmap, QIcon
 from PySide6.QtWidgets import QGraphicsScene, QFileDialog, QPushButton, QScrollArea, QWidget, QVBoxLayout, QSizePolicy, QListWidgetItem
 from Custom_Widgets import *
@@ -32,6 +32,9 @@ class GuiFunctions():
         self._character_skills = []  # Skill(s)/sort(s) du personnage en cours d'édition
         self._selected_skill_row = None  # Ligne actuellement sélectionnée dans la liste de sorts
         self._editing_spell_index = None  # Index du sort en cours d'édition (None = création)
+        self._item_image_path = None  # Chemin de l'image choisie pour l'objet en cours d'édition
+        self._spell_image_path = None  # Chemin de l'image choisie pour le sort en cours d'édition
+        self._character_icon_path = None  # Chemin de l'icône du personnage en cours d'édition
         self._controller = ServerController()
         self.settings =  QSettings("Dungeon Kitchen Company","Dungeon Kitchen")
         self.last_menu = self.settings.value("Menu")
@@ -44,6 +47,7 @@ class GuiFunctions():
         self.init_grid()
         self._init_inventory_scroll_areas()
         self._init_map_image_list()
+        self._init_character_icon_row()
 
     # ----------------------------------------------------------------
     # Initialisation de l'application 
@@ -130,6 +134,10 @@ class GuiFunctions():
             lambda: self.load_image(self.PROP_DIRECTORIES, self.ui.props_image_list)
         ) 
 
+        self.ui.choose_item_img.clicked.connect(self.choose_item_image)
+        self.ui.choose_spell_img.clicked.connect(self.choose_spell_image)
+        # Note: choose_character_icon_btn is connected in _init_character_icon_row()
+
         # Save/Load
         self.ui.create_new_character_btn.clicked.connect(self.create_new_character)
         self.ui.save_character_btn.clicked.connect(self.save_character_stat)
@@ -207,7 +215,56 @@ class GuiFunctions():
 
         spell_parent_layout.insertWidget(index_spell, self._spell_scroll_area, 1)
 
-    # Assets image folder (relative to the project root)
+    def _init_character_icon_row(self):
+        """
+        Insère dynamiquement, au-dessus du champ character_name, une ligne
+        composée de :
+          - un QLabel carré (48×48) affichant l'icône du personnage
+          - le champ character_name existant (déplacé dans ce layout)
+          - un QPushButton « 🖼 » pour choisir l'icône
+
+        Tout est injecté dans verticalLayout_12 sans toucher au fichier UI.
+        """
+        from PySide6.QtWidgets import QHBoxLayout, QLabel
+
+        parent_layout = self.ui.verticalLayout_12  # layout du character_menu
+
+        # --- Retire character_name de son emplacement actuel ---
+        parent_layout.removeWidget(self.ui.character_name)
+
+        # --- Label aperçu de l'icône (48×48) ---
+        self._character_icon_label = QLabel()
+        self._character_icon_label.setFixedSize(QSize(48, 48))
+        self._character_icon_label.setScaledContents(True)
+        self._character_icon_label.setPixmap(QPixmap(self.PLACEHOLDER_IMAGE))
+        self._character_icon_label.setStyleSheet(
+            "border: 1px solid #555; border-radius: 4px;"
+        )
+
+        # --- Bouton pour choisir l'icône ---
+        self._choose_character_icon_btn = QPushButton("🖼")
+        self._choose_character_icon_btn.setToolTip("Choisir une icône pour le personnage")
+        self._choose_character_icon_btn.setFixedSize(QSize(30, 30))
+        self._choose_character_icon_btn.clicked.connect(self.choose_character_icon)
+
+        # --- Ligne horizontale : [icône] [character_name] [bouton] ---
+        icon_row_widget = QWidget()
+        icon_row_widget.setMaximumHeight(48)
+        icon_row_layout = QHBoxLayout(icon_row_widget)
+        icon_row_layout.setContentsMargins(0, 0, 0, 0)
+        icon_row_layout.setSpacing(4)
+        icon_row_layout.addWidget(self._character_icon_label)
+        icon_row_layout.addWidget(self.ui.character_name)
+        icon_row_layout.addWidget(self._choose_character_icon_btn)
+
+        # --- Insère la ligne en position 0 (tout en haut du character_menu) ---
+        parent_layout.insertWidget(0, icon_row_widget)
+
+    # Assets image folder for character icons
+    CHARACTER_ICON_DIRECTORIES = [
+        Path("Assets/Images/Characters"),
+        Path("local/Assets/Images/Characters"),
+    ]
     CELL_DIRECTORIES = [
         Path("Assets/Images/Cells"),
         Path("local/Assets/Images/Cells"),
@@ -216,9 +273,24 @@ class GuiFunctions():
         Path("Assets/Images/Props"),
         Path("local/Assets/Images/Props"),
     ]
+    ITEM_DIRECTORIES = [
+        Path("Assets/Images/Items"),
+        Path("local/Assets/Images/Items"),
+    ]
+    SPELL_DIRECTORIES = [
+        Path("Assets/Images/Spells"),
+        Path("local/Assets/Images/Spells"),
+    ]
+
+    # Image utilisee comme aperçu quand aucune image n'a ete choisie
+    PLACEHOLDER_IMAGE = "image/placeholder.png"
+
+    # Taille des icones affichees devant chaque objet/sort dans les listes
+    # de l'inventaire et des sorts du menu Character
+    INVENTORY_ICON_SIZE = QSize(24, 24)
 
     # Image extensions to show in the list
-    IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"}
+    IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".PNG"}
 
     def _populate_image_list(self, list_widget, directories):
         """
@@ -309,6 +381,120 @@ class GuiFunctions():
 
         layout.insertWidget(index, new_list)
         return new_list
+
+    # ------------------------------------------------------------------
+    # Image de l'objet / du sort (choose_item_img, choose_spell_img)
+    # ------------------------------------------------------------------
+
+    def choose_item_image(self):
+        """
+        Slot connecté au signal clicked du bouton "choose_item_img".
+        Ouvre un sélecteur de fichier, copie l'image choisie dans le
+        dossier d'assets local des objets, met à jour l'aperçu (item_img)
+        et mémorise le chemin pour qu'il soit sauvegardé avec l'objet
+        dans save_item().
+        """
+        path = self._choose_and_store_image(self.ITEM_DIRECTORIES)
+        if path is None:
+            return
+
+        self._item_image_path = path
+        self.ui.item_img.setPixmap(QPixmap(path))
+
+    def choose_spell_image(self):
+        """
+        Slot connecté au signal clicked du bouton "choose_spell_img".
+        Équivalent de choose_item_image() pour le sort en cours d'édition.
+        """
+        path = self._choose_and_store_image(self.SPELL_DIRECTORIES)
+        if path is None:
+            return
+
+        self._spell_image_path = path
+        self.ui.spell_img.setPixmap(QPixmap(path))
+
+    def choose_character_icon(self):
+        """
+        Slot connecté au bouton 🖼 dans la ligne au-dessus du nom du personnage.
+        Ouvre un sélecteur de fichier image, copie l'image dans le dossier
+        local des icônes de personnages, met à jour le label aperçu et
+        mémorise le chemin dans _character_icon_path pour qu'il soit
+        sauvegardé avec la fiche dans save_character_stat().
+        """
+        path = self._choose_and_store_image(self.CHARACTER_ICON_DIRECTORIES)
+        if path is None:
+            return
+
+        self._character_icon_path = path
+        self._character_icon_label.setPixmap(QPixmap(path))
+
+    def _choose_and_store_image(self, directories):
+        """
+        Ouvre un sélecteur de fichier image, copie le fichier choisi dans
+        le dossier local (directories[-1], créé si besoin, même logique
+        que load_image()) et renvoie son chemin absolu.
+
+        Renvoie None si l'utilisateur annule la sélection ou si la copie
+        échoue (un message est alors ajouté au log).
+        """
+        filename, _ = QFileDialog.getOpenFileName(
+            self.main,
+            "Select image",
+            "",
+            "Images (*.png *.jpg *.jpeg *.gif *.bmp *.svg *.webp *.PNG)"
+        )
+
+        if not filename:
+            return None
+
+        source = Path(filename)
+        local_dir = directories[-1]
+        local_dir.mkdir(parents=True, exist_ok=True)
+        destination = local_dir / source.name
+
+        try:
+            import shutil
+
+            if source.resolve() != destination.resolve():
+                shutil.copy2(source, destination)
+
+            self._append_log(
+                f"[INFO] Image '{source.name}' copiée dans '{local_dir}'."
+            )
+            return str(destination)
+        except Exception as exc:
+            self._append_log(
+                f"[ERREUR] Impossible d'ajouter l'image : {exc}"
+            )
+            return None
+
+    def _build_item(self, name, type_, description, image_path):
+        """
+        Construit un Item à partir des champs du formulaire et lui
+        attribue l'image choisie via new_reference() (obj/items.py).
+        """
+        item = Item(Name=name, Type=type_, Description=description)
+        if image_path:
+            item.new_reference(image_path)
+        return item
+
+    def _build_skill(self, name, description, image_path):
+        """
+        Équivalent de _build_item() pour les sorts (Skill).
+        """
+        skill = Skill(Name=name, Description=description)
+        if image_path:
+            skill.new_reference(image_path)
+        return skill
+
+    def _image_path_of(self, obj):
+        """
+        Récupère le chemin d'image stocké sur un Item/Skill déjà
+        construit (via image_reference(), cf. obj/items.py et
+        obj/skills.py). Renvoie None si l'objet n'a pas d'image.
+        """
+        path = obj.image_reference()
+        return path or None
 
     def init_grid(self, n: int = 100, s_cell: int = 64):
         """
@@ -636,6 +822,10 @@ class GuiFunctions():
         self.ui.wis_nb.setValue(0)
         self.ui.cha_nb.setValue(0)
 
+        # Réinitialise l'icône du personnage
+        self._character_icon_path = None
+        self._character_icon_label.setPixmap(QPixmap(self.PLACEHOLDER_IMAGE))
+
         # Décoche la case isNPC
         self.ui.isNPC.blockSignals(True)
         self.ui.isNPC.setChecked(False)
@@ -672,6 +862,8 @@ class GuiFunctions():
         self.ui.item_name.setText("")
         self.ui.item_type.setCurrentIndex(0)
         self.ui.item_description.clear()
+        self._item_image_path = None
+        self.ui.item_img.setPixmap(QPixmap(self.PLACEHOLDER_IMAGE))
 
         # Affiche le panneau Item pour la saisie
         self.switch_to_item_menu()
@@ -688,6 +880,8 @@ class GuiFunctions():
         # Réinitialise les champs du sort
         self.ui.spell_name.setText("")
         self.ui.spell_description.clear()
+        self._spell_image_path = None
+        self.ui.spell_img.setPixmap(QPixmap(self.PLACEHOLDER_IMAGE))
 
         # Affiche le panneau Spell pour la saisie
         self.switch_to_spell_menu()
@@ -789,6 +983,8 @@ class GuiFunctions():
         self.ui.item_name.setText(item.name())
         self.ui.item_type.setCurrentText(item.type())
         self.ui.item_description.setText(item.description())
+        self._item_image_path = self._image_path_of(item)
+        self.ui.item_img.setPixmap(QPixmap(self._item_image_path or self.PLACEHOLDER_IMAGE))
 
         # Bascule vers le menu Item
         self.switch_to_item_menu()
@@ -811,6 +1007,8 @@ class GuiFunctions():
         # Pré-remplit le formulaire avec les données du sort
         self.ui.spell_name.setText(skill.name())
         self.ui.spell_description.setText(skill.description())
+        self._spell_image_path = self._image_path_of(skill)
+        self.ui.spell_img.setPixmap(QPixmap(self._spell_image_path or self.PLACEHOLDER_IMAGE))
 
         # Bascule vers le menu Spell
         self.switch_to_spell_menu()
@@ -859,6 +1057,10 @@ class GuiFunctions():
         # Reconstruit une ligne par objet, du haut vers le bas
         for row, item in enumerate(self._inventory_items):
             btn = QPushButton(f"{item.name()} ({item.type()})")
+            icon_path = item.image_reference()
+            if icon_path:
+                btn.setIcon(QIcon(icon_path))
+                btn.setIconSize(self.INVENTORY_ICON_SIZE)
             btn.setCheckable(True)
             btn.setAutoExclusive(True)  # Une seule ligne sélectionnable à la fois
             btn.setStyleSheet(
@@ -903,6 +1105,10 @@ class GuiFunctions():
         # Reconstruit une ligne par sort, du haut vers le bas
         for row, skill in enumerate(self._character_skills):
             btn = QPushButton(skill.name())
+            icon_path = skill.image_reference()
+            if icon_path:
+                btn.setIcon(QIcon(icon_path))
+                btn.setIconSize(self.INVENTORY_ICON_SIZE)
             btn.setCheckable(True)
             btn.setAutoExclusive(True)  # Une seule ligne sélectionnable à la fois
             btn.setStyleSheet(
@@ -1315,6 +1521,9 @@ class GuiFunctions():
         for skill in self._character_skills:
             sheet.addSkill(skill)
 
+        # Associe l'icône du personnage à la fiche si une image a été choisie
+        if self._character_icon_path and hasattr(sheet, 'new_reference'):
+            sheet.new_reference(self._character_icon_path)
 
         # Création du fichier XML
         os.makedirs(save_dir, exist_ok=True)
@@ -1333,12 +1542,10 @@ class GuiFunctions():
           d'habitude.
         """
         # Récupère les informations de l'objet
-        #TODO
-        # Récup image et stocke image
         item_name = self.ui.item_name.text().strip()
         item_type = self.ui.item_type.currentText()
         item_description = self.ui.item_description.toPlainText().strip()
-        item = Item(Name=item_name, Type=item_type, Description=item_description)
+        item = self._build_item(item_name, item_type, item_description, self._item_image_path)
 
         if self._editing_item_index is not None:
             # Mode édition : mise à jour en mémoire uniquement
@@ -1373,11 +1580,9 @@ class GuiFunctions():
           d'habitude.
         """
         # Récupère les informations du sort
-        #TODO
-        # Récup image et stocke image
         spell_name = self.ui.spell_name.text().strip()
         spell_description = self.ui.spell_description.toPlainText().strip()
-        spell = Skill(Name=spell_name, Description=spell_description)
+        spell = self._build_skill(spell_name, spell_description, self._spell_image_path)
 
         if self._editing_spell_index is not None:
             # Mode édition : mise à jour en mémoire uniquement
@@ -1437,6 +1642,13 @@ class GuiFunctions():
             self.ui.wis_nb.setValue(wis)
             self.ui.cha_nb.setValue(cha)
 
+            # Restaure l'icône du personnage si elle est stockée dans la fiche
+            icon_path = self._image_path_of(sheet) if hasattr(sheet, 'image_reference') else None
+            self._character_icon_path = icon_path
+            self._character_icon_label.setPixmap(
+                QPixmap(icon_path) if icon_path else QPixmap(self.PLACEHOLDER_IMAGE)
+            )
+
             # Déconnecte isNPC du signal
             self.ui.isNPC.blockSignals(True)
             
@@ -1475,16 +1687,16 @@ class GuiFunctions():
             raise Exception("Invalid_object_type (Expecting item)")
         else:
             # Récupère les informations de l'objet
-            #TODO
-            # Charge image
             item_name = item.name()
             item_type = item.type()
             item_description = item.description()
-            
+
             # Assigne les attributs aux bons widgets
             self.ui.item_name.setText(item_name)
             self.ui.item_type.setCurrentText(item_type)
             self.ui.item_description.setText(item_description)
+            self._item_image_path = self._image_path_of(item)
+            self.ui.item_img.setPixmap(QPixmap(self._item_image_path or self.PLACEHOLDER_IMAGE))
             self.switch_to_item_menu()
 
     def load_spell(self):
@@ -1498,14 +1710,14 @@ class GuiFunctions():
             raise Exception("Invalid_object_type (Expecting spell)")
         else:
             # Récupère les informations du sort
-            #TODO
-            # Charge image
             spell_name = spell.name()
             spell_description = spell.description()
 
             # Assigne les attributs aux bons widgets
             self.ui.spell_name.setText(spell_name)
             self.ui.spell_description.setText(spell_description)
+            self._spell_image_path = self._image_path_of(spell)
+            self.ui.spell_img.setPixmap(QPixmap(self._spell_image_path or self.PLACEHOLDER_IMAGE))
 
             self.switch_to_spell_menu()
 
@@ -1547,7 +1759,7 @@ class GuiFunctions():
             self.main,
             "Select image",
             "",
-            "Images (*.png *.jpg *.jpeg *.gif *.bmp *.svg *.webp)"
+            "Images (*.png *.jpg *.jpeg *.gif *.bmp *.svg *.webp *.PNG)"
         )
 
         if not filename:

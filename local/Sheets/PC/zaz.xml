@@ -2,14 +2,14 @@
     ID="0"
     name="zaz"
     description=""
-    image=""
+    image="local\Assets\Images\Characters\5983157033135443260.jpg"
 >
     <inventory>
         <Item
             name="stick new"
             type="Weapon"
             description="stick"
-            image=""
+            image="local\Assets\Images\Items\Screenshot_2026-05-29-19-13-03-467_com.zhiliaoapp.musically-edit.PNG"
         />
         <Item
             name="stick"
@@ -45,9 +45,9 @@
     <skills>
         <Skill
             name="fireball new"
-            type="0"
+            type="Ability"
             description="fireball"
-            image=""
+            image="local\Assets\Images\Spells\Screenshot_2026-05-29-19-13-03-467_com.zhiliaoapp.musically-edit.png"
         />
         <Skill
             name="fireball"
