@@ -138,7 +138,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="spell_btn">
+           <widget class="QPushButton" name="skill_btn">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -146,7 +146,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Spell</string>
+             <string>Skill</string>
             </property>
            </widget>
           </item>
@@ -388,7 +388,7 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>7</number>
          </property>
          <widget class="QWidget" name="settings_menu">
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -513,7 +513,7 @@ li.checked::marker { content: "\2612"; }
                  <enum>QTabWidget::TabShape::Rounded</enum>
                 </property>
                 <property name="currentIndex">
-                 <number>3</number>
+                 <number>2</number>
                 </property>
                 <property name="elideMode">
                  <enum>Qt::TextElideMode::ElideNone</enum>
@@ -956,9 +956,9 @@ li.checked::marker { content: "\2612"; }
                   </item>
                  </layout>
                 </widget>
-                <widget class="QWidget" name="spell">
+                <widget class="QWidget" name="skill">
                  <attribute name="title">
-                  <string>Spell</string>
+                  <string>Skill</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_16">
                   <property name="sizeConstraint">
@@ -998,23 +998,23 @@ li.checked::marker { content: "\2612"; }
                       <number>0</number>
                      </property>
                      <item>
-                      <widget class="QPushButton" name="add_spell_btn">
+                      <widget class="QPushButton" name="add_skill_btn">
                        <property name="text">
-                        <string>Add Spell</string>
+                        <string>Add skill</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QPushButton" name="edit_spell_btn">
+                      <widget class="QPushButton" name="edit_skill_btn">
                        <property name="text">
-                        <string>Edit spell</string>
+                        <string>Edit skill</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QPushButton" name="remove_spell_btn">
+                      <widget class="QPushButton" name="remove_skill_btn">
                        <property name="text">
-                        <string>Remove spell</string>
+                        <string>Remove skill</string>
                        </property>
                       </widget>
                      </item>
@@ -1029,14 +1029,14 @@ li.checked::marker { content: "\2612"; }
                    </widget>
                   </item>
                   <item>
-                   <layout class="QGridLayout" name="spell_grid" rowminimumheight="0">
+                   <layout class="QGridLayout" name="skill_grid" rowminimumheight="0">
                     <property name="sizeConstraint">
                      <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
                     </property>
                    </layout>
                   </item>
                   <item>
-                   <widget class="QTextEdit" name="spell_desc_display">
+                   <widget class="QTextEdit" name="skill_desc_display">
                     <property name="maximumSize">
                      <size>
                       <width>16777215</width>
@@ -1047,15 +1047,15 @@ li.checked::marker { content: "\2612"; }
                      <bool>true</bool>
                     </property>
                     <property name="placeholderText">
-                     <string>Select a spell to see its description</string>
+                     <string>Select a skill to see its description</string>
                     </property>
                    </widget>
                   </item>
                  </layout>
                 </widget>
-                <widget class="QWidget" name="trait">
+                <widget class="QWidget" name="description">
                  <attribute name="title">
-                  <string>Trait</string>
+                  <string>Description</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_23">
                   <property name="spacing">
@@ -1074,14 +1074,14 @@ li.checked::marker { content: "\2612"; }
                    <number>0</number>
                   </property>
                   <item>
-                   <widget class="QPushButton" name="clear_trait_btn">
+                   <widget class="QPushButton" name="clear_description_btn">
                     <property name="text">
-                     <string>Clear trait</string>
+                     <string>Clear description</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QTextEdit" name="trait_editbox" />
+                   <widget class="QTextEdit" name="description_editbox" />
                   </item>
                  </layout>
                 </widget>
@@ -1102,6 +1102,105 @@ li.checked::marker { content: "\2612"; }
              <property name="alignment">
               <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_map_1">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="new_map_btn">
+             <property name="text">
+              <string>New Map</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="save_map_btn">
+             <property name="text">
+              <string>Save Map</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="load_map_btn">
+             <property name="text">
+              <string>Load Map</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="map_image_list_label">
+             <property name="text">
+              <string>Images</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignLeading</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTabWidget" name="map_tab_widget">
+             <property name="currentIndex">
+              <number>1</number>
+             </property>
+             <widget class="QWidget" name="cells_tab">
+              <attribute name="title">
+               <string>Cells</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_cells">
+               <item>
+                <widget class="QPushButton" name="add_cells_image_btn">
+                 <property name="text">
+                  <string>Add Image</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="cells_image_list">
+                 <property name="iconSize">
+                  <size>
+                   <width>32</width>
+                   <height>32</height>
+                  </size>
+                 </property>
+                 <property name="uniformItemSizes">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="props_tab">
+              <attribute name="title">
+               <string>Props</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_props">
+               <item>
+                <widget class="QPushButton" name="add_props_image_btn">
+                 <property name="text">
+                  <string>Add Image</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="props_image_list">
+                 <property name="iconSize">
+                  <size>
+                   <width>32</width>
+                   <height>32</height>
+                  </size>
+                 </property>
+                 <property name="uniformItemSizes">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
             </widget>
            </item>
           </layout>
@@ -1428,7 +1527,7 @@ li.checked::marker { content: "\2612"; }
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="spell_menu">
+         <widget class="QWidget" name="skill_menu">
           <layout class="QVBoxLayout" name="verticalLayout_21">
            <property name="leftMargin">
             <number>0</number>
@@ -1443,10 +1542,24 @@ li.checked::marker { content: "\2612"; }
             <number>0</number>
            </property>
            <item>
-            <widget class="QLineEdit" name="spell_name">
+            <widget class="QLineEdit" name="skill_name">
              <property name="placeholderText">
-              <string>Spell name</string>
+              <string>Skill name</string>
              </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="skill_category">
+             <item>
+              <property name="text">
+               <string>Ability</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Spell</string>
+              </property>
+             </item>
             </widget>
            </item>
            <item>
@@ -1471,7 +1584,7 @@ li.checked::marker { content: "\2612"; }
                <number>0</number>
               </property>
               <item>
-               <widget class="QLabel" name="spell_img">
+               <widget class="QLabel" name="skill_img">
                 <property name="maximumSize">
                  <size>
                   <width>30</width>
@@ -1490,9 +1603,9 @@ li.checked::marker { content: "\2612"; }
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="choose_spell_img">
+               <widget class="QPushButton" name="choose_skill_img">
                 <property name="text">
-                 <string>Choose spell icon</string>
+                 <string>Choose skill icon</string>
                 </property>
                </widget>
               </item>
@@ -1500,9 +1613,9 @@ li.checked::marker { content: "\2612"; }
             </widget>
            </item>
            <item>
-            <widget class="QTextEdit" name="spell_description">
+            <widget class="QTextEdit" name="skill_description">
              <property name="placeholderText">
-              <string>Spell description</string>
+              <string>Skill description</string>
              </property>
             </widget>
            </item>
@@ -1514,23 +1627,23 @@ li.checked::marker { content: "\2612"; }
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="create_new_spell_btn">
+            <widget class="QPushButton" name="create_new_skill_btn">
              <property name="text">
-              <string>Create new spell</string>
+              <string>Create new skill</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="save_spell">
+            <widget class="QPushButton" name="save_skill">
              <property name="text">
-              <string>Save spell</string>
+              <string>Save skill</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="load_spell">
+            <widget class="QPushButton" name="load_skill">
              <property name="text">
-              <string>Load spell</string>
+              <string>Load skill</string>
              </property>
             </widget>
            </item>
@@ -1656,7 +1769,7 @@ li.checked::marker { content: "\2612"; }
      <addaction name="actionNew_character" />
      <addaction name="actionNew_map" />
      <addaction name="actionNew_item" />
-     <addaction name="actionNew_spell" />
+     <addaction name="actionNew_skill" />
     </widget>
     <widget class="QMenu" name="menuOpen">
      <property name="title">
@@ -1665,13 +1778,18 @@ li.checked::marker { content: "\2612"; }
      <addaction name="actionOpen_character" />
      <addaction name="actionOpen_map" />
      <addaction name="actionOpen_item" />
-     <addaction name="actionOpen_spell" />
+     <addaction name="actionOpen_skill" />
     </widget>
     <addaction name="menuNew" />
     <addaction name="menuOpen" />
     <addaction name="separator" />
     <addaction name="actionSave" />
     <addaction name="actionSave_as" />
+    <addaction name="separator" />
+    <addaction name="actionNew_session" />
+    <addaction name="actionSave_session" />
+    <addaction name="actionUpdate_session" />
+    <addaction name="actionLoad_session" />
     <addaction name="separator" />
     <addaction name="actionClose" />
    </widget>
@@ -1693,6 +1811,7 @@ li.checked::marker { content: "\2612"; }
     </property>
     <addaction name="actionLog_Chat" />
     <addaction name="actionInfo_menu" />
+    <addaction name="actionMode" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menuEdit" />
@@ -1730,6 +1849,26 @@ li.checked::marker { content: "\2612"; }
   <action name="actionSave_as">
    <property name="text">
     <string>Save as...</string>
+   </property>
+  </action>
+  <action name="actionNew_session">
+   <property name="text">
+    <string>New session</string>
+   </property>
+  </action>
+  <action name="actionSave_session">
+   <property name="text">
+    <string>Save session</string>
+   </property>
+  </action>
+  <action name="actionUpdate_session">
+   <property name="text">
+    <string>Update session</string>
+   </property>
+  </action>
+  <action name="actionLoad_session">
+   <property name="text">
+    <string>Load session</string>
    </property>
   </action>
   <action name="actionClose">
@@ -1788,14 +1927,19 @@ li.checked::marker { content: "\2612"; }
     <string>Open item</string>
    </property>
   </action>
-  <action name="actionNew_spell">
+  <action name="actionNew_skill">
    <property name="text">
-    <string>New spell</string>
+    <string>New skill</string>
    </property>
   </action>
-  <action name="actionOpen_spell">
+  <action name="actionOpen_skill">
    <property name="text">
-    <string>Open spell</string>
+    <string>Open skill</string>
+   </property>
+  </action>
+  <action name="actionMode">
+   <property name="text">
+    <string>Mode</string>
    </property>
   </action>
  </widget>
