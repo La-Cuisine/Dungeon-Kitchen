@@ -474,11 +474,9 @@ class ProfileBox(QLabel):
         self.add_profile()
         self.add_profile()
         self.add_profile()
-        self.add_profile()
-        
-        self.prof_remove(0)   
+        self.add_profile()  
 
-        self.prof_remove(3)        
+              
 
 
     def _reposition(self):
