@@ -332,7 +332,7 @@ class GuiFunctions():
 
         if hasattr(self.ui, "cells_image_list") and hasattr(self.ui, "verticalLayout_cells"):
             self.ui.cells_image_list = self._make_draggable_image_list(
-                self.ui.cells_image_list, self.ui.verticalLayout_cells
+                self.ui.cells_image_list, self.ui.verticalLayout_cells, role="cell"
             )
             self._populate_image_list(
                 self.ui.cells_image_list,
@@ -341,19 +341,18 @@ class GuiFunctions():
 
         if hasattr(self.ui, "props_image_list") and hasattr(self.ui, "verticalLayout_props"):
             self.ui.props_image_list = self._make_draggable_image_list(
-                self.ui.props_image_list, self.ui.verticalLayout_props
+                self.ui.props_image_list, self.ui.verticalLayout_props, role="prop"
             )
             self._populate_image_list(
                 self.ui.props_image_list,
                 PROP_DIRECTORIES
             )
 
-    def _make_draggable_image_list(self, old_list, layout):
+    def _make_draggable_image_list(self, old_list, layout, role: str = "cell"):
         """
         Remplace old_list (QListWidget cree par Qt Designer) par un
         DraggableImageList insere au meme endroit dans layout, en
         conservant son nom d'objet et la taille de ses icones.
-
         Renvoie la nouvelle instance (a reassigner sur self.ui.<nom>).
         """
         index = layout.indexOf(old_list)
@@ -364,7 +363,7 @@ class GuiFunctions():
         layout.removeWidget(old_list)
         old_list.deleteLater()
 
-        new_list = DraggableImageList(parent)
+        new_list = DraggableImageList(parent, role=role)
         new_list.setObjectName(name)
         new_list.setIconSize(icon_size)
         new_list.setUniformItemSizes(True)
@@ -1258,6 +1257,10 @@ class GuiFunctions():
             bp_cell = blueprint.get_cell(x, y)    
             if getattr(cell, "Path", None):
                 bp_cell.new_reference(cell.Path)
+            if getattr(cell, "PropPath", None):
+                prop = Prop("Prop")
+                prop.new_reference(cell.PropPath)
+                bp_cell.add_content(prop)
     
         return blueprint
         
@@ -1293,6 +1296,11 @@ class GuiFunctions():
                 image = bp_cell.image_reference()
                 if image:
                     visual_cell.setImage(image)
+                contents = bp_cell.contents()
+                if contents:
+                    prop_image = contents[0].image_reference()
+                    if prop_image:
+                        visual_cell.setProp(prop_image)
 
     # ----------------------------------------------------------------
     # Fonctions pour manipuler le style de la page et des boutons
@@ -1600,10 +1608,17 @@ class GuiFunctions():
             for x in range(blueprint.length()):
                 for y in range(blueprint.width()):
                     bp_cell = blueprint.get_cell(x, y)
+                    visual_cell = new_world.atoms[y * new_world.n + x]
+                    # 1. Copy the base cell image
                     image = bp_cell.image_reference()
                     if image:
-                        visual_cell = new_world.atoms[y * new_world.n + x]
                         visual_cell.setImage(image)
+                    # 2. Copy the prop (object placed on top)
+                    contents = bp_cell.contents()
+                    if contents:
+                        prop_image = contents[0].image_reference()
+                        if prop_image:
+                            visual_cell.setProp(prop_image)
 
             # 4. Inject the independent, duplicated map into the gamemode
             self._game_window.set_map(new_scene, new_world, new_wall)

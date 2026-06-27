@@ -27,9 +27,10 @@
   const hudCoords = document.getElementById("hudCoords");
   const zoomReadout = document.getElementById("zoomReadout");
 
-  /** @type {{n: number, s_cell: number, cells: Array<{col:number,row:number,image:string}>}} */
+  /** @type {{n: number, s_cell: number, cells: Array<{col:number,row:number,image?:string,prop?:string}>}} */
   let mapData = { n: 0, s_cell: 64, cells: [] };
-  let cellImageByKey = new Map(); // "col,row" -> image url
+  let cellImageByKey = new Map(); // "col,row" -> fond de case (image)
+  let cellPropByKey = new Map();  // "col,row" -> objet pose par dessus (prop)
   const imageCache = new Map();   // url -> HTMLImageElement
   let lastVersion = null;
   let hasReceivedData = false;
@@ -119,11 +120,23 @@
       for (let row = 0; row < n; row++) {
         for (let col = 0; col < n; col++) {
           const key = col + "," + row;
+
           const url = cellImageByKey.get(key);
           if (url) {
             const img = ensureImageLoaded(url);
             if (img.complete && img.naturalWidth > 0) {
               ctx.drawImage(img, col * s, row * s, s, s);
+            }
+          }
+
+          // Le prop est dessine juste apres, par dessus le fond de la
+          // meme case (jamais a sa place) : c'est ce qui reproduit le
+          // comportement de superposition de l'app MJ.
+          const propUrl = cellPropByKey.get(key);
+          if (propUrl) {
+            const propImg = ensureImageLoaded(propUrl);
+            if (propImg.complete && propImg.naturalWidth > 0) {
+              ctx.drawImage(propImg, col * s, row * s, s, s);
             }
           }
         }
@@ -164,10 +177,20 @@
     mapData = data;
 
     cellImageByKey.clear();
+    cellPropByKey.clear();
+    const urls = new Set();
     for (const c of data.cells || []) {
-      cellImageByKey.set(c.col + "," + c.row, c.image);
+      const key = c.col + "," + c.row;
+      if (c.image) {
+        cellImageByKey.set(key, c.image);
+        urls.add(c.image);
+      }
+      if (c.prop) {
+        cellPropByKey.set(key, c.prop);
+        urls.add(c.prop);
+      }
     }
-    for (const url of new Set((data.cells || []).map((c) => c.image))) {
+    for (const url of urls) {
       ensureImageLoaded(url);
     }
 

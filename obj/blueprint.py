@@ -46,8 +46,8 @@ class Prop:
         return res
 
 class Cell:
-    def __init__(self, Contents=[], Ground=0, Walls=0b0000, Doors=0b0000):
-        self._contents = Contents
+    def __init__(self, Contents=None, Ground=0, Walls=0b0000, Doors=0b0000):
+        self._contents = Contents if Contents is not None else []
         if(Ground<0 or Ground>4):
             raise Exception("ArgumentOutOfRange")
         self._ground = Ground # 0=terrain; 1=floor; 2=void; 3=solid; 4=transition

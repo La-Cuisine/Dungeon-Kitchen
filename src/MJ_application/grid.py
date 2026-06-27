@@ -64,7 +64,13 @@ _view_bounds = {"cw": 350.0, "ch": 260.0}
 
 _col_cell = {"TL" : (None,None) , "TR" : (None,None) , "BL" : (None,None) , "BR" : (None,None) }
 
-_cell_cp_data = {"fill" : False ,"img" : None , "text" : None}
+_cell_cp_data = {
+    # presse-papier separe pour le fond de case ("cell") et l'objet pose
+    # par dessus ("prop"), afin que Copy/Cut/Paste puissent agir sur l'un
+    # sans toucher l'autre.
+    "cell": {"fill": False, "img": None, "path": None},
+    "prop": {"fill": False, "img": None, "path": None},
+}
 
 # ---------------------------------------------------------------------------
 # une seule lecture + redimensionnement par (path, w, h)
@@ -94,9 +100,14 @@ class DraggableImageList(QListWidget):
     custom MIME_TYPE, lu par View_Grid.dropEvent()."""
 
     MIME_TYPE = "application/x-grid-image-path"
+    # Indique si l'image vient de cells_image_list ("cell", fond de case)
+    # ou de props_image_list ("prop", pose par-dessus le fond) -> permet a
+    # View_Grid.dropEvent() de choisir setImage() ou setProp().
+    ROLE_MIME_TYPE = "application/x-grid-image-role"
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, role: str = "cell"):
         super().__init__(parent)
+        self.role = role
         self.setDragEnabled(True)
         self.setDragDropMode(QAbstractItemView.DragDropMode.DragOnly)
 
@@ -111,6 +122,7 @@ class DraggableImageList(QListWidget):
 
         mime = QMimeData()
         mime.setData(self.MIME_TYPE, QByteArray(str(path).encode("utf-8")))
+        mime.setData(self.ROLE_MIME_TYPE, QByteArray(self.role.encode("utf-8")))
         mime.setText(str(path))  # repli texte, lisible par d'autres widgets
 
         drag = QDrag(self)
@@ -209,7 +221,15 @@ class Interface_Cell(QGraphicsRectItem):
         self._name = ""
 
         self._img = Img()
+        self._img.setZValue(0)
         self.Path = None
+
+        # Couche "prop" : posee par dessus le fond (_img), jamais a sa
+        # place -> zValue plus haute pour etre dessinee apres / au dessus.
+        self._prop_img = Img()
+        self._prop_img.setZValue(1)
+        self.PropPath = None
+
         self._text = None
         self.w = w
         self.h = h
@@ -240,6 +260,8 @@ class Interface_Cell(QGraphicsRectItem):
         return self._name
 
     def setImage(self, Path: str):
+        """Fond de la case (vient de cells_image_list). N'affecte jamais
+        le prop pose par dessus (cf. setProp)."""
         self.Path = Path
         scaled = _get_scaled_pixmap(Path, self.w, self.h)
         if self._img is None:
@@ -249,6 +271,7 @@ class Interface_Cell(QGraphicsRectItem):
             and self._img.scene() is not None
         ):
             self._img.scene().removeItem(self._img)
+        self._img.setZValue(0)
         self._img.setTransformationMode(
             Qt.TransformationMode.SmoothTransformation
         )
@@ -258,6 +281,31 @@ class Interface_Cell(QGraphicsRectItem):
             self.h * self._coord[1]
         )
         self._img.setParentItem(self)
+        self.update()
+
+    def setProp(self, Path: str):
+        """Objet pose par dessus le fond (vient de props_image_list).
+        zValue superieure a celle de _img -> toujours dessine au dessus,
+        ne remplace jamais setImage()."""
+        self.PropPath = Path
+        scaled = _get_scaled_pixmap(Path, self.w, self.h)
+        if self._prop_img is None:
+            self._prop_img = Img()
+        elif (
+            not self._prop_img.pixmap().isNull()
+            and self._prop_img.scene() is not None
+        ):
+            self._prop_img.scene().removeItem(self._prop_img)
+        self._prop_img.setZValue(1)
+        self._prop_img.setTransformationMode(
+            Qt.TransformationMode.SmoothTransformation
+        )
+        self._prop_img.setPixmap(scaled)
+        self._prop_img.setPos(
+            self.w * self._coord[0],
+            self.h * self._coord[1]
+        )
+        self._prop_img.setParentItem(self)
         self.update()
 
 
@@ -276,13 +324,13 @@ class Interface_Cell(QGraphicsRectItem):
 
     def Copy(self):
         global _cell_cp_data
-        _cell_cp_data["fill"] = True
-        _cell_cp_data["img"] = self._img
-        _cell_cp_data["path"] = self.Path
+        _cell_cp_data["cell"]["fill"] = True
+        _cell_cp_data["cell"]["img"] = self._img
+        _cell_cp_data["cell"]["path"] = self.Path
 
     def Paste(self):
         global _cell_cp_data
-        path = _cell_cp_data["path"]
+        path = _cell_cp_data["cell"]["path"]
         if path is not None:
             self.setImage(path)
 
@@ -295,6 +343,29 @@ class Interface_Cell(QGraphicsRectItem):
         self.Path = None
         self.update()
 
+    # Memes operations que Copy/Paste/Cut, mais pour la couche "prop"
+    # (l'objet pose par dessus le fond) : laisse le fond intact.
+    def CopyProp(self):
+        global _cell_cp_data
+        _cell_cp_data["prop"]["fill"] = True
+        _cell_cp_data["prop"]["img"] = self._prop_img
+        _cell_cp_data["prop"]["path"] = self.PropPath
+
+    def PasteProp(self):
+        global _cell_cp_data
+        path = _cell_cp_data["prop"]["path"]
+        if path is not None:
+            self.setProp(path)
+
+    def CutProp(self):
+        self.CopyProp()
+        if self._prop_img is not None:
+            if self._prop_img.scene() is not None:
+                self.scene().removeItem(self._prop_img)
+            self._prop_img = None
+        self.PropPath = None
+        self.update()
+
     def Proprieties(self,xy:QPointF|None):
         if xy is not None : 
             view =self.scene().views()[0]
@@ -305,6 +376,15 @@ class Interface_Cell(QGraphicsRectItem):
                 text = text + "None\n"
             else:
                 text = text + self.Path + "\n"
+
+            text = text + "\nProp :   "
+            if self._prop_img is None:
+                text = text + "None\n"
+            elif self._prop_img.pixmap().isNull():
+                text = text + "None\n"
+            else:
+                text = text + self.PropPath + "\n"
+
             view.showProperties(text)
             
     def DeleteImage(self):
@@ -312,7 +392,17 @@ class Interface_Cell(QGraphicsRectItem):
             if self._img.scene() is not None:
                 self.scene().removeItem(self._img)
             self._img = Img()
+            self._img.setZValue(0)
         self.Path = None
+        self.update()
+
+    def DeleteProp(self):
+        if self._prop_img is not None:
+            if self._prop_img.scene() is not None:
+                self.scene().removeItem(self._prop_img)
+            self._prop_img = Img()
+            self._prop_img.setZValue(1)
+        self.PropPath = None
         self.update()
         
         
@@ -491,6 +581,26 @@ class View_Grid(QGraphicsView):
                     self._cell_select.Cut()
                     self._cell_select_use = True
 
+        # Ctrl+Shift+C/V/X : memes actions mais sur le prop (l'objet pose
+        # par dessus le fond) plutot que sur le fond lui-meme.
+        if event.modifiers() == (
+            Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier
+        ):
+            if event.key() == Qt.Key.Key_C:
+                if self._cell_select is not None:
+                    self._cell_select.CopyProp()
+                    self._cell_select_use = True
+
+            if event.key() == Qt.Key.Key_V:
+                if self._cell_select is not None:
+                    self._cell_select.PasteProp()
+                    self._cell_select_use = True
+
+            if event.key() == Qt.Key.Key_X:
+                if self._cell_select is not None:
+                    self._cell_select.CutProp()
+                    self._cell_select_use = True
+
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
             if event.key() == Qt.Key.Key_P:
                 if self._cell_select is not None and self._Mxy is not None:
@@ -501,7 +611,11 @@ class View_Grid(QGraphicsView):
             Qt.Key.Key_Backspace,
         ):
             if self._cell_select is not None:
-                self._cell_select.DeleteImage()
+                # Shift+Suppr -> n'efface que le prop, laisse le fond
+                if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+                    self._cell_select.DeleteProp()
+                else:
+                    self._cell_select.DeleteImage()
                 self._cell_select_use = True
 
         return super().keyPressEvent(event)
@@ -629,9 +743,23 @@ class View_Grid(QGraphicsView):
         if event.mimeData().hasFormat(DraggableImageList.MIME_TYPE):
             raw = event.mimeData().data(DraggableImageList.MIME_TYPE)
             path = bytes(raw).decode("utf-8")
+
+            # "cell" (fond, remplace) ou "prop" (pose par dessus, ne
+            # remplace pas) -> selon la liste d'origine du drag. Repli
+            # sur "cell" si l'info de role est absente (compat anciens
+            # clients de drag).
+            role = "cell"
+            if event.mimeData().hasFormat(DraggableImageList.ROLE_MIME_TYPE):
+                role = bytes(
+                    event.mimeData().data(DraggableImageList.ROLE_MIME_TYPE)
+                ).decode("utf-8")
+
             cell = self._cell_at_view_pos(event.position().toPoint())
             if cell is not None and path:
-                cell.setImage(path)
+                if role == "prop":
+                    cell.setProp(path)
+                else:
+                    cell.setImage(path)
                 event.acceptProposedAction()
             else:
                 event.ignore()
@@ -647,27 +775,51 @@ class View_Grid(QGraphicsView):
         if cell is not None:
             self.menu = QMenu(self)
 
-            if _cell_cp_data["fill"]:
-                nameAction = QAction("Paste", self)
+            # --- Fond de case ("cell") ---
+            if _cell_cp_data["cell"]["fill"]:
+                nameAction = QAction("Paste (Cell)", self)
                 nameAction.triggered.connect(lambda: cell.Paste())
                 self.menu.addAction(nameAction)
 
-            nameAction = QAction("Copy", self)
+            nameAction = QAction("Copy (Cell)", self)
             nameAction.triggered.connect(lambda: cell.Copy())
             self.menu.addAction(nameAction)
 
-            nameAction = QAction("Cut", self)
+            nameAction = QAction("Cut (Cell)", self)
             nameAction.triggered.connect(lambda: cell.Cut())
             self.menu.addAction(nameAction)
+
+            if cell.Path is not None:
+                nameAction = QAction("Delete (Cell)", self)
+                nameAction.triggered.connect(lambda: cell.DeleteImage())
+                self.menu.addAction(nameAction)
+
+            self.menu.addSeparator()
+
+            # --- Objet pose par dessus ("prop") : ne touche jamais au fond ---
+            if _cell_cp_data["prop"]["fill"]:
+                nameAction = QAction("Paste (Prop)", self)
+                nameAction.triggered.connect(lambda: cell.PasteProp())
+                self.menu.addAction(nameAction)
+
+            nameAction = QAction("Copy (Prop)", self)
+            nameAction.triggered.connect(lambda: cell.CopyProp())
+            self.menu.addAction(nameAction)
+
+            nameAction = QAction("Cut (Prop)", self)
+            nameAction.triggered.connect(lambda: cell.CutProp())
+            self.menu.addAction(nameAction)
+
+            if cell.PropPath is not None:
+                nameAction = QAction("Delete (Prop)", self)
+                nameAction.triggered.connect(lambda: cell.DeleteProp())
+                self.menu.addAction(nameAction)
+
+            self.menu.addSeparator()
 
             nameAction = QAction("Proprieties", self)
             nameAction.triggered.connect(lambda: cell.Proprieties(self._Mxy))
             self.menu.addAction(nameAction)
-
-            if cell.Path is not None:
-                nameAction = QAction("Delete", self)
-                nameAction.triggered.connect(lambda: cell.DeleteImage())
-                self.menu.addAction(nameAction)
             
             ## add other required actions
             self.menu.popup(QCursor.pos())

@@ -109,16 +109,18 @@ def _poll_loop(interval: float) -> None:
 # Lecture de l'etat de la grille (lecture seule, aucune ecriture sur les
 # objets Qt - on ne fait que lire des attributs simples)
 # ---------------------------------------------------------------------------
-def _read_cells(grid) -> list[tuple[int, int, str]]:
+def _read_cells(grid) -> list[tuple[int, int, str | None, str | None]]:
     cells = []
     for cell in getattr(grid, "atoms", []):
         path = getattr(cell, "Path", None)
-        if not path:
+        prop_path = getattr(cell, "PropPath", None)
+        if not path and not prop_path:
             continue
-        # grid.py n'est pas modifie : pas de getCoord(), on lit directement
-        # l'attribut "prive" _coord (col, row) deja pose par Grid.__init__.
+        # grid.py n'est pas modifie au-dela de l'ajout du calque "prop" :
+        # pas de getCoord(), on lit directement l'attribut "prive" _coord
+        # (col, row) deja pose par Grid.__init__.
         coord = getattr(cell, "_coord", (None, None))
-        cells.append((coord[0], coord[1], path))
+        cells.append((coord[0], coord[1], path, prop_path))
     return cells
 
 
@@ -215,11 +217,23 @@ def _write_export(grid, cells) -> None:
     global _version
 
     out_cells = []
-    for col, row, path in cells:
-        url = _register_image(path)
-        if url is None:
-            continue
-        out_cells.append({"col": col, "row": row, "image": url})
+    for col, row, path, prop_path in cells:
+        entry = {"col": col, "row": row}
+
+        if path:
+            url = _register_image(path)
+            if url is not None:
+                entry["image"] = url
+
+        if prop_path:
+            prop_url = _register_image(prop_path)
+            if prop_url is not None:
+                entry["prop"] = prop_url
+
+        # n'exporte la case que si au moins une des deux images a pu
+        # etre resolue (sinon entry ne contient que col/row, inutile)
+        if "image" in entry or "prop" in entry:
+            out_cells.append(entry)
 
     pos = grid.pos()
     _version += 1
