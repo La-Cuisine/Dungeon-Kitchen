@@ -570,34 +570,25 @@ class View_Grid(QGraphicsView):
             self._shift_press = False
         return super().keyReleaseEvent(event)
 
-    # zoom non au point
+    # Comportement de la molette :
+    # - molette seule → zoom centré sous le curseur
     def wheelEvent(self, event):
-
-        if self._shift_press:
-            angle = event.angleDelta().y()
-            if angle == 0:
-                event.accept()
-                return
-
-            factor = self.zoomfac if angle > 0 else 1 / self.zoomfac
-            new_zoom = max(self.zoomMin, min(self.zoomMax, self.zoom * factor))
-            applied = new_zoom / self.zoom
-
-            if applied != 1.0:
-                self.zoom = new_zoom
-
-                cursor_scene = self.mapToScene(event.position().toPoint())
-                self.scale(applied, applied)
-                cursor_scene_after = self.mapToScene(event.position().toPoint())
-                delta = cursor_scene_after - cursor_scene
-                self.translate(delta.x(), delta.y())
-
-                self._update_world_bounds()
-
-            event.accept()
+        angle = event.angleDelta().y()
+        if angle == 0:
+            event.ignore()
             return
 
-        return super().wheelEvent(event)
+        factor = self.zoomfac if angle > 0 else 1 / self.zoomfac
+        new_zoom = max(self.zoomMin, min(self.zoomMax, self.zoom * factor))
+        applied = new_zoom / self.zoom
+
+        if applied != 1.0:
+            self.zoom = new_zoom
+            # AnchorUnderMouse garde le point de scène sous le curseur fixe
+            self.scale(applied, applied)
+            self._update_world_bounds()
+
+        event.accept()
 
     def resizeEvent(self, event: QResizeEvent):
         if not self._fitted_once and self.scene() is not None:
