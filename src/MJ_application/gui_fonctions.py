@@ -500,7 +500,7 @@ class GuiFunctions():
         Slot connecté au signal clicked du bouton "choose_skill_img".
         Équivalent de choose_item_image() pour le sort en cours d'édition.
         """
-        path = self._choose_and_store_image(skill_DIRECTORIES)
+        path = self._choose_and_store_image(SKILL_DIRECTORIES)
         if path is None:
             return
 

@@ -35,7 +35,7 @@ ITEM_DIRECTORIES = [
     Path("Assets/Images/Items"),
     Path("local/Assets/Images/Items"),
 ]
-SPELL_DIRECTORIES = [
+SKILL_DIRECTORIES = [
     Path("Assets/Images/Spells"),
     Path("local/Assets/Images/Spells"),
 ]
