@@ -40,6 +40,17 @@
           "name": "Miscellaneous"
         }
       ]
+    },
+    {
+      "name": "skill_category",
+      "items": [
+        {
+          "name": "Ability"
+        },
+        {
+          "name": "Spell"
+        }
+      ]
     }
   ],
   "QLabel": [
@@ -48,7 +59,7 @@
       "pixmap": "ui\\image\\placeholder.png"
     },
     {
-      "name": "spell_img",
+      "name": "skill_img",
       "pixmap": "ui\\image\\placeholder.png"
     }
   ]

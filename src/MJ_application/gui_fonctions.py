@@ -64,11 +64,11 @@ class GuiFunctions():
         # Skill 
         self._character_skills = []  
         self._selected_skill_row = None  
-        self._editing_spell_index = None  
+        self._editing_skill_index = None  
 
         # Chemin relatifs vers des objets
         self._item_image_path = None  
-        self._spell_image_path = None  
+        self._skill_image_path = None  
         self._character_icon_path = None  
         self._current_session_path = None 
 
@@ -125,7 +125,7 @@ class GuiFunctions():
         self.ui.information_btn.clicked.connect(self.switch_to_information_menu)
         self.ui.help_btn.clicked.connect(self.switch_to_help_menu)
         self.ui.item_btn.clicked.connect(self.switch_to_item_menu)
-        self.ui.spell_btn.clicked.connect(self.switch_to_spell_menu)
+        self.ui.skill_btn.clicked.connect(self.switch_to_skill_menu)
 
         # Ouvre ou ferme le menu d'information
         self.ui.open_info_menu_btn.clicked.connect(self.switch_center_menu_display_state)
@@ -136,9 +136,9 @@ class GuiFunctions():
         self.ui.add_item_btn.clicked.connect(self.add_item_to_character)
         self.ui.edit_item_btn.clicked.connect(self.edit_selected_item)
         self.ui.remove_item_btn.clicked.connect(self.remove_selected_item_from_character)
-        self.ui.add_spell_btn.clicked.connect(self.add_skill_to_character)
-        self.ui.edit_spell_btn.clicked.connect(self.edit_selected_spell)
-        self.ui.remove_spell_btn.clicked.connect(self.remove_selected_skill_from_character)
+        self.ui.add_skill_btn.clicked.connect(self.add_skill_to_character)
+        self.ui.edit_skill_btn.clicked.connect(self.edit_selected_skill)
+        self.ui.remove_skill_btn.clicked.connect(self.remove_selected_skill_from_character)
 
         # Ouvre ou ferme le log/chat
         self.ui.close_log_view_btn.clicked.connect(self.switch_log_display_state)
@@ -154,7 +154,7 @@ class GuiFunctions():
         ) 
 
         self.ui.choose_item_img.clicked.connect(self.choose_item_image)
-        self.ui.choose_spell_img.clicked.connect(self.choose_spell_image)
+        self.ui.choose_skill_img.clicked.connect(self.choose_skill_image)
         # Note: choose_character_icon_btn is connected in _init_character_icon_row()
 
         # Save/Load
@@ -164,9 +164,9 @@ class GuiFunctions():
         self.ui.create_new_item_btn.clicked.connect(self.create_new_item)
         self.ui.save_item.clicked.connect(self.save_item)
         self.ui.load_item.clicked.connect(self.load_item)
-        self.ui.create_new_spell_btn.clicked.connect(self.create_new_spell)
-        self.ui.save_spell.clicked.connect(self.save_spell)
-        self.ui.load_spell.clicked.connect(self.load_spell)
+        self.ui.create_new_skill_btn.clicked.connect(self.create_new_skill)
+        self.ui.save_skill.clicked.connect(self.save_skill)
+        self.ui.load_skill.clicked.connect(self.load_skill)
         self.ui.new_map_btn.clicked.connect(self.create_new_map)
         self.ui.save_map_btn.clicked.connect(self.save_map)
         self.ui.load_map_btn.clicked.connect(self.load_map)
@@ -185,7 +185,7 @@ class GuiFunctions():
     
     def _init_inventory_scroll_areas(self):
         """
-        Remplace les QGridLayout item_grid et spell_grid (définis dans le fichier
+        Remplace les QGridLayout item_grid et skill_grid (définis dans le fichier
         UI auto-généré) par des QScrollArea contenant un QVBoxLayout dédié.
         Cela permet d'afficher un ascenseur vertical dès que la liste dépasse
         la hauteur disponible, sans modifier le fichier UI.
@@ -216,26 +216,26 @@ class GuiFunctions():
         # Insère le QScrollArea exactement là où était item_grid
         inventory_parent_layout.insertWidget(index, self._item_scroll_area, 1)
 
-        # --- Spell list ---
-        spell_parent_layout = self.ui.verticalLayout_16  # layout du tab "spell"
+        # --- skill list ---
+        skill_parent_layout = self.ui.verticalLayout_16  # layout du tab "skill"
 
-        index_spell = spell_parent_layout.indexOf(self.ui.spell_grid)
-        spell_parent_layout.removeItem(self.ui.spell_grid)
+        index_skill = skill_parent_layout.indexOf(self.ui.skill_grid)
+        skill_parent_layout.removeItem(self.ui.skill_grid)
 
-        self._spell_list_widget = QWidget()
-        self._spell_list_layout = QVBoxLayout(self._spell_list_widget)
-        self._spell_list_layout.setContentsMargins(0, 0, 0, 0)
-        self._spell_list_layout.setSpacing(2)
-        self._spell_list_layout.addStretch()
+        self._skill_list_widget = QWidget()
+        self._skill_list_layout = QVBoxLayout(self._skill_list_widget)
+        self._skill_list_layout.setContentsMargins(0, 0, 0, 0)
+        self._skill_list_layout.setSpacing(2)
+        self._skill_list_layout.addStretch()
 
-        self._spell_scroll_area = QScrollArea()
-        self._spell_scroll_area.setWidgetResizable(True)
-        self._spell_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self._spell_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self._spell_scroll_area.setWidget(self._spell_list_widget)
-        self._spell_scroll_area.setFrameShape(self._spell_scroll_area.Shape.NoFrame)
+        self._skill_scroll_area = QScrollArea()
+        self._skill_scroll_area.setWidgetResizable(True)
+        self._skill_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._skill_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._skill_scroll_area.setWidget(self._skill_list_widget)
+        self._skill_scroll_area.setFrameShape(self._skill_scroll_area.Shape.NoFrame)
 
-        spell_parent_layout.insertWidget(index_spell, self._spell_scroll_area, 1)
+        skill_parent_layout.insertWidget(index_skill, self._skill_scroll_area, 1)
 
     def _init_character_icon_row(self):
         """
@@ -386,13 +386,13 @@ class GuiFunctions():
         # New object
         self.ui.actionNew_character.triggered.connect(self.create_new_character)
         self.ui.actionNew_item.triggered.connect(self.create_new_item)
-        self.ui.actionNew_spell.triggered.connect(self.create_new_spell)
+        self.ui.actionNew_skill.triggered.connect(self.create_new_skill)
         self.ui.actionNew_map.triggered.connect(self.create_new_map)
         
         # Load object
         self.ui.actionOpen_character.triggered.connect(self.load_character)
         self.ui.actionOpen_item.triggered.connect(self.load_item)
-        self.ui.actionOpen_spell.triggered.connect(self.load_spell)
+        self.ui.actionOpen_skill.triggered.connect(self.load_skill)
         #self.ui.actionOpen_map.triggered.connect(self.load_map)
         
         # Save/Save as
@@ -477,7 +477,7 @@ class GuiFunctions():
         self.ui.graphicsView = self._view_grid
 
     # ------------------------------------------------------------------
-    # Image de l'objet / du sort (choose_item_img, choose_spell_img)
+    # Image de l'objet / du sort (choose_item_img, choose_skill_img)
     # ------------------------------------------------------------------
 
     def choose_item_image(self):
@@ -495,17 +495,17 @@ class GuiFunctions():
         self._item_image_path = path
         self.ui.item_img.setPixmap(QPixmap(path))
 
-    def choose_spell_image(self):
+    def choose_skill_image(self):
         """
-        Slot connecté au signal clicked du bouton "choose_spell_img".
+        Slot connecté au signal clicked du bouton "choose_skill_img".
         Équivalent de choose_item_image() pour le sort en cours d'édition.
         """
-        path = self._choose_and_store_image(SPELL_DIRECTORIES)
+        path = self._choose_and_store_image(skill_DIRECTORIES)
         if path is None:
             return
 
-        self._spell_image_path = path
-        self.ui.spell_img.setPixmap(QPixmap(path))
+        self._skill_image_path = path
+        self.ui.skill_img.setPixmap(QPixmap(path))
 
     def choose_character_icon(self):
         """
@@ -572,11 +572,11 @@ class GuiFunctions():
             item.new_reference(image_path)
         return item
 
-    def _build_skill(self, name, description, image_path):
+    def _build_skill(self, name, type, description, image_path):
         """
         Équivalent de _build_item() pour les sorts (Skill).
         """
-        skill = Skill(Name=name, Description=description)
+        skill = Skill(Name=name, Type=type, Description=description)
         if image_path:
             skill.new_reference(image_path)
         return skill
@@ -797,9 +797,9 @@ class GuiFunctions():
         self.settings.setValue("MENU INFO",6)
         self._open_center_menu()
 
-    def switch_to_spell_menu(self):
+    def switch_to_skill_menu(self):
         """
-        Ouvre le menu spell
+        Ouvre le menu skill
         """
         self.ui.stacked_widget.setCurrentIndex(7)
         self.settings.setValue("MENU INFO",7)
@@ -856,7 +856,7 @@ class GuiFunctions():
         self.ui.actionInfo_menu.blockSignals(False)
             
     # ----------------------------------------------------------------
-    # Stat/Inv/Spell
+    # Stat/Inv/skill
     # ----------------------------------------------------------------
 
     def setNPC(self):
@@ -938,23 +938,23 @@ class GuiFunctions():
         # Affiche le panneau Item pour la saisie
         self.switch_to_item_menu()
 
-    def create_new_spell(self):
+    def create_new_skill(self):
         """
-        Slot connecté au signal clicked du bouton \"Create new spell\".
-        Vide le panneau Spell pour permettre la saisie d'un
-        nouveau sort, et bascule sur le menu Spell.
+        Slot connecté au signal clicked du bouton \"Create new skill\".
+        Vide le panneau skill pour permettre la saisie d'un
+        nouveau sort, et bascule sur le menu skill.
         """
         # Mode création : aucun sort existant n'est en cours d'édition
-        self._editing_spell_index = None
+        self._editing_skill_index = None
 
         # Réinitialise les champs du sort
-        self.ui.spell_name.setText("")
-        self.ui.spell_description.clear()
-        self._spell_image_path = None
-        self.ui.spell_img.setPixmap(QPixmap(PLACEHOLDER_IMAGE))
+        self.ui.skill_name.setText("")
+        self.ui.skill_description.clear()
+        self._skill_image_path = None
+        self.ui.skill_img.setPixmap(QPixmap(PLACEHOLDER_IMAGE))
 
-        # Affiche le panneau Spell pour la saisie
-        self.switch_to_spell_menu()
+        # Affiche le panneau skill pour la saisie
+        self.switch_to_skill_menu()
 
     #---------Ajout d'objet----------#
 
@@ -982,9 +982,9 @@ class GuiFunctions():
 
     def add_skill_to_character(self):
         """
-        Slot connecté au signal clicked du bouton "Add Spell" (panneau Spell
+        Slot connecté au signal clicked du bouton "Add skill" (panneau skill
         de la fiche de personnage). Ouvre un sélecteur de fichier pour
-        choisir un sort (.xml, normalement sous ./local/Spells/) et l'ajoute
+        choisir un sort (.xml, normalement sous ./local/skills/) et l'ajoute
         à la liste de sorts du personnage en cours de création/édition.
         """
         try:
@@ -1020,7 +1020,7 @@ class GuiFunctions():
 
     def remove_selected_skill_from_character(self):
         """
-        Slot connecté au signal clicked du bouton "Remove spell".
+        Slot connecté au signal clicked du bouton "Remove skill".
         Retire de la liste de sorts en cours d'édition le sort actuellement
         sélectionné (aucune action si rien n'est sélectionné).
         """
@@ -1059,29 +1059,29 @@ class GuiFunctions():
         # Bascule vers le menu Item
         self.switch_to_item_menu()
 
-    def edit_selected_spell(self):
+    def edit_selected_skill(self):
         """
-        Slot connecté au signal clicked du bouton "Edit spell".
-        Pré-remplit le formulaire Spell avec les données du sort sélectionné
-        dans la liste et bascule vers le menu Spell.
-        L'index du sort est mémorisé dans _editing_spell_index pour que
-        save_spell() mette à jour l'entrée existante au lieu d'en créer une.
+        Slot connecté au signal clicked du bouton "Edit skill".
+        Pré-remplit le formulaire skill avec les données du sort sélectionné
+        dans la liste et bascule vers le menu skill.
+        L'index du sort est mémorisé dans _editing_skill_index pour que
+        save_skill() mette à jour l'entrée existante au lieu d'en créer une.
         """
         if self._selected_skill_row is None:
             self._append_log("[ERREUR] Aucun sort sélectionné dans la liste.")
             return
 
         skill = self._character_skills[self._selected_skill_row]
-        self._editing_spell_index = self._selected_skill_row
+        self._editing_skill_index = self._selected_skill_row
 
         # Pré-remplit le formulaire avec les données du sort
-        self.ui.spell_name.setText(skill.name())
-        self.ui.spell_description.setText(skill.description())
-        self._spell_image_path = self._image_path_of(skill)
-        self.ui.spell_img.setPixmap(QPixmap(self._spell_image_path or PLACEHOLDER_IMAGE))
+        self.ui.skill_name.setText(skill.name())
+        self.ui.skill_description.setText(skill.description())
+        self._skill_image_path = self._image_path_of(skill)
+        self.ui.skill_img.setPixmap(QPixmap(self._skill_image_path or PLACEHOLDER_IMAGE))
 
-        # Bascule vers le menu Spell
-        self.switch_to_spell_menu()
+        # Bascule vers le menu skill
+        self.switch_to_skill_menu()
 
     #---------Sélection d'objet----------#
 
@@ -1101,7 +1101,7 @@ class GuiFunctions():
         clique sur un sort).
         """
         self._selected_skill_row = row
-        self.ui.spell_desc_display.setPlainText(self._character_skills[row].description())
+        self.ui.skill_desc_display.setPlainText(self._character_skills[row].description())
 
     #---------Rafraichisement des objets----------#
 
@@ -1158,9 +1158,9 @@ class GuiFunctions():
         Reconstruit entièrement l'affichage de la liste de sorts dans la
         QScrollArea dédiée : une liste verticale (du haut vers le bas, une
         seule colonne) de sorts sélectionnables.
-        Le bouton "Remove spell" retire le sort sélectionné.
+        Le bouton "Remove skill" retire le sort sélectionné.
         """
-        layout = self._spell_list_layout
+        layout = self._skill_list_layout
 
         # Vide le layout (en conservant le stretch final)
         while layout.count() > 1:
@@ -1170,7 +1170,7 @@ class GuiFunctions():
                 widget.deleteLater()
 
         # Vide la description tant qu'aucune sélection n'est restaurée
-        self.ui.spell_desc_display.clear()
+        self.ui.skill_desc_display.clear()
 
         # Reconstruit une ligne par sort, du haut vers le bas
         for row, skill in enumerate(self._character_skills):
@@ -1698,7 +1698,7 @@ class GuiFunctions():
             toXML_saveto(item, save_dir)
             self._append_log(f"[INFO] Objet '{item_name}' sauvegardé dans {save_dir}")
 
-    def save_spell(self):
+    def save_skill(self):
         """
         Sauvegarde les informations du sort.
         - Mode édition (depuis la liste de sorts du personnage) : met à jour
@@ -1708,24 +1708,25 @@ class GuiFunctions():
           d'habitude.
         """
         # Récupère les informations du sort
-        spell_name = self.ui.spell_name.text().strip()
-        spell_description = self.ui.spell_description.toPlainText().strip()
-        spell = self._build_skill(spell_name, spell_description, self._spell_image_path)
+        skill_name = self.ui.skill_name.text().strip()
+        skill_description = self.ui.skill_description.toPlainText().strip()
+        skill_type = self.ui.skill_category.currentText()
+        skill = self._build_skill(skill_name, skill_type, skill_description, self._skill_image_path)
 
-        if self._editing_spell_index is not None:
+        if self._editing_skill_index is not None:
             # Mode édition : mise à jour en mémoire uniquement
-            self._character_skills[self._editing_spell_index] = spell
-            self._selected_skill_row = self._editing_spell_index
-            self._editing_spell_index = None
+            self._character_skills[self._editing_skill_index] = skill
+            self._selected_skill_row = self._editing_skill_index
+            self._editing_skill_index = None
             self._refresh_skill_grid()
             self.switch_to_character_menu()
-            self._append_log(f"[INFO] Sort '{spell_name}' mis à jour dans la liste de sorts du personnage.")
+            self._append_log(f"[INFO] Sort '{skill_name}' mis à jour dans la liste de sorts du personnage.")
         else:
             # Mode création : sauvegarde dans le fichier XML
-            save_dir = "./local/Spells/"
+            save_dir = "./local/skills/"
             os.makedirs(save_dir, exist_ok=True)
-            toXML_saveto(spell, save_dir)
-            self._append_log(f"[INFO] Sort '{spell_name}' sauvegardé dans {save_dir}")
+            toXML_saveto(skill, save_dir)
+            self._append_log(f"[INFO] Sort '{skill_name}' sauvegardé dans {save_dir}")
 
     def save_map(self):
         name, ok = QInputDialog.getText(
@@ -1758,8 +1759,8 @@ class GuiFunctions():
                 self.save_character_stat()
             case 6: # Item
                 self.save_item()
-            case 7: # Spell
-                self.save_spell()
+            case 7: # skill
+                self.save_skill()
             case _: # Default case
                 self._append_log("Ne peut pas sauvegarder ces informations")
 
@@ -1872,27 +1873,27 @@ class GuiFunctions():
             self.ui.item_img.setPixmap(QPixmap(self._item_image_path or PLACEHOLDER_IMAGE))
             self.switch_to_item_menu()
 
-    def load_spell(self):
+    def load_skill(self):
         """
         Charge un sort et affiche le nom
         et la description du sort
-        dans le menu Spell
+        dans le menu skill
         """
-        spell = self.load_xml()
-        if not(isinstance(spell,Skill)):
-            raise Exception("Invalid_object_type (Expecting spell)")
+        skill = self.load_xml()
+        if not(isinstance(skill,Skill)):
+            raise Exception("Invalid_object_type (Expecting skill)")
         else:
             # Récupère les informations du sort
-            spell_name = spell.name()
-            spell_description = spell.description()
+            skill_name = skill.name()
+            skill_description = skill.description()
 
             # Assigne les attributs aux bons widgets
-            self.ui.spell_name.setText(spell_name)
-            self.ui.spell_description.setText(spell_description)
-            self._spell_image_path = self._image_path_of(spell)
-            self.ui.spell_img.setPixmap(QPixmap(self._spell_image_path or PLACEHOLDER_IMAGE))
+            self.ui.skill_name.setText(skill_name)
+            self.ui.skill_description.setText(skill_description)
+            self._skill_image_path = self._image_path_of(skill)
+            self.ui.skill_img.setPixmap(QPixmap(self._skill_image_path or PLACEHOLDER_IMAGE))
 
-            self.switch_to_spell_menu()
+            self.switch_to_skill_menu()
 
     def load_blueprint(self, filename):
         tree = ET.parse(filename)

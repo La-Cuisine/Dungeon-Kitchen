@@ -459,9 +459,29 @@ def fromXMLTree(root):
     
     return new
 
-def fromXML(path):
+def fromXML(path,Type=""):
     tree = ET.parse(path) #TODO Secure this if possible; Parse exposed to attacks
     root = tree.getroot()
+    if(Type == "Blueprint" and root.tag != "Blueprint"):
+        raise Exception("NotBlueprintFile")
+    elif(Type == "Prop" and root.tag != "Prop"):
+        raise Exception("NotPropFile")
+    elif(Type == "Cell" and root.tag != "Cell"):
+        raise Exception("NotCellFile")
+    elif(Type == "Item" and root.tag != "Item"):
+        raise Exception("NotItemFile")
+    elif(Type == "Skill" and root.tag != "Skill"):
+        raise Exception("NotSkillFile")
+    elif(Type == "NPC" and root.tag != "NPC"):
+        raise Exception("NotNPCFile")
+    elif(Type == "PC" and root.tag != "PC"):
+        raise Exception("NotPCFile")
+    elif(Type == "Player" and root.tag != "Player"):
+        raise Exception("NotPlayerFile")
+    elif(Type == "Game" and root.tag != "Game"):
+        raise Exception("NotGameFile")
+    elif(Type != ""):
+        raise Exception("UnhandledClassFile")
     return fromXMLTree(root)
 
 def toXML_saveto(o,path):
