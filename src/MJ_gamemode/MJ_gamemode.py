@@ -7,7 +7,7 @@ from enum import Enum
 import json
 import requests
 import time
-from PySide6.QtCore import QThread, Signal # Remplacement du QTimer
+from PySide6.QtCore import QThread, Signal, QMimeData # Remplacement du QTimer
 
 # La grille est injectée depuis gui_fonctions via MainWindow.set_map()
 
@@ -32,6 +32,7 @@ from PySide6.QtWidgets import (
     QGraphicsPathItem,
     QGraphicsOpacityEffect,
     QLineEdit,
+    QGraphicsEllipseItem,
     
     
 )
@@ -58,6 +59,7 @@ from PySide6.QtGui import (
     QPixmap,
     QIntValidator,
     QWheelEvent,
+    QDrag,
     
 )
 
@@ -83,7 +85,8 @@ class View_GameMode(QGraphicsView):
 
     def __init__(self, scene):
         super().__init__(scene)
-
+        
+        self.setAcceptDrops(True)
         self._grid = None
         self._shift_press = False
 
@@ -239,7 +242,48 @@ class View_GameMode(QGraphicsView):
             
         return super().mouseReleaseEvent(event)
 
+    def dragEnterEvent(self, event):
+        """Accepte l'élément qui entre sur la vue s'il contient du texte (notre code couleur Hex)."""
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
 
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        """Action au moment de relâcher le clic sur la grille."""
+        if event.mimeData().hasText():
+            color_hex = event.mimeData().text()
+            
+            # Position de la souris convertie pour s'adapter au zoom de la carte
+            scene_pos = self.mapToScene(event.position().toPoint())
+            
+            # On récupère la taille et le parent via la grille si elle existe
+            size = 40
+            parent_item = None
+            if getattr(self, '_grid', None) is not None:
+                size = getattr(self._grid, 's_cell', 50) * 0.8
+                parent_item = self._grid
+
+            # Centrage visuel du pion par rapport à la pointe de la souris
+            x = scene_pos.x() - size / 2
+            y = scene_pos.y() - size / 2
+
+            # Création du Token "physique"
+            new_token = Token(x, y, size, color_hex, parent=parent_item)
+            
+            # Si pas de grille en parent, on l'ajoute directement à la scène
+            if parent_item is None:
+                self.scene().addItem(new_token)
+                
+            event.acceptProposedAction()
+        else:
+            super().dropEvent(event)
 
 class MainWindow(QMainWindow):
 
@@ -256,36 +300,56 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(700, 520)
         self.setWindowTitle("GameMode")
 
-        #cree une scene graphique de taille 700x520 
+        # Crée une scène graphique de taille 700x520 
         self.univers = QGraphicsScene()
-        self.univers.setSceneRect(0,0,700, 520)
-        # cree un espace de "visualisation"/"rendu" de la scene
+        self.univers.setSceneRect(0, 0, 700, 520)
+        
+        # Crée un espace de "visualisation"/"rendu" de la scène
         self.view = View_GameMode(self.univers)
         
+        # --- CONFIGURATION DU LAYOUT PRINCIPAL ---
         contain = QWidget()
         self.root_layout = QVBoxLayout(contain)
-        #root_layout.setSpacing(12)
         self.root_layout.setContentsMargins(7, 7, 7, 7)        
-        self.root_layout.addWidget(self.view)
-        self.setCentralWidget(contain)
         
-        self.LimitBoundingLeft = LimitBounding(EnumBound.LEFT,self.univers)  
+        # On ajoute d'abord la vue (la carte) au layout !
+        self.root_layout.addWidget(self.view)
+        
+        # palette de pions
+        token_layout = QHBoxLayout()
+        token_layout.addWidget(QLabel("<b>Pions :</b>"))
+        
+        # Liste de couleurs pour nos pions
+        colors = ["#c91400", "#2ecc71", "#3498db", "#f1c40f", "#9b59b6", "#e67e22", "#000000", "#170079", "#FFFFFF", "#AD3B70"]
+        for color in colors:
+            token_widget = DraggableTokenWidget(color)
+            token_layout.addWidget(token_widget)
+            
+        token_layout.addStretch() # Repousse la palette vers la gauche
+        
+        
+        
+        # On ajoute le layout de la palette en dessous de la carte
+        self.root_layout.addLayout(token_layout)
+        
+        self.setCentralWidget(contain)
+        # -----------------------------------------
+        
+        self.LimitBoundingLeft = LimitBounding(EnumBound.LEFT, self.univers)  
         _LimitBoundingLeft = self.LimitBoundingLeft
         self.univers.addItem(self.LimitBoundingLeft)
 
-        self.LimitBoundingRight = LimitBounding(EnumBound.RIGHT,self.univers)  
+        self.LimitBoundingRight = LimitBounding(EnumBound.RIGHT, self.univers)  
         _LimitBoundingRight = self.LimitBoundingRight
         self.univers.addItem(self.LimitBoundingRight)
 
         # ── Carte de la session (injectée depuis gui_fonctions) ──────────
-        # set_map() peut aussi être appelé après construction.
         if world is not None:
             self.set_map(scene, world, wall)
             
         self.api_url = "http://localhost:8080/api_dice.php" # <-- Pensez à mettre votre URL
         
         self.dice_poller = DicePollerThread(self.api_url)
-        # Quand le thread trouve un nouveau jet, il déclenche self.display_network_dice
         self.dice_poller.new_roll.connect(self.display_network_dice)
         self.dice_poller.start()
     
@@ -1104,19 +1168,6 @@ class Launch_Dices_Buttons(QPushButton):
             details_str = self.Result
             total_val = 0
 
-        # --- Envoi asynchrone via le Thread ---
-        # Au lieu de faire requests.post ici (ce qui fait crasher l'UI),
-        # on confie les données à notre processus en arrière-plan.
-        payload = {
-            "player": "Maître du Jeu",
-            "details": details_str,
-            "total": total_val
-        }
-        
-        self.sender_thread = DiceSenderThread("http://localhost:8080/api_dice.php", payload)
-        self.sender_thread.start()
-        # ------------------------------------------------
-
         self.parent().getAdvantageDice().setconst(self.Const)
         self.parent().getAdvantageDice().setData(self.Dices)  
         self.parent().getAdvantageDice().connectLauch() 
@@ -1657,8 +1708,9 @@ class DicePollerThread(QThread):
                     if roll_time > self.last_roll_time:
                         self.new_roll.emit(data) # Envoie les données à l'interface
                         self.last_roll_time = roll_time
-            except Exception:
-                pass # Si le serveur ne répond pas, on ignore pour ne pas crasher
+            except Exception as e:
+                print(f"Erreur lors de la récupération des dés : {e}")
+                pass
             
             time.sleep(1.5) # Attend 1.5s avant la prochaine requête
 
@@ -1679,6 +1731,64 @@ class DiceSenderThread(QThread):
             requests.post(self.url, json=self.payload, timeout=2)
         except Exception:
             pass
+
+class Token(QGraphicsEllipseItem):
+    def __init__(self, x, y, size, color_hex, parent=None):
+        super().__init__(0, 0, size, size, parent)
+        self.setPos(x, y)
+        self.setBrush(QBrush(QColor(color_hex)))
+        self.setPen(QPen(QColor("#ffffff"), 2)) # Bordure blanche
+        
+        # Rend le pion déplaçable et sélectionnable
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+        self.setZValue(100) # Assure que le pion est toujours au-dessus de la grille
+
+    def contextMenuEvent(self, event):
+        # Un clic droit sur le pion le supprime de la scène
+        if self.scene():
+            self.scene().removeItem(self)
+        event.accept()
+        
+class DraggableTokenWidget(QLabel):
+    """Un widget représentant un pion de couleur fixe dans la barre d'outils, prêt à être glissé."""
+    def __init__(self, color_hex):
+        super().__init__()
+        self.color_hex = color_hex
+        self.setFixedSize(30, 30)
+        self.setStyleSheet(f"background-color: {color_hex}; border-radius: 15px; border: 2px solid #555;")
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.drag_start_position = event.pos()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+
+    def mouseReleaseEvent(self, event):
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+        super().mouseReleaseEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if not (event.buttons() & Qt.MouseButton.LeftButton):
+            return
+        
+        # S'assure qu'on a bougé la souris d'une distance minimale avant de déclencher le drag
+        if (event.pos() - self.drag_start_position).manhattanLength() < QApplication.startDragDistance():
+            return
+
+        # Création de l'événement de Drag & Drop
+        drag = QDrag(self)
+        mime_data = QMimeData()
+        mime_data.setText(self.color_hex) # On transmet la couleur au format texte
+        drag.setMimeData(mime_data)
+        
+        # Capture l'apparence du widget pour qu'elle suive le curseur de la souris
+        pixmap = self.grab()
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(event.pos())
+
+        drag.exec(Qt.DropAction.CopyAction)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
 
 if __name__ == "__main__":
     

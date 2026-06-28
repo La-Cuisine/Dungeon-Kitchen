@@ -98,7 +98,7 @@
     return img;
   }
 
-  function draw() {
+function draw() {
     const n = mapData.n || 0;
     const s = mapData.s_cell || 64;
 
@@ -153,6 +153,26 @@
         ctx.lineTo(n * s, i * s);
       }
       ctx.stroke();
+
+      // Dessin des pions
+      if (mapData.tokens) {
+        for (const t of mapData.tokens) {
+          ctx.beginPath();
+          // Calcul du centre du cercle (x,y sont le coin supérieur gauche)
+          const cx = t.x + t.size / 2;
+          const cy = t.y + t.size / 2;
+          const radius = t.size / 2;
+          
+          ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+          ctx.fillStyle = t.color; // La couleur reçue du MJ
+          ctx.fill();
+          
+          // Bordure du pion qui reste toujours fine, même avec le zoom
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2 / camera.zoom; 
+          ctx.stroke();
+        }
+      }
 
       ctx.restore();
     }

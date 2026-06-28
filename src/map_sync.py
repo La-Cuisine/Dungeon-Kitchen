@@ -123,8 +123,25 @@ def _read_cells(grid) -> list[tuple[int, int, str | None, str | None]]:
         cells.append((coord[0], coord[1], path, prop_path))
     return cells
 
+def _read_tokens(grid) -> list[dict]:
+    tokens = []
+    # On parcourt les enfants attachés à la grille
+    for item in grid.childItems():
+        # Si l'objet est un de nos pions (Token)
+        if type(item).__name__ == "Token":
+            pos = item.pos()
+            color = item.brush().color().name()
+            size = item.rect().width()
+            tokens.append({
+                "x": round(pos.x(), 2),
+                "y": round(pos.y(), 2),
+                "color": color,
+                "size": round(size, 2)
+            })
+    return tokens
 
-def _fingerprint(grid, cells) -> tuple:
+
+def _fingerprint(grid, cells, tokens) -> tuple:
     pos = grid.pos()
     return (
         grid.n,
@@ -133,6 +150,7 @@ def _fingerprint(grid, cells) -> tuple:
         round(pos.y(), 3),
         round(grid.scale(), 5),
         tuple(sorted(cells)),
+        tuple(sorted((t["x"], t["y"], t["color"]) for t in tokens)) # On surveille les pions
     )
 
 
@@ -144,17 +162,16 @@ def _export_if_changed(grid) -> None:
 
     try:
         cells = _read_cells(grid)
-        fingerprint = _fingerprint(grid, cells)
+        tokens = _read_tokens(grid) # Lecture
+        fingerprint = _fingerprint(grid, cells, tokens) # Hash
     except Exception:
-        # Lecture defensive : si la structure interne de Grid changeait,
-        # on n'ecrit simplement rien plutot que de faire planter le thread.
         return
 
     if fingerprint == _last_fingerprint:
         return
     _last_fingerprint = fingerprint
 
-    _write_export(grid, cells)
+    _write_export(grid, cells, tokens) # Export
 
 
 # ---------------------------------------------------------------------------
@@ -213,7 +230,7 @@ def _atomic_write_json(data: dict) -> None:
         pass
 
 
-def _write_export(grid, cells) -> None:
+def _write_export(grid, cells, tokens) -> None:
     global _version
 
     out_cells = []
@@ -244,5 +261,6 @@ def _write_export(grid, cells) -> None:
         "pos": {"x": pos.x(), "y": pos.y()},
         "scale": grid.scale(),
         "cells": out_cells,
+        "tokens": tokens,
     }
     _atomic_write_json(data)
