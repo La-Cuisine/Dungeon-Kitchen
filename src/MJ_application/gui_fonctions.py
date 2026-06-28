@@ -1623,6 +1623,8 @@ class GuiFunctions():
             # 4. Inject the independent, duplicated map into the gamemode
             self._game_window.set_map(new_scene, new_world, new_wall)
 
+        self._game_window.setWindowTitle("Dungeon Kitchen")
+        self._game_window.setWindowIcon(QIcon("icon.png"))
         self._game_window.show()
         self._game_window.raise_()
         self._game_window.activateWindow()

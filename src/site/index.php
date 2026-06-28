@@ -148,6 +148,7 @@ if (isset($_SESSION['pc_file'])) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="assets/icon/icon.png">
 </head>
 
 <body>
@@ -313,12 +314,35 @@ if (isset($_SESSION['pc_file'])) {
             <ul style="list-style: none; padding: 0; margin: 0;">
               <?php if ($pc_data->inventory->count() > 0): ?>
                 <?php foreach ($pc_data->inventory->Item as $item): ?>
-                  <li style="margin-bottom: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-left: 3px solid #666;">
-                    <strong style="display: block; font-size: 16px;"><?= htmlspecialchars((string)$item['name']) ?></strong>
-                    <em style="font-size: 12px; color: #aaa;"><?= htmlspecialchars((string)$item['type']) ?></em>
-                    <p style="margin: 5px 0 0 0; font-size: 14px; font-family: 'IBM Plex Mono', monospace; line-height: 1.3;">
-                      <?= htmlspecialchars((string)$item['description']) ?>
-                    </p>
+                  <?php
+                  // Fetch and encode Item Image
+                  $itemImgPath = (string)$item['image'];
+                  $itemImgSrc = '';
+                  if (!empty($itemImgPath)) {
+                    $realPath = __DIR__ . '/../../' . $itemImgPath;
+                    if (!file_exists($realPath) && file_exists($itemImgPath)) {
+                      $realPath = $itemImgPath;
+                    }
+                    if (file_exists($realPath)) {
+                      $mime = mime_content_type($realPath) ?: 'image/png';
+                      $itemImgSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($realPath));
+                    }
+                  }
+                  ?>
+                  <li style="margin-bottom: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-left: 3px solid #666; display: flex; gap: 10px; align-items: start;">
+                    <?php if (!empty($itemImgSrc)): ?>
+                      <img src="<?= htmlspecialchars($itemImgSrc) ?>" alt="Icon" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid var(--bg-panel-edge, #4a4540); flex-shrink: 0; background: var(--bg-deep, #14120f);">
+                    <?php else: ?>
+                      <div style="width: 36px; height: 36px; border-radius: 4px; border: 1px dashed var(--bg-panel-edge, #4a4540); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; background: rgba(0,0,0,0.1);">?</div>
+                    <?php endif; ?>
+
+                    <div>
+                      <strong style="display: block; font-size: 16px; line-height: 1.1;"><?= htmlspecialchars((string)$item['name']) ?></strong>
+                      <em style="font-size: 12px; color: #aaa;"><?= htmlspecialchars((string)$item['type']) ?></em>
+                      <p style="margin: 5px 0 0 0; font-size: 14px; font-family: 'IBM Plex Mono', monospace; line-height: 1.3;">
+                        <?= htmlspecialchars((string)$item['description']) ?>
+                      </p>
+                    </div>
                   </li>
                 <?php endforeach; ?>
               <?php else: ?>
@@ -329,18 +353,40 @@ if (isset($_SESSION['pc_file'])) {
 
           <hr style="border-color: #4a4540; margin: 15px 0 10px 0;">
 
-          <!-- Compétences (Skills) -->
           <div class="char-section">
             <h3 style="color: #e8954a; font-family: 'Oswald', sans-serif; margin-bottom: 5px;">Compétences</h3>
             <ul style="list-style: none; padding: 0; margin: 0;">
               <?php if ($pc_data->skills->count() > 0): ?>
                 <?php foreach ($pc_data->skills->Skill as $skill): ?>
-                  <li style="margin-bottom: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-left: 3px solid #4a90e2;">
-                    <strong style="display: block; font-size: 16px;"><?= htmlspecialchars((string)$skill['name']) ?></strong>
-                    <em style="font-size: 12px; color: #aaa;"><?= htmlspecialchars((string)$skill['type']) ?></em>
-                    <p style="margin: 5px 0 0 0; font-size: 14px; font-family: 'IBM Plex Mono', monospace; line-height: 1.3;">
-                      <?= htmlspecialchars((string)$skill['description']) ?>
-                    </p>
+                  <?php
+                  // Fetch and encode Skill Image
+                  $skillImgPath = (string)$skill['image'];
+                  $skillImgSrc = '';
+                  if (!empty($skillImgPath)) {
+                    $realPath = __DIR__ . '/../../' . $skillImgPath;
+                    if (!file_exists($realPath) && file_exists($skillImgPath)) {
+                      $realPath = $skillImgPath;
+                    }
+                    if (file_exists($realPath)) {
+                      $mime = mime_content_type($realPath) ?: 'image/png';
+                      $skillImgSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($realPath));
+                    }
+                  }
+                  ?>
+                  <li style="margin-bottom: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-left: 3px solid #4a90e2; display: flex; gap: 10px; align-items: start;">
+                    <?php if (!empty($skillImgSrc)): ?>
+                      <img src="<?= htmlspecialchars($skillImgSrc) ?>" alt="Icon" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid #4a90e2; flex-shrink: 0; background: var(--bg-deep, #14120f);">
+                    <?php else: ?>
+                      <div style="width: 36px; height: 36px; border-radius: 4px; border: 1px dashed #4a90e2; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #4a90e2; background: rgba(0,0,0,0.1);">?</div>
+                    <?php endif; ?>
+
+                    <div>
+                      <strong style="display: block; font-size: 16px; line-height: 1.1;"><?= htmlspecialchars((string)$skill['name']) ?></strong>
+                      <em style="font-size: 12px; color: #aaa;"><?= htmlspecialchars((string)$skill['type']) ?></em>
+                      <p style="margin: 5px 0 0 0; font-size: 14px; font-family: 'IBM Plex Mono', monospace; line-height: 1.3;">
+                        <?= htmlspecialchars((string)$skill['description']) ?>
+                      </p>
+                    </div>
                   </li>
                 <?php endforeach; ?>
               <?php else: ?>

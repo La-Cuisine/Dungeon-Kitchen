@@ -43,6 +43,7 @@ D_PHP      := src/MJ_application/php-portable
 D_ASSETS   := Assets
 D_PROJECTS := projects
 D_LOCAL    := Local
+ICON       := icon.png
 
 # ── Options PyInstaller communes ────────────────────────────────────────────
 PYINST_OPTS := \
@@ -58,6 +59,7 @@ PYINST_OPTS := \
 	--add-data "$(D_PHP)$(SEP)src/MJ_application/php-portable" \
 	--add-data "$(D_ASSETS)$(SEP)Assets" \
 	--add-data "$(D_PROJECTS)$(SEP)projects" \
+	--add-data "$(ICON)$(SEP)." \
 	--hidden-import Custom_Widgets \
 	--hidden-import PySide6.QtSvg \
 	--hidden-import PySide6.QtXml

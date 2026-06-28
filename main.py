@@ -61,6 +61,9 @@ if __name__ == "__main__":
     ## 
     #####################################################################
     window = MainWindow()
+    window.setWindowTitle("Dungeon Kitchen")
+    window.setWindowIcon(QIcon("icon.png"))
+
     window.show()
     sys.exit(app.exec_())
 #########################################################################
