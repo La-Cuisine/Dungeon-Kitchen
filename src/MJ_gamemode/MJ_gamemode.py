@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
     QGraphicsProxyWidget,
     QScrollArea,
     QScrollBar,
+    QFileDialog,
     QGraphicsPathItem,
     QGraphicsOpacityEffect,
     QLineEdit,
@@ -258,7 +259,7 @@ class View_GameMode(QGraphicsView):
     def dropEvent(self, event):
         """Action au moment de relâcher le clic sur la grille."""
         if event.mimeData().hasText():
-            color_hex = event.mimeData().text()
+            payload = event.mimeData().text()
             
             # Position de la souris convertie pour s'adapter au zoom de la carte
             scene_pos = self.mapToScene(event.position().toPoint())
@@ -274,8 +275,13 @@ class View_GameMode(QGraphicsView):
             x = scene_pos.x() - size / 2
             y = scene_pos.y() - size / 2
 
-            # Création du Token "physique"
-            new_token = Token(x, y, size, color_hex, parent=parent_item)
+            # Pion "image de personnage" (préfixe IMG::) ou pion de couleur unie
+            if payload.startswith("IMG::"):
+                image_path = payload[len("IMG::"):]
+                new_token = Token(x, y, size, parent=parent_item, image_path=image_path)
+            else:
+                # Création du Token "physique"
+                new_token = Token(x, y, size, payload, parent=parent_item)
             
             # Si pas de grille en parent, on l'ajoute directement à la scène
             if parent_item is None:
@@ -316,21 +322,49 @@ class MainWindow(QMainWindow):
         self.root_layout.addWidget(self.view)
         
         # palette de pions
-        token_layout = QHBoxLayout()
-        token_layout.addWidget(QLabel("<b>Pions :</b>"))
+        token_container = QWidget()
+        self.token_layout = QHBoxLayout(token_container)
+        self.token_layout.setContentsMargins(4, 4, 4, 4)
+        self.token_layout.setSpacing(12) # <-- gap fixe entre chaque pion
+        self.token_layout.addWidget(QLabel("<b>Pions :</b>"))
         
         # Liste de couleurs pour nos pions
         colors = ["#c91400", "#2ecc71", "#3498db", "#f1c40f", "#9b59b6", "#e67e22", "#000000", "#170079", "#FFFFFF", "#AD3B70"]
         for color in colors:
-            token_widget = DraggableTokenWidget(color)
-            token_layout.addWidget(token_widget)
-            
-        token_layout.addStretch() # Repousse la palette vers la gauche
+            token_widget = DraggableTokenWidget(color_hex=color)
+            self.token_layout.addWidget(token_widget)
+
+        # Bouton "+" (à droite de la palette) pour ajouter un pion personnalisé à partir d'une image
+        self.add_character_btn = QPushButton("+")
+        self.add_character_btn.setFixedSize(30, 30)
+        self.add_character_btn.setToolTip("Ajouter un personnage (image) à la palette")
+        self.add_character_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.add_character_btn.setStyleSheet(
+            "QPushButton {"
+            "background-color: #2b2b2b;"
+            "color: #e1dfdf;"
+            "border-radius: 15px;"
+            "border: 2px solid #555;"
+            "font-weight: bold;"
+            "}"
+            "QPushButton:hover { background-color: #3a3a3a; }"
+        )
+        self.add_character_btn.clicked.connect(self._add_character_token)
+        self.token_layout.addWidget(self.add_character_btn)
+
+        self.token_layout.addStretch() # Repousse la palette vers la gauche
+
+        # Zone de défilement horizontale : si la palette est plus large que
+        # l'espace disponible, une scrollbar apparait au lieu de compresser les pions
+        token_scroll = QScrollArea()
+        token_scroll.setWidget(token_container)
+        token_scroll.setWidgetResizable(False) # garde la taille naturelle du contenu -> permet le scroll au lieu d'écraser les pions
+        token_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        token_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        token_scroll.setFixedHeight(50) # juste assez haut pour les pions (30px) + marges
         
-        
-        
-        # On ajoute le layout de la palette en dessous de la carte
-        self.root_layout.addLayout(token_layout)
+        # On ajoute la zone de défilement de la palette en dessous de la carte
+        self.root_layout.addWidget(token_scroll)
         
         self.setCentralWidget(contain)
         # -----------------------------------------
@@ -358,6 +392,23 @@ class MainWindow(QMainWindow):
         if data.get("player") != "Maître du Jeu":
             display_text = f"Joueur: {data['player']}\n{data['details']}\n= {data['total']}"
             self.view.getDiceResult().setProperties(display_text)
+
+    def _add_character_token(self):
+        """Ouvre un sélecteur de fichier pour choisir l'image d'un personnage,
+        puis ajoute un nouveau pion (affichant cette image) dans la palette,
+        juste avant le bouton '+'."""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Choisir l'image du personnage",
+            "",
+            "Images (*.png *.jpg *.jpeg *.bmp *.gif)"
+        )
+        if not file_path:
+            return  # L'utilisateur a annulé la sélection
+
+        new_token_widget = DraggableTokenWidget(image_path=file_path)
+        insert_index = self.token_layout.indexOf(self.add_character_btn)
+        self.token_layout.insertWidget(insert_index, new_token_widget)
             
     # Arrêt propre du thread à la fermeture de la fenêtre
     def closeEvent(self, event):
@@ -1733,10 +1784,30 @@ class DiceSenderThread(QThread):
             pass
 
 class Token(QGraphicsEllipseItem):
-    def __init__(self, x, y, size, color_hex, parent=None):
+    def __init__(self, x, y, size, color_hex=None, parent=None, image_path=None):
         super().__init__(0, 0, size, size, parent)
         self.setPos(x, y)
-        self.setBrush(QBrush(QColor(color_hex)))
+
+        # Memorise la couleur / le chemin d'image d'origine : map_sync.py lit
+        # ces attributs en lecture seule pour synchroniser le pion vers le site web.
+        self.color_hex = color_hex
+        self.image_path = image_path
+
+        if image_path:
+            pixmap = QPixmap(image_path)
+            if not pixmap.isNull():
+                # Recadre l'image en carré pour qu'elle remplisse joliment le pion circulaire
+                scaled = pixmap.scaled(
+                    int(size), int(size),
+                    Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                    Qt.TransformationMode.SmoothTransformation,
+                )
+                self.setBrush(QBrush(scaled))
+            else:
+                self.setBrush(QBrush(QColor("#888888"))) # Image invalide -> couleur de repli
+        else:
+            self.setBrush(QBrush(QColor(color_hex)))
+
         self.setPen(QPen(QColor("#ffffff"), 2)) # Bordure blanche
         
         # Rend le pion déplaçable et sélectionnable
@@ -1751,13 +1822,48 @@ class Token(QGraphicsEllipseItem):
         event.accept()
         
 class DraggableTokenWidget(QLabel):
-    """Un widget représentant un pion de couleur fixe dans la barre d'outils, prêt à être glissé."""
-    def __init__(self, color_hex):
+    """Un widget représentant un pion dans la barre d'outils, prêt à être glissé.
+    Soit une couleur fixe (color_hex), soit l'image d'un personnage (image_path)."""
+    def __init__(self, color_hex=None, image_path=None):
         super().__init__()
         self.color_hex = color_hex
+        self.image_path = image_path
+        self._pixmap_src = QPixmap(image_path) if image_path else None
+
         self.setFixedSize(30, 30)
-        self.setStyleSheet(f"background-color: {color_hex}; border-radius: 15px; border: 2px solid #555;")
         self.setCursor(Qt.CursorShape.OpenHandCursor)
+
+        if self._pixmap_src is not None and not self._pixmap_src.isNull():
+            self.setToolTip(image_path) # Le rendu se fait dans paintEvent (recadrage circulaire)
+        else:
+            self.setStyleSheet(f"background-color: {color_hex}; border-radius: 15px; border: 2px solid #555;")
+
+    def paintEvent(self, event):
+        # Pion "image" : on dessine nous-mêmes pour recadrer l'image en cercle
+        if self._pixmap_src is not None and not self._pixmap_src.isNull():
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+            rect = QRectF(self.rect()).adjusted(1, 1, -1, -1)
+            clip_path = QPainterPath()
+            clip_path.addEllipse(rect)
+            painter.setClipPath(clip_path)
+
+            scaled = self._pixmap_src.scaled(
+                self.size(),
+                Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            x = (scaled.width() - self.width()) // 2
+            y = (scaled.height() - self.height()) // 2
+            painter.drawPixmap(-x, -y, scaled)
+
+            painter.setClipping(False)
+            painter.setPen(QPen(QColor("#555555"), 2))
+            painter.drawEllipse(rect)
+        else:
+            # Pion "couleur" : le rendu vient du QSS (background-color + border-radius)
+            super().paintEvent(event)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -1779,7 +1885,10 @@ class DraggableTokenWidget(QLabel):
         # Création de l'événement de Drag & Drop
         drag = QDrag(self)
         mime_data = QMimeData()
-        mime_data.setText(self.color_hex) # On transmet la couleur au format texte
+        if self.image_path:
+            mime_data.setText(f"IMG::{self.image_path}") # Préfixe pour distinguer une image d'une couleur
+        else:
+            mime_data.setText(self.color_hex) # On transmet la couleur au format texte
         drag.setMimeData(mime_data)
         
         # Capture l'apparence du widget pour qu'elle suive le curseur de la souris

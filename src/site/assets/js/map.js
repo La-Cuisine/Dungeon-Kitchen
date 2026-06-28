@@ -157,19 +157,47 @@ function draw() {
       // Dessin des pions
       if (mapData.tokens) {
         for (const t of mapData.tokens) {
-          ctx.beginPath();
           // Calcul du centre du cercle (x,y sont le coin supérieur gauche)
           const cx = t.x + t.size / 2;
           const cy = t.y + t.size / 2;
           const radius = t.size / 2;
-          
-          ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
-          ctx.fillStyle = t.color; // La couleur reçue du MJ
-          ctx.fill();
-          
+
+          if (t.image) {
+            const img = ensureImageLoaded(t.image);
+            if (img.complete && img.naturalWidth > 0) {
+              // Image de personnage : recadrage "cover" centré, puis
+              // découpe au cercle pour matcher le rendu de l'app MJ.
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+              ctx.clip();
+
+              const scale = Math.max(t.size / img.naturalWidth, t.size / img.naturalHeight);
+              const dw = img.naturalWidth * scale;
+              const dh = img.naturalHeight * scale;
+              ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
+
+              ctx.restore();
+            } else {
+              // Image pas encore chargée : pion gris en attendant le onload.
+              ctx.beginPath();
+              ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+              ctx.fillStyle = "#888888";
+              ctx.fill();
+            }
+          } else {
+            // Pion de couleur unie (comportement d'origine).
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = t.color; // La couleur reçue du MJ
+            ctx.fill();
+          }
+
           // Bordure du pion qui reste toujours fine, même avec le zoom
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
           ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = 2 / camera.zoom; 
+          ctx.lineWidth = 2 / camera.zoom;
           ctx.stroke();
         }
       }

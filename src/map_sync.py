@@ -48,6 +48,7 @@ _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_BASE_DIR, "site")
 DATA_DIR = os.path.join(SITE_DIR, "data")
 ASSETS_DIR = os.path.join(SITE_DIR, "assets", "cells")
+TOKENS_ASSETS_DIR = os.path.join(SITE_DIR, "assets", "tokens")
 STATE_FILE = os.path.join(DATA_DIR, "map_state.json")
 
 DEFAULT_POLL_INTERVAL = 0.4  # secondes entre deux lectures de la grille
@@ -59,7 +60,7 @@ _poll_thread: threading.Thread | None = None
 
 _version = 0
 _last_fingerprint = None
-_image_url_cache: dict[str, str] = {}  # chemin source absolu -> url relative
+_image_url_cache: dict[tuple[str, str], str] = {}  # (sous-dossier, chemin source absolu) -> url relative
 
 
 # ---------------------------------------------------------------------------
@@ -132,11 +133,15 @@ def _read_tokens(grid) -> list[dict]:
             pos = item.pos()
             color = item.brush().color().name()
             size = item.rect().width()
+            # Présent uniquement si le pion a été créé avec une image de
+            # personnage (cf. Token.image_path dans MJ_gamemode.py)
+            image_path = getattr(item, "image_path", None)
             tokens.append({
                 "x": round(pos.x(), 2),
                 "y": round(pos.y(), 2),
                 "color": color,
-                "size": round(size, 2)
+                "size": round(size, 2),
+                "image_path": image_path,  # chemin source ; resolu en url dans _write_export
             })
     return tokens
 
@@ -150,7 +155,7 @@ def _fingerprint(grid, cells, tokens) -> tuple:
         round(pos.y(), 3),
         round(grid.scale(), 5),
         tuple(sorted(cells)),
-        tuple(sorted((t["x"], t["y"], t["color"]) for t in tokens)) # On surveille les pions
+        tuple(sorted((t["x"], t["y"], t["color"], t.get("image_path") or "") for t in tokens)) # On surveille les pions (+ leur image)
     )
 
 
@@ -181,33 +186,41 @@ def _export_if_changed(grid) -> None:
 def _ensure_dirs() -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
     os.makedirs(ASSETS_DIR, exist_ok=True)
+    os.makedirs(TOKENS_ASSETS_DIR, exist_ok=True)
 
 
-def _register_image(path: str) -> str | None:
+def _register_image(path: str, subdir: str = "cells") -> str | None:
+    """Copie l'image source vers site/assets/<subdir>/ (nom = hash du chemin
+    source, donc stable et sans collision) et renvoie l'url relative a
+    utiliser depuis map.js. subdir vaut "cells" (fonds/props de case) ou
+    "tokens" (icones de personnage sur les pions)."""
     if not path:
         return None
 
     abs_path = os.path.abspath(path)
-    cached = _image_url_cache.get(abs_path)
+    cache_key = (subdir, abs_path)
+    cached = _image_url_cache.get(cache_key)
     if cached is not None:
         return cached
 
     if not os.path.isfile(abs_path):
         return None
 
+    dest_dir = TOKENS_ASSETS_DIR if subdir == "tokens" else ASSETS_DIR
+
     try:
         _ensure_dirs()
         ext = os.path.splitext(abs_path)[1].lower()
         digest = hashlib.sha1(abs_path.encode("utf-8")).hexdigest()[:16]
         dest_name = f"{digest}{ext}"
-        dest_path = os.path.join(ASSETS_DIR, dest_name)
+        dest_path = os.path.join(dest_dir, dest_name)
         if not os.path.isfile(dest_path):
             shutil.copyfile(abs_path, dest_path)
     except OSError:
         return None
 
-    url = f"assets/cells/{dest_name}"
-    _image_url_cache[abs_path] = url
+    url = f"assets/{subdir}/{dest_name}"
+    _image_url_cache[cache_key] = url
     return url
 
 
@@ -252,6 +265,21 @@ def _write_export(grid, cells, tokens) -> None:
         if "image" in entry or "prop" in entry:
             out_cells.append(entry)
 
+    out_tokens = []
+    for t in tokens:
+        entry = {"x": t["x"], "y": t["y"], "size": t["size"], "color": t["color"]}
+
+        image_path = t.get("image_path")
+        if image_path:
+            url = _register_image(image_path, subdir="tokens")
+            if url is not None:
+                entry["image"] = url
+            # Si l'image ne peut pas etre resolue (fichier deplace/supprime),
+            # le pion s'affichera quand meme via "color" (cf. Token : couleur
+            # de repli grise quand l'image est invalide).
+
+        out_tokens.append(entry)
+
     pos = grid.pos()
     _version += 1
     data = {
@@ -261,6 +289,6 @@ def _write_export(grid, cells, tokens) -> None:
         "pos": {"x": pos.x(), "y": pos.y()},
         "scale": grid.scale(),
         "cells": out_cells,
-        "tokens": tokens,
+        "tokens": out_tokens,
     }
     _atomic_write_json(data)
