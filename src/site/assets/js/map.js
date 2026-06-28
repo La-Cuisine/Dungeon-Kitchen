@@ -352,4 +352,79 @@
   resizeCanvas();
   poll();
   setInterval(poll, POLL_INTERVAL_MS);
+
+  // --- GESTION DES DÉS ---
+  const diceNotification = document.getElementById("diceNotification");
+  const dicePlayer = document.getElementById("dicePlayer");
+  const diceDetails = document.getElementById("diceDetails");
+  const diceTotal = document.getElementById("diceTotal");
+  const rollDiceBtn = document.getElementById("rollDiceBtn");
+
+  let lastRollTime = 0;
+  let diceTimeout;
+
+  // Fonction pour afficher la notification
+  function showDiceNotification(roll) {
+    dicePlayer.textContent = roll.player + " a lancé les dés !";
+    diceDetails.textContent = roll.details;
+    diceTotal.textContent = "Résultat : " + roll.total;
+
+    diceNotification.style.display = "block";
+
+    clearTimeout(diceTimeout);
+    diceTimeout = setTimeout(() => {
+      diceNotification.style.display = "none";
+    }, 6000); // Disparaît après 6 secondes
+  }
+
+  // Polling pour vérifier les nouveaux jets (Web ou MJ)
+  async function pollDice() {
+    try {
+      const res = await fetch("api_dice.php?t=" + Date.now());
+      if (!res.ok) return;
+      const roll = await res.json();
+
+      if (roll.timestamp > lastRollTime) {
+        if (lastRollTime !== 0) { // On ignore le jet au chargement de la page
+          showDiceNotification(roll);
+        }
+        lastRollTime = roll.timestamp;
+      }
+    } catch (err) {
+      console.error("Erreur polling dés", err);
+    }
+  }
+
+  // Envoyer un jet depuis le web
+  async function sendWebRoll(details, total) {
+    // Récupération du nom du joueur depuis le DOM ou variable globale PHP
+    const playerName = document.querySelector(".status span").textContent.replace("Joueur: ", "");
+
+    await fetch("api_dice.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        player: playerName,
+        details: details,
+        total: total
+      })
+    });
+  }
+
+  // --- GESTION DES DÉS MULTIPLES ---
+  const diceSelect = document.getElementById("diceSelect");
+
+  if (rollDiceBtn && diceSelect) {
+    rollDiceBtn.addEventListener("click", () => {
+      const faces = parseInt(diceSelect.value, 10);
+      let result = Math.floor(Math.random() * faces) + 1;
+      
+      let diceLabel = faces === 100 ? "1(d00)" : `1(d${faces})`;
+      
+      sendWebRoll(diceLabel, result);
+    });
+  }
+
+  setInterval(pollDice, POLL_INTERVAL_MS); // Utilise la même constante que la map
+
 })();

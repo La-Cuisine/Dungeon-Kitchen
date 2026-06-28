@@ -4,6 +4,11 @@ import sys
 import random
 from enum import Enum
 
+import json
+import requests
+import time
+from PySide6.QtCore import QThread, Signal # Remplacement du QTimer
+
 # La grille est injectée depuis gui_fonctions via MainWindow.set_map()
 
 from PySide6.QtWidgets import (
@@ -276,14 +281,25 @@ class MainWindow(QMainWindow):
         # set_map() peut aussi être appelé après construction.
         if world is not None:
             self.set_map(scene, world, wall)
-
-
+            
+        self.api_url = "http://localhost:8080/api_dice.php" # <-- Pensez à mettre votre URL
         
-
-        
-        
-        
-        #self.user_profile_1 = self.addButItem(15,20)
+        self.dice_poller = DicePollerThread(self.api_url)
+        # Quand le thread trouve un nouveau jet, il déclenche self.display_network_dice
+        self.dice_poller.new_roll.connect(self.display_network_dice)
+        self.dice_poller.start()
+    
+    def display_network_dice(self, data):
+        # On n'affiche que les jets des joueurs (pas ceux que le MJ vient de lancer)
+        if data.get("player") != "Maître du Jeu":
+            display_text = f"Joueur: {data['player']}\n{data['details']}\n= {data['total']}"
+            self.view.getDiceResult().setProperties(display_text)
+            
+    # Arrêt propre du thread à la fermeture de la fenêtre
+    def closeEvent(self, event):
+        if hasattr(self, 'dice_poller'):
+            self.dice_poller.stop()
+        super().closeEvent(event)
 
     def set_map(self, scene, world, wall):
         """Injecte la grille existante depuis gui_fonctions.
@@ -1070,7 +1086,6 @@ class Launch_Dices_Buttons(QPushButton):
         hasard = {}
         j=0
         for i in self.Dices:
-            print(self.Dices)
             if i != 0:
                 m = self._convert(j)
                 if m not in hasard:
@@ -1078,14 +1093,36 @@ class Launch_Dices_Buttons(QPushButton):
                 for _ in range(i):
                     hasard[m].append(random.randint(1,m))
             j=j+1
-        self.Result =  self.resultToString(hasard)
+        
+        # Le formatage existant
+        self.Result = self.resultToString(hasard)
+        
+        try:
+            details_str = self.Result.split("=")[0].strip()
+            total_val = int(self.Result.split("=")[1].strip())
+        except:
+            details_str = self.Result
+            total_val = 0
+
+        # --- Envoi asynchrone via le Thread ---
+        # Au lieu de faire requests.post ici (ce qui fait crasher l'UI),
+        # on confie les données à notre processus en arrière-plan.
+        payload = {
+            "player": "Maître du Jeu",
+            "details": details_str,
+            "total": total_val
+        }
+        
+        self.sender_thread = DiceSenderThread("http://localhost:8080/api_dice.php", payload)
+        self.sender_thread.start()
+        # ------------------------------------------------
+
         self.parent().getAdvantageDice().setconst(self.Const)
         self.parent().getAdvantageDice().setData(self.Dices)  
         self.parent().getAdvantageDice().connectLauch() 
 
         self.coworker.Reset()
-        self.parent().getDiceResult().setProperties(self.Result)
-        
+        self.parent().getDiceResult().setProperties(self.Result)        
 
 
     
@@ -1598,6 +1635,50 @@ class Enter_Dice_Option_Const(QWidget):
         painter.setFont(font)
         painter.setPen(QPen(QColor("#e1dfdf")))
         painter.drawText(header_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, self.t)
+
+class DicePollerThread(QThread):
+    """Thread qui vérifie les nouveaux dés en boucle sans bloquer l'interface"""
+    new_roll = Signal(dict)
+
+    def __init__(self, url):
+        super().__init__()
+        self.url = url
+        self.last_roll_time = 0
+        self.running = True
+
+    def run(self):
+        while self.running:
+            try:
+                response = requests.get(self.url, timeout=2)
+                if response.status_code == 200:
+                    data = response.json()
+                    roll_time = data.get("timestamp", 0)
+                    # Si c'est un nouveau jet
+                    if roll_time > self.last_roll_time:
+                        self.new_roll.emit(data) # Envoie les données à l'interface
+                        self.last_roll_time = roll_time
+            except Exception:
+                pass # Si le serveur ne répond pas, on ignore pour ne pas crasher
+            
+            time.sleep(1.5) # Attend 1.5s avant la prochaine requête
+
+    def stop(self):
+        self.running = False
+        self.wait()
+
+
+class DiceSenderThread(QThread):
+    """Thread qui envoie les dés du MJ sans bloquer l'interface"""
+    def __init__(self, url, payload):
+        super().__init__()
+        self.url = url
+        self.payload = payload
+
+    def run(self):
+        try:
+            requests.post(self.url, json=self.payload, timeout=2)
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     

@@ -189,6 +189,26 @@ if (isset($_SESSION['pc_file'])) {
     </main>
   <?php else: ?>
     <main class="stage">
+      <div class="hud hud--controls" style="bottom: 16px; left: 16px; right: auto; display: flex; gap: 8px; align-items: center;">
+        <select id="diceSelect" style="background: var(--bg-panel, #2a2520); color: var(--text-bone, #f5ecd8); border: 1px solid var(--ember); padding: 8px; font-family: 'IBM Plex Mono', monospace; font-weight: bold;">
+          <option value="100">1d00</option>
+          <option value="20">1d20</option>
+          <option value="12">1d12</option>
+          <option value="10">1d10</option>
+          <option value="8">1d8</option>
+          <option value="6">1d6</option>
+          <option value="4">1d4</option>
+        </select>
+        <button type="button" class="hudbtn hudbtn--wide" id="rollDiceBtn" style="border-color: var(--ember); color: var(--ember); margin: 0;">Lancer</button>
+      </div>
+
+      <!-- Zone de notification des dés -->
+      <div class="hud" id="diceNotification" style="display: none; top: 20px; left: 50%; transform: translateX(-50%); padding: 15px; text-align: center; border-color: var(--ember); box-shadow: 0 0 15px var(--ember-glow);">
+        <strong id="dicePlayer" style="color: var(--text-bone); font-family: var(--font-display); font-size: 16px;"></strong><br>
+        <span id="diceDetails" style="font-size: 14px; color: var(--text-dim);"></span><br>
+        <strong id="diceTotal" style="font-size: 24px; color: var(--ember);"></strong>
+      </div>
+
       <canvas id="mapCanvas"></canvas>
 
       <div class="hud hud--coords" id="hudCoords">0 × 0</div>
