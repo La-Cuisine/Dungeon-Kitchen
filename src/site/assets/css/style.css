@@ -184,3 +184,98 @@ html, body {
   font-size: 12px;
   color: var(--text-dim);
 }
+
+/* ---------------------------------------------------------------- Auth UI */
+
+.auth-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  height: calc(100% - 52px);
+  gap: 40px;
+  padding: 20px;
+  background: var(--bg-deep);
+}
+
+.auth-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--bg-panel-edge);
+  padding: 30px;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+.auth-card h2 {
+  color: var(--ember);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+  border-bottom: 1px solid var(--bg-panel-edge);
+  padding-bottom: 10px;
+}
+
+.auth-form-group {
+  margin-bottom: 18px;
+}
+
+.auth-form-group label {
+  display: block;
+  color: var(--text-dim);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.auth-form-group input {
+  width: 100%;
+  background: var(--bg-deep);
+  border: 1px solid var(--bg-panel-edge);
+  color: var(--text-bone);
+  padding: 10px;
+  border-radius: 3px;
+  font-family: var(--font-body);
+  transition: border-color 0.2s ease;
+}
+
+.auth-form-group input:focus {
+  outline: none;
+  border-color: var(--ember);
+}
+
+.auth-btn {
+  width: 100%;
+  appearance: none;
+  background: var(--bg-panel-edge);
+  color: var(--ember);
+  border: 1px solid var(--ember-dim);
+  padding: 12px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.auth-btn:hover {
+  background: var(--ember-dim);
+  color: var(--text-bone);
+}
+
+.auth-error {
+  background: rgba(198, 87, 63, 0.1);
+  border: 1px solid var(--offline);
+  color: var(--offline);
+  padding: 10px;
+  border-radius: 3px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  text-align: center;
+}

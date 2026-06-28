@@ -321,6 +321,34 @@
 
   // ------------------------------------------------------------------ go
 
+  const charSheet = document.getElementById("characterSheet");
+  if (charSheet) {
+    // Empêche la molette de déclencher le zoom du canvas quand on scrolle la fiche
+    charSheet.addEventListener("wheel", (e) => {
+      e.stopPropagation();
+    }, { passive: false });
+
+    // Empêche le clic (ou le déplacement de la scrollbar) d'intéragir avec la map
+    charSheet.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+    });
+
+    charSheet.addEventListener("pointermove", (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  if (toggleSheetBtn && charSheet) {
+    toggleSheetBtn.addEventListener("click", () => {
+      // Si la fiche est cachée, on l'affiche, sinon on la cache
+      if (charSheet.style.display === "none") {
+        charSheet.style.display = "block";
+      } else {
+        charSheet.style.display = "none";
+      }
+    });
+  }
+
   resizeCanvas();
   poll();
   setInterval(poll, POLL_INTERVAL_MS);

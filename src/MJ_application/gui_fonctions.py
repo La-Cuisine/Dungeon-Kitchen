@@ -2204,3 +2204,34 @@ class GuiFunctions():
                 self.ui.props_image_list,
                 PROP_DIRECTORIES
             )
+        self.load_web_registered_pcs()
+            
+    def load_web_registered_pcs(self):
+        """
+        Scanne le dossier local/Players/ et local/Sheets/PC/ pour charger
+        les nouveaux joueurs inscrits via le site web.
+        """
+        player_dir = Path("./local/Players")
+        pc_dir = Path("./local/Sheets/PC")
+        
+        if not player_dir.exists() or not pc_dir.exists():
+            return
+
+        loaded_players = []
+        
+        # Charge tous les joueurs
+        for xml_file in player_dir.glob("*.xml"):
+            try:
+                player_obj = fromXML(str(xml_file), Type="Player")
+                loaded_players.append(player_obj)
+                self._append_log(f"[WEB-SYNC] Joueur synchronisé : {player_obj.name()} (ID: {player_obj.ID()})")
+                
+                # Charge automatiquement la fiche personnage associée si elle existe
+                pc_file_path = pc_dir / player_obj.pc_file()
+                if pc_file_path.exists():
+                    pc_obj = fromXML(str(pc_file_path), Type="PC")
+                    player_obj.newRole(pc_obj)
+                    self._append_log(f"[WEB-SYNC] Fiche personnage rattachée pour {player_obj.name()}")
+                    
+            except Exception as e:
+                self._append_log(f"[ERREUR WEB-SYNC] Impossible de lire le joueur {xml_file.name} : {e}")

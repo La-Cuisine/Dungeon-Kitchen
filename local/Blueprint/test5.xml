@@ -416,6 +416,13 @@
                 image="Assets\Images\Props\patient jeff.jpg"
             >
                 <contents>
+                    <Prop
+                        name="Prop"
+                        type="0"
+                        description=""
+                        state="0"
+                        image="local\Assets\Images\Props\LEGO.png"
+                    />
                 </contents>
             </Cell>
             <Cell
@@ -508,6 +515,13 @@
                 image="Assets\Images\Props\patient jeff.jpg"
             >
                 <contents>
+                    <Prop
+                        name="Prop"
+                        type="0"
+                        description=""
+                        state="0"
+                        image="local\Assets\Images\Props\LEGO.png"
+                    />
                 </contents>
             </Cell>
             <Cell

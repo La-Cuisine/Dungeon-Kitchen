@@ -92,8 +92,20 @@ def toXML(o,indent=0):
 
 
     elif isinstance(o,Player):
-        raise Exception("NotHandled?")
-        #TODO
+        res = ntab(indent) + "<Player\n"
+        res += ntab(indent+1) + "ID=\"" + str(o.ID()) + "\"\n"
+        res += ntab(indent+1) + "name=\"" + o.name() + "\"\n"
+        res += ntab(indent+1) + "password=\"" + o.password() + "\"\n"
+        res += ntab(indent+1) + "pc_file=\"" + o.pc_file() + "\"\n"
+        res += ntab(indent) + ">\n"
+        res += ntab(indent+1) + "<notes>\n"
+        for nte in o.notes():
+            res += ntab(indent+2) + "<note\n"
+            res += ntab(indent+3) + "name=\"" + nte[0] + "\"\n"
+            res += ntab(indent+3) + "text=\"" + nte[1] + "\"\n"
+            res += ntab(indent+2) + "/>\n"
+        res += ntab(indent+1) + "</notes>\n"
+        res += ntab(indent) + "</Player>\n"
 
     elif isinstance(o,Prop):
         res = ntab(indent) + "<Prop\n"
@@ -312,9 +324,13 @@ def fromXMLTree(root):
 
 
     elif(observe == "PC"):
+        ID = "" 
+        n = "Unknown"
+        d = ""
+        img = ""
         for att in root.attrib:
             if (att == "ID"):
-                ID = int(root.attrib[att])
+                ID = root.attrib[att]
             if (att == "name"):
                 n = root.attrib[att]
             if (att == "description"):
@@ -341,9 +357,31 @@ def fromXMLTree(root):
                     new.add_stat(s,v)
 
 
-    elif(observe == "Player"): #???
-        raise Exception("NotHandled?")
-        #TODO
+    elif(observe == "Player"):
+        p_id = 0
+        p_name = "Unknown"
+        p_mdp = ""
+        p_pc_file = ""
+        
+        for att in root.attrib:
+            if (att == "ID"): p_id = root.attrib[att]
+            if (att == "name"): p_name = root.attrib[att]
+            if (att == "password"): p_mdp = root.attrib[att]
+            if (att == "pc_file"): p_pc_file = root.attrib[att]
+            
+        new = Player(p_name, p_id)
+        new._edit_password(p_name, p_mdp) # Met à jour le mot de passe avec le hash
+        new.set_pc_file(p_pc_file)
+        
+        for child in root:
+            if(child.tag == "notes"):
+                for nte in child:
+                    n_name = ""
+                    n_text = ""
+                    for att in nte.attrib:
+                        if att == "name": n_name = nte.attrib[att]
+                        if att == "text": n_text = nte.attrib[att]
+                    new.add_note(n_text, n_name)
 
     elif(observe == "Prop"):
         for att in root.attrib:
