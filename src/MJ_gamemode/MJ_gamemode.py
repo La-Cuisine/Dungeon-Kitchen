@@ -1760,8 +1760,14 @@ class DicePollerThread(QThread):
                         self.new_roll.emit(data) # Envoie les données à l'interface
                         self.last_roll_time = roll_time
             except Exception as e:
-                print(f"Erreur lors de la récupération des dés : {e}")
-                pass
+                # NB: en build "windowed" (PyInstaller --noconsole, etc.) sys.stdout/stderr
+                # valent None : un simple print() leverait alors une AttributeError NON
+                # rattrapee ici, ce qui tuait silencieusement ce QThread au 1er echec reseau
+                # (=> plus aucun jet de de affiche ensuite). On protege donc le print().
+                try:
+                    print(f"Erreur lors de la récupération des dés : {e}")
+                except Exception:
+                    pass
             
             time.sleep(1.5) # Attend 1.5s avant la prochaine requête
 

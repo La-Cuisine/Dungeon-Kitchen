@@ -2,12 +2,6 @@
 Sym_const.py
 ---------
 Fichier contenant toutes les constantes symboliques.
-
-Contenu :
-  - Constantes pour le serveur.
-  - Constantes pour les chemins relatifs de dossiers 
-    pour les éléments du jeu (map, item, character...) 
-  - Raccourcis pour certains éléments (extensions d'images, chemin de placeholder... )
 """
 from PySide6.QtCore import QSize
 from pathlib import Path
@@ -15,39 +9,46 @@ import sys
 import os            
 
 # ----------------------------------------------------------------
+# Racine de l'application
+# En mode PyInstaller --onedir : dossier contenant le .exe
+# En mode développement        : racine du projet (3 niveaux au-dessus de ce fichier)
+# ----------------------------------------------------------------
+if getattr(sys, 'frozen', False):
+    # Exécutable PyInstaller : sys.executable = .../dist/MJ_Application/MJ_Application.exe
+    APP_ROOT = Path(os.path.dirname(sys.executable))
+else:
+    # Développement : src/MJ_application/Sym_const.py → remonter 3 niveaux
+    APP_ROOT = Path(os.path.abspath(__file__)).parent.parent.parent
+
+# ----------------------------------------------------------------
 # Chemins relatifs de dossiers pour les éléments du jeu 
 # ----------------------------------------------------------------
 
-# Assets image folder for character icons
 CHARACTER_ICON_DIRECTORIES = [
-    Path("Assets/Images/Characters"),
-    Path("local/Assets/Images/Characters"),
+    APP_ROOT / "Assets/Images/Characters",
+    APP_ROOT / "local/Assets/Images/Characters",
 ]
 CELL_DIRECTORIES = [
-    Path("Assets/Images/Cells"),
-    Path("local/Assets/Images/Cells"),
+    APP_ROOT / "Assets/Images/Cells",
+    APP_ROOT / "local/Assets/Images/Cells",
 ]
 PROP_DIRECTORIES = [
-    Path("Assets/Images/Props"),
-    Path("local/Assets/Images/Props"),
+    APP_ROOT / "Assets/Images/Props",
+    APP_ROOT / "local/Assets/Images/Props",
 ]
 ITEM_DIRECTORIES = [
-    Path("Assets/Images/Items"),
-    Path("local/Assets/Images/Items"),
+    APP_ROOT / "Assets/Images/Items",
+    APP_ROOT / "local/Assets/Images/Items",
 ]
 SKILL_DIRECTORIES = [
-    Path("Assets/Images/Spells"),
-    Path("local/Assets/Images/Spells"),
+    APP_ROOT / "Assets/Images/Spells",
+    APP_ROOT / "local/Assets/Images/Spells",
 ]
-BLUEPRINT_DIRECTORY = Path("local/Blueprint")
+BLUEPRINT_DIRECTORY = APP_ROOT / "local/Blueprint"
 
-# Dossier de travail courant (la "session" active) et dossier
-# dans lequel les sessions sont archivées / sauvegardées
-SESSION_LOCAL_DIRECTORY = Path("local")
-SESSION_PROJECTS_DIRECTORY = Path("projects")
+SESSION_LOCAL_DIRECTORY    = APP_ROOT / "local"
+SESSION_PROJECTS_DIRECTORY = APP_ROOT / "projects"
 
-# Arborescence de base recréée dans local/ lors de la création
-# d'une nouvelle session vide
 SESSION_SUBFOLDERS = [
     "Assets/Images/Cells",
     "Assets/Images/Characters",
@@ -65,54 +66,28 @@ SESSION_SUBFOLDERS = [
 ]
 
 # ----------------------------------------------------------------
-# Chemins relatifs de dossiers pour les éléments du jeu 
+# Chemins serveur PHP
 # ----------------------------------------------------------------
 
-# Répertoire du script courant, utilisé comme base pour construire
-# les chemins relatifs vers php-portable/ et site/.
-# os.path.abspath garantit un chemin absolu même si le script est lancé
-# depuis un répertoire différent.
+# Répertoire de ce fichier → src/MJ_application/
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Chemin vers le dossier contenant le binaire PHP portable.
-# Ce dossier doit se trouver au même niveau que server.py.
-PHP_DIR = os.path.join(_BASE_DIR, "php-portable")
-
-# Nom de l'exécutable PHP selon la plateforme :
-#   - "php.exe" sur Windows (sys.platform == "win32")
-#   - "php"     sur Linux / macOS
-PHP_BIN = "php.exe" if sys.platform == "win32" else "php"
-
-# Chemin complet vers l'exécutable PHP (utilisé dans la commande subprocess).
+PHP_DIR        = os.path.join(_BASE_DIR, "php-portable")
+PHP_BIN        = "php.exe" if sys.platform == "win32" else "php"
 PHP_EXECUTABLE = os.path.join(PHP_DIR, PHP_BIN)
+SITE_DIR       = os.path.join(_BASE_DIR, "../site")
 
-# Chemin vers le dossier racine du site PHP à servir.
-# PHP utilisera ce dossier comme document root (option -t).
-SITE_DIR = os.path.join(_BASE_DIR, "../site")
-
-# Adresse IP sur laquelle le serveur PHP écoute.
-# "127.0.0.1" = localhost uniquement (non accessible depuis le réseau local).
-# Remplacez par "0.0.0.0" pour exposer le serveur sur le réseau local.
 SERVER_HOST = "0.0.0.0"
-
-# Port TCP sur lequel le serveur PHP écoute les requêtes HTTP.
-# 8080 est un port non privilégié couramment utilisé pour le développement.
 SERVER_PORT = 8080
-
-# URL complète construite à partir de l'hôte et du port.
-# Utilisée pour l'affichage dans l'interface et pour ouvrir le navigateur.
-SERVER_URL = f"http://localhost:{SERVER_PORT}"
+SERVER_URL  = f"http://localhost:{SERVER_PORT}"
 
 # ----------------------------------------------------------------
 # Raccourcis pour certains éléments 
 # ----------------------------------------------------------------
 
-# Image utilisee comme aperçu quand aucune image n'a ete choisie
-PLACEHOLDER_IMAGE = "image/placeholder.png"
+# Chemin absolu vers l'image placeholder (ne dépend plus du CWD)
+PLACEHOLDER_IMAGE = str(APP_ROOT / "image" / "placeholder.png")
 
-# Taille des icones affichees devant chaque objet/sort dans les listes
-# de l'inventaire et des sorts du menu Character
 INVENTORY_ICON_SIZE = QSize(24, 24)
 
-# Image extensions to show in the list
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".PNG"}

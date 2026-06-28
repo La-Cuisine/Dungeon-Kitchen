@@ -25,28 +25,29 @@ else
 endif
 
 # ── Répertoires ─────────────────────────────────────────────────────────────
-# SRC_DIR   := designer_pyside
 DIST_DIR  := dist
 BUILD_DIR := build
 SPEC_DIR  := .
 
 # ── Nom de l'exécutable ─────────────────────────────────────────────────────
-APP_NAME  := MJ_Application
+APP_NAME     := MJ_Application
+WIN_APP_NAME := DungeonKitchen
+WIN_DIR_NAME := Dungeon Kitchen
 
 # ── Chemins sources des données à embarquer ─────────────────────────────────
-# Chemins relatifs à SRC_DIR (on fait "cd $(SRC_DIR)" avant pyinstaller)
-D_IMAGE := ui/image
-D_JSON  := json-styles
-D_QSS   := Qss
-D_SITE  := src/site
-D_PHP   := src/MJ_application/php-portable
+D_IMAGE    := ui/image
+D_JSON     := json-styles
+D_QSS      := Qss
+D_SITE     := src/site
+D_PHP      := src/MJ_application/php-portable
+D_ASSETS   := Assets
+D_PROJECTS := projects
+D_LOCAL    := Local
 
 # ── Options PyInstaller communes ────────────────────────────────────────────
-#    --add-data utilise SEP (';' Windows, ':' Linux)
 PYINST_OPTS := \
 	--noconfirm \
 	--clean \
-	--name "$(APP_NAME)" \
 	--distpath "$(DIST_DIR)" \
 	--workpath "$(BUILD_DIR)" \
 	--specpath "$(SPEC_DIR)" \
@@ -55,6 +56,8 @@ PYINST_OPTS := \
 	--add-data "$(D_QSS)$(SEP)Qss" \
 	--add-data "$(D_SITE)$(SEP)src/site" \
 	--add-data "$(D_PHP)$(SEP)src/MJ_application/php-portable" \
+	--add-data "$(D_ASSETS)$(SEP)Assets" \
+	--add-data "$(D_PROJECTS)$(SEP)projects" \
 	--hidden-import Custom_Widgets \
 	--hidden-import PySide6.QtSvg \
 	--hidden-import PySide6.QtXml
@@ -80,17 +83,26 @@ run:
 	$(PYTHON) main.py
 
 # ---------------------------------------------------------------------------
-# build-win  (peut aussi être lancé depuis Linux si cross-toolchain dispo)
+# build-win
 # ---------------------------------------------------------------------------
 build-win:
 	pyinstaller \
 		$(PYINST_OPTS) \
+		--name "$(WIN_APP_NAME)" \
 		--windowed \
-		--icon "image/placeholder.png" \
+		--icon "ui/image/icon.png" \
 		--onedir \
+		--contents-directory "." \
 		main.py
+ifeq ($(DETECTED_OS), Windows)
+	-$(RM_DIR) "$(DIST_DIR)\$(WIN_DIR_NAME)" 2>nul
+	move /Y "$(DIST_DIR)\$(WIN_APP_NAME)" "$(DIST_DIR)\$(WIN_DIR_NAME)"
+else
+	-$(RM_DIR) "$(DIST_DIR)/$(WIN_DIR_NAME)"
+	mv "$(DIST_DIR)/$(WIN_APP_NAME)" "$(DIST_DIR)/$(WIN_DIR_NAME)"
+endif
 	@echo ""
-	@echo "  OK  Executable Windows : $(DIST_DIR)/$(APP_NAME).exe"
+	@echo "  OK  Executable Windows : $(DIST_DIR)/$(WIN_DIR_NAME)/$(WIN_APP_NAME).exe"
 
 # ---------------------------------------------------------------------------
 # build-linux
@@ -98,6 +110,7 @@ build-win:
 build-linux:
 	pyinstaller \
 		$(PYINST_OPTS) \
+		--name "$(APP_NAME)" \
 		--onedir \
 		main.py
 	@echo ""
@@ -111,10 +124,11 @@ ifeq ($(DETECTED_OS), Windows)
 	-$(RM_DIR) $(BUILD_DIR) 2>nul
 	-$(RM_DIR) $(DIST_DIR)  2>nul
 	-$(RM_FILE) $(APP_NAME).spec 2>nul
+	-$(RM_FILE) $(WIN_APP_NAME).spec 2>nul
 	-for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d" 2>nul
 	-del /s /q *.pyc 2>nul
 else
-	$(RM_DIR) $(BUILD_DIR) $(DIST_DIR) $(APP_NAME).spec
+	$(RM_DIR) $(BUILD_DIR) $(DIST_DIR) $(APP_NAME).spec $(WIN_APP_NAME).spec
 	$(CLEAN_PYC)
 endif
 	@echo "  OK  Nettoyage termine."
