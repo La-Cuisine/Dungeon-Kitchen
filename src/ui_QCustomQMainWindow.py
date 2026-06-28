@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'QCustomQMainWindow.ui'
+## Form generated from reading UI file 'new_QCustomQMainWindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.11.1
 ##
@@ -765,22 +765,83 @@ class Ui_CustomMainWindow(object):
         self.information_menu.setObjectName(u"information_menu")
         self.verticalLayout_8 = QVBoxLayout(self.information_menu)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
-        self.information_menu_label = QLabel(self.information_menu)
-        self.information_menu_label.setObjectName(u"information_menu_label")
-        self.information_menu_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label_9 = QLabel(self.information_menu)
+        self.label_9.setObjectName(u"label_9")
+        self.label_9.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.verticalLayout_8.addWidget(self.information_menu_label, 0, Qt.AlignmentFlag.AlignVCenter)
+        self.verticalLayout_8.addWidget(self.label_9)
+
+        self.line_9 = QFrame(self.information_menu)
+        self.line_9.setObjectName(u"line_9")
+        self.line_9.setFrameShape(QFrame.Shape.HLine)
+        self.line_9.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_8.addWidget(self.line_9)
+
+        self.label_4 = QLabel(self.information_menu)
+        self.label_4.setObjectName(u"label_4")
+
+        self.verticalLayout_8.addWidget(self.label_4)
+
+        self.label_6 = QLabel(self.information_menu)
+        self.label_6.setObjectName(u"label_6")
+
+        self.verticalLayout_8.addWidget(self.label_6)
+
+        self.label_7 = QLabel(self.information_menu)
+        self.label_7.setObjectName(u"label_7")
+
+        self.verticalLayout_8.addWidget(self.label_7)
+
+        self.label_8 = QLabel(self.information_menu)
+        self.label_8.setObjectName(u"label_8")
+
+        self.verticalLayout_8.addWidget(self.label_8)
+
+        self.label_5 = QLabel(self.information_menu)
+        self.label_5.setObjectName(u"label_5")
+
+        self.verticalLayout_8.addWidget(self.label_5)
+
+        self.line_10 = QFrame(self.information_menu)
+        self.line_10.setObjectName(u"line_10")
+        self.line_10.setFrameShape(QFrame.Shape.HLine)
+        self.line_10.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.verticalLayout_8.addWidget(self.line_10)
+
+        self.verticalSpacer_6 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+
+        self.verticalLayout_8.addItem(self.verticalSpacer_6)
+
+        self.label_2 = QLabel(self.information_menu)
+        self.label_2.setObjectName(u"label_2")
+        self.label_2.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+        self.label_2.setWordWrap(True)
+        self.label_2.setOpenExternalLinks(True)
+
+        self.verticalLayout_8.addWidget(self.label_2)
+
+        self.verticalSpacer_7 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout_8.addItem(self.verticalSpacer_7)
+
+        self.label_3 = QLabel(self.information_menu)
+        self.label_3.setObjectName(u"label_3")
+
+        self.verticalLayout_8.addWidget(self.label_3)
 
         self.stacked_widget.addWidget(self.information_menu)
         self.help_menu = QWidget()
         self.help_menu.setObjectName(u"help_menu")
         self.verticalLayout_9 = QVBoxLayout(self.help_menu)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
-        self.help_menu_label = QLabel(self.help_menu)
-        self.help_menu_label.setObjectName(u"help_menu_label")
-        self.help_menu_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label = QLabel(self.help_menu)
+        self.label.setObjectName(u"label")
+        self.label.setMaximumSize(QSize(16777215, 20))
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.verticalLayout_9.addWidget(self.help_menu_label, 0, Qt.AlignmentFlag.AlignVCenter)
+        self.verticalLayout_9.addWidget(self.label)
 
         self.stacked_widget.addWidget(self.help_menu)
         self.item_menu = QWidget()
@@ -1022,7 +1083,7 @@ class Ui_CustomMainWindow(object):
 
         self.retranslateUi(CustomMainWindow)
 
-        self.stacked_widget.setCurrentIndex(7)
+        self.stacked_widget.setCurrentIndex(5)
         self.tabWidget.setCurrentIndex(2)
         self.map_tab_widget.setCurrentIndex(1)
 
@@ -1129,8 +1190,15 @@ class Ui_CustomMainWindow(object):
         self.close_server_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Close server", None))
         self.open_website_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open website", None))
         self.open_game_interface_btn.setText(QCoreApplication.translate("CustomMainWindow", u"Open game interface", None))
-        self.information_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Information", None))
-        self.help_menu_label.setText(QCoreApplication.translate("CustomMainWindow", u"Help", None))
+        self.label_9.setText(QCoreApplication.translate("CustomMainWindow", u"Information", None))
+        self.label_4.setText(QCoreApplication.translate("CustomMainWindow", u"Created by:", None))
+        self.label_6.setText(QCoreApplication.translate("CustomMainWindow", u"         -Dekaton", None))
+        self.label_7.setText(QCoreApplication.translate("CustomMainWindow", u"         -Jackno", None))
+        self.label_8.setText(QCoreApplication.translate("CustomMainWindow", u"         -PAV-TRA", None))
+        self.label_5.setText(QCoreApplication.translate("CustomMainWindow", u"         -xrzspwq", None))
+        self.label_2.setText(QCoreApplication.translate("CustomMainWindow", u"GitHub: <a href=https://github.com/La-Cuisine/Dungeons-Kitchen>https://github.com/La-Cuisine/Dungeons-Kitchen</a>", None))
+        self.label_3.setText(QCoreApplication.translate("CustomMainWindow", u"Under the GPL-3.0 license", None))
+        self.label.setText(QCoreApplication.translate("CustomMainWindow", u"Help", None))
         self.item_name.setPlaceholderText(QCoreApplication.translate("CustomMainWindow", u"Item name", None))
         self.item_type.setItemText(0, QCoreApplication.translate("CustomMainWindow", u"Weapon", None))
         self.item_type.setItemText(1, QCoreApplication.translate("CustomMainWindow", u"Armour", None))
