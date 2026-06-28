@@ -22,59 +22,84 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 
 // 2. GESTION DE L'INSCRIPTION
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
-  $id = preg_replace('/[^a-zA-Z0-9_-]/', '', $_POST['id']); // Sécurisation de l'ID
-  $name = htmlspecialchars($_POST['name']); // Pseudo du joueur
-  $pc_name = htmlspecialchars($_POST['pc_name']); //  Récupération du nom du PC
-  $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash sécurisé du mot de passe
+  $id = preg_replace('/[^a-zA-Z0-9_-]/', '', $_POST['id']);
+  $name = htmlspecialchars($_POST['name']);
+  $pc_name = htmlspecialchars($_POST['pc_name']);
+  $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
   $player_file = $players_dir .  $id . '.xml';
-
   $safe_pc_name = preg_replace('/[^a-zA-Z0-9_-]/', '_', $pc_name);
   $pc_file = $pc_dir . $safe_pc_name . '.xml';
 
   if (file_exists($player_file)) {
     $error = "Cet ID est déjà utilisé.";
   } else {
-    // Création du fichier XML du Joueur (Player)
-    $player_xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><Player></Player>');
-    $player_xml->addAttribute('ID', $id);
-    $player_xml->addAttribute('name', $name);
-    $player_xml->addAttribute('password', $password);
-    $player_xml->addAttribute('pc_file', basename($pc_file));
-    $player_xml->asXML($player_file);
+    // --- GESTION DE L'UPLOAD DE L'IMAGE ---
+    $image_path = '';
+    if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+      // Dossier cible basé sur ton arborescence
+      $upload_dir = __DIR__ . '/../../local/Assets/Images/Characters/';
+      if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
 
-    // Création du fichier XML du Personnage (PC) conforme à save.py
-    $pc_xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><PC></PC>');
-    $pc_xml->addAttribute('ID', $id);
-    $pc_xml->addAttribute('name', $pc_name); // On utilise $pc_name au lieu de $name
-    $pc_xml->addAttribute('description', '');
-    $pc_xml->addAttribute('image', '');
-    $pc_xml->addChild('inventory');
-    $pc_xml->addChild('skills');
+      $file_info = pathinfo($_FILES['avatar']['name']);
+      $extension = strtolower($file_info['extension']);
+      $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
-    // Création du bloc stats avec ses couples enfants
-    $stats = $pc_xml->addChild('stats');
-    $stat_list = ['HP', 'STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+      if (in_array($extension, $allowed_exts)) {
+        // Nom de fichier unique pour éviter d'écraser l'avatar d'un autre joueur
+        $new_filename = uniqid($safe_pc_name . '_') . '.' . $extension;
+        $target_file = $upload_dir . $new_filename;
 
-    foreach ($stat_list as $stat_name) {
-      $couple = $stats->addChild('couple');
-      $couple->addAttribute('stat', $stat_name);
-      $couple->addAttribute('value', '0');
+        if (move_uploaded_file($_FILES['avatar']['tmp_name'], $target_file)) {
+          // Chemin relatif qui sera inscrit dans le XML (et lu par ton app / script python)
+          $image_path = 'local/Assets/Images/Characters/' . $new_filename;
+        }
+      } else {
+        $error = "Format d'image non supporté (jpg, png, gif, webp uniquement).";
+      }
     }
 
-    // Sauvegarde du fichier XML formaté proprement (avec indentation)
-    $dom = new DOMDocument('1.0');
-    $dom->preserveWhiteSpace = false;
-    $dom->formatOutput = true;
-    $dom->loadXML($pc_xml->asXML());
-    $dom->save($pc_file);
+    if (empty($error)) {
+      // Création du fichier XML du Joueur (Player)
+      $player_xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><Player></Player>');
+      $player_xml->addAttribute('ID', $id);
+      $player_xml->addAttribute('name', $name);
+      $player_xml->addAttribute('password', $password);
+      $player_xml->addAttribute('pc_file', basename($pc_file));
+      $player_xml->asXML($player_file);
 
-    // Connexion automatique après l'inscription
-    $_SESSION['player_id'] = $id;
-    $_SESSION['player_name'] = $name;
-    $_SESSION['pc_file'] = basename($pc_file);
-    header("Location: index.php");
-    exit;
+      // Création du fichier XML du Personnage (PC)
+      $pc_xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><PC></PC>');
+      $pc_xml->addAttribute('ID', $id);
+      $pc_xml->addAttribute('name', $pc_name);
+      $pc_xml->addAttribute('description', '');
+      $pc_xml->addAttribute('image', $image_path); // Insertion du chemin de l'avatar ici
+      $pc_xml->addChild('inventory');
+      $pc_xml->addChild('skills');
+
+      // Création du bloc stats
+      $stats = $pc_xml->addChild('stats');
+      $stat_list = ['HP', 'STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+      foreach ($stat_list as $stat_name) {
+        $couple = $stats->addChild('couple');
+        $couple->addAttribute('stat', $stat_name);
+        $couple->addAttribute('value', '0');
+      }
+
+      // Sauvegarde du fichier XML 
+      $dom = new DOMDocument('1.0');
+      $dom->preserveWhiteSpace = false;
+      $dom->formatOutput = true;
+      $dom->loadXML($pc_xml->asXML());
+      $dom->save($pc_file);
+
+      // Connexion automatique après l'inscription
+      $_SESSION['player_id'] = $id;
+      $_SESSION['player_name'] = $name;
+      $_SESSION['pc_file'] = basename($pc_file);
+      header("Location: index.php");
+      exit;
+    }
   }
 }
 
@@ -169,7 +194,7 @@ if (isset($_SESSION['pc_file'])) {
 
       <div class="auth-card">
         <h2>Créer un profil</h2>
-        <form method="POST" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+        <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
           <h3>Nouvel aventurier</h3>
           <input type="text" name="id" placeholder="Identifiant (sans espaces)" required
             style="background: var(--bg-panel); color: var(--text-bone); border: 1px solid var(--bg-panel-edge); padding: 8px;">
@@ -179,8 +204,14 @@ if (isset($_SESSION['pc_file'])) {
             style="background: var(--bg-panel); color: var(--text-bone); border: 1px solid var(--bg-panel-edge); padding: 8px;">
           <input type="password" name="password" placeholder="Mot de passe" required
             style="background: var(--bg-panel); color: var(--text-bone); border: 1px solid var(--bg-panel-edge); padding: 8px;">
-          <button type="submit" name="register"
-            style="background: var(--text-bone); color: var(--bg-base); padding: 8px; border: none; font-weight: bold; cursor: pointer;">
+
+          <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 5px;">
+            <label for="avatar_upload" style="color: var(--text-dim); font-size: 14px;">Avatar du personnage (Optionnel) :</label>
+            <input type="file" id="avatar_upload" name="avatar" accept="image/png, image/jpeg, image/gif, image/webp"
+              style="background: var(--bg-panel); color: var(--text-bone); border: 1px solid var(--bg-panel-edge); padding: 8px; font-size: 14px;">
+          </div>
+
+          <button type="submit" name="register" class="auth-btn">
             Créer un compte
           </button>
         </form>
@@ -233,25 +264,25 @@ if (isset($_SESSION['pc_file'])) {
 
             // Si le personnage a bien un chemin d'image renseigné
             if (!empty($charImgPath)) {
-                // On construit le chemin absolu en remontant à la racine du projet
-                $realPath = __DIR__ . '/../../' . $charImgPath; 
-                
-                // Si l'application a sauvegardé un chemin absolu (ex: C:/...), on essaie celui-ci en fallback
-                if (!file_exists($realPath) && file_exists($charImgPath)) {
-                    $realPath = $charImgPath;
-                }
+              // On construit le chemin absolu en remontant à la racine du projet
+              $realPath = __DIR__ . '/../../' . $charImgPath;
 
-                // Si le fichier physique existe bien, on le convertit en Base64
-                if (file_exists($realPath)) {
-                    $mime = mime_content_type($realPath) ?: 'image/jpeg'; // On récupère le type (png, jpg...)
-                    $imgData = base64_encode(file_get_contents($realPath));
-                    $imgSrc = 'data:' . $mime . ';base64,' . $imgData;
-                }
+              // Si l'application a sauvegardé un chemin absolu (ex: C:/...), on essaie celui-ci en fallback
+              if (!file_exists($realPath) && file_exists($charImgPath)) {
+                $realPath = $charImgPath;
+              }
+
+              // Si le fichier physique existe bien, on le convertit en Base64
+              if (file_exists($realPath)) {
+                $mime = mime_content_type($realPath) ?: 'image/jpeg'; // On récupère le type (png, jpg...)
+                $imgData = base64_encode(file_get_contents($realPath));
+                $imgSrc = 'data:' . $mime . ';base64,' . $imgData;
+              }
             }
 
             // Fallback : Si aucune image n'est trouvée, on génère un avatar avec les initiales
             if (empty($imgSrc)) {
-                $imgSrc = 'https://ui-avatars.com/api/?name=' . urlencode($charName) . '&background=2a2520&color=e8954a';
+              $imgSrc = 'https://ui-avatars.com/api/?name=' . urlencode($charName) . '&background=2a2520&color=e8954a';
             }
             ?>
             <h2 style="margin: 0 0 10px 0; font-family: 'Oswald', sans-serif;"><?= htmlspecialchars($charName) ?></h2>

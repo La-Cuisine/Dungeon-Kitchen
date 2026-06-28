@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PC ID="samy" name="samy" description="" image="local/Assets/Images/Characters/samy_6a40c6ea4c819.jpg">
+  <inventory/>
+  <skills/>
+  <stats>
+    <couple stat="HP" value="0"/>
+    <couple stat="STR" value="0"/>
+    <couple stat="DEX" value="0"/>
+    <couple stat="CON" value="0"/>
+    <couple stat="INT" value="0"/>
+    <couple stat="WIS" value="0"/>
+    <couple stat="CHA" value="0"/>
+  </stats>
+</PC>
