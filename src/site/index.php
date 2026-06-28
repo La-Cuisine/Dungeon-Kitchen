@@ -228,13 +228,35 @@ if (isset($_SESSION['pc_file'])) {
           <div class="char-header" style="text-align: center; margin-bottom: 15px;">
             <?php
             $charName = (string)$pc_data['name'];
-            $charImg = (string)$pc_data['image'];
+            $charImgPath = (string)$pc_data['image']; // Contient le chemin (ex: local/Assets/Images/Characters/...)
+            $imgSrc = '';
+
+            // Si le personnage a bien un chemin d'image renseigné
+            if (!empty($charImgPath)) {
+                // On construit le chemin absolu en remontant à la racine du projet
+                $realPath = __DIR__ . '/../../' . $charImgPath; 
+                
+                // Si l'application a sauvegardé un chemin absolu (ex: C:/...), on essaie celui-ci en fallback
+                if (!file_exists($realPath) && file_exists($charImgPath)) {
+                    $realPath = $charImgPath;
+                }
+
+                // Si le fichier physique existe bien, on le convertit en Base64
+                if (file_exists($realPath)) {
+                    $mime = mime_content_type($realPath) ?: 'image/jpeg'; // On récupère le type (png, jpg...)
+                    $imgData = base64_encode(file_get_contents($realPath));
+                    $imgSrc = 'data:' . $mime . ';base64,' . $imgData;
+                }
+            }
+
+            // Fallback : Si aucune image n'est trouvée, on génère un avatar avec les initiales
+            if (empty($imgSrc)) {
+                $imgSrc = 'https://ui-avatars.com/api/?name=' . urlencode($charName) . '&background=2a2520&color=e8954a';
+            }
             ?>
             <h2 style="margin: 0 0 10px 0; font-family: 'Oswald', sans-serif;"><?= htmlspecialchars($charName) ?></h2>
 
-            <?php if (!empty($charImg)): ?>
-              <img src="<?= htmlspecialchars($charImg) ?>" alt="Avatar" style="max-width: 100px; border-radius: 50%; border: 2px solid #e8954a;">
-            <?php endif; ?>
+            <img src="<?= htmlspecialchars($imgSrc) ?>" alt="Avatar" style="max-width: 100px; max-height: 100px; width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 50%; border: 2px solid var(--ember, #e8954a);">
           </div>
 
           <hr style="border-color: #4a4540; margin: 10px 0;">
