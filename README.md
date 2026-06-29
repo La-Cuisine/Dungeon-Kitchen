@@ -1,5 +1,10 @@
 # Welcome 
 
+# Sources for some import :
+
+GTK+ for Windows Runtime Environment Installer 64-bit: [https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer)
+
+QT-PyQt-PySide-Custom-Widgets: [https://github.com/KhamisiKibet/QT-PyQt-PySide-Custom-Widgets](https://github.com/KhamisiKibet/QT-PyQt-PySide-Custom-Widgets)
 
 # Sources for Assetes :
 
