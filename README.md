@@ -1,6 +1,7 @@
 # Dungeon Kitchen
 
 **Currently only fully functional on Windows**
+
 An application to play TTRPG online. The application provides the tools for the GameMaster to create objects, characters and maps. The GameMaster can open a local server to start the game. An URL is generated at the start of the server. The players can then connect to the game by entering the URL given by the GameMaster.
 
 The application is composed of 3 parts:
