@@ -12,6 +12,10 @@ The application is composed of 3 parts:
 
 To launch the application, type "make run" in a terminal in the Dungeons-Kitchen's directory
 
+## Import requirements for development 
+
+Please check "requirements.txt"
+
 ## Sources for some import
 
 GTK+ for Windows Runtime Environment Installer 64-bit: [https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer)
